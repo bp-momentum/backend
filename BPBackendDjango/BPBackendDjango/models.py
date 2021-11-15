@@ -1,6 +1,12 @@
 from django.db import models
 
 
+class Trainer(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name =  models.CharField(max_length=50)
+    username =  models.CharField(max_length=50)
+    password =  models.CharField(max_length=255)
+
 class User(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -8,11 +14,6 @@ class User(models.Model):
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.SETNULL)
 
-class Trainer(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name =  models.CharField(max_length=50)
-    username =  models.CharField(max_length=50)
-    password =  models.CharField(max_length=255)
     
 class TrainingSchedule(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
