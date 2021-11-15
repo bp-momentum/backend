@@ -12,8 +12,7 @@ class User(models.Model):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
-    trainer = models.ForeignKey(Trainer, on_delete=models.SETNULL)
-
+    trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)    
     
 class TrainingSchedule(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
@@ -21,9 +20,9 @@ class TrainingSchedule(models.Model):
 
 class Exercise(models.Model):
     description = models.TextField()
-    video = models.PathField()
+    video = models.FilePathField()
     title = models.CharField(max_length=255)
-    activated = models.NullBooleanField()
+    activated = models.BooleanField()
 
 class Team(models.Model):
     team_name = models.CharField(max_length=255)
@@ -39,8 +38,5 @@ class DoneExercises(models.Model):
     date = models.DateField()
 
 class Friends(models.Model):
-    friend1 = models.ForeignKey(User, on_delete=models.CASCADE)
-    friend2 = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    
-
+    friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
+    friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
