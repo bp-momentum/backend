@@ -1,43 +1,43 @@
 from django.db import models
 
 
-class User(models.Models):
+class User(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.SETNULL)
 
-class Trainer(models.Models):
+class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
     last_name =  models.CharField(max_length=50)
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
     
-class TrainingSchedule(models.Models):
+class TrainingSchedule(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField()
 
-class Exercise(models.Models):
+class Exercise(models.Model):
     description = models.TextField()
     video = models.PathField()
     title = models.CharField(max_length=255)
     activated = models.NullBooleanField()
 
-class Team(models.Models):
+class Team(models.Model):
     team_name = models.CharField(max_length=255)
 
-class ExerciseInPlan(models.Models):
+class ExerciseInPlan(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.CASCADE)
 
-class DoneExercises(models.Models):
+class DoneExercises(models.Model):
     exercise =  models.ForeignKey(Exercise, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.DateField()
 
-class Friends(models.Models):
+class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE)
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE)
 
