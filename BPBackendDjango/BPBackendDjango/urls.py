@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from BPBackendDjango.BPBackendDjango.views import TesView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', TesView.as_view(), name='userRequest')
 ]
