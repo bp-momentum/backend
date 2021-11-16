@@ -30,7 +30,7 @@ class RegisterView(APIView):
             user = None
             user = User.objects.get(username=request.data['username'])
             print(user)
-            if user.DoesNotExist:
+            if user == None:
                 #serializer.save()
                 return Response(serializer.data)
             return Response(serializer.errors)
