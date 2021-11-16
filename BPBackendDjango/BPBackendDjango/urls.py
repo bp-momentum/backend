@@ -16,9 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from .views import TesView
+from .views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', TesView.as_view(), name='userRequest')
+    path('api/', TesView.as_view(), name='userRequest'),
+    path('api/register/', RegisterView.as_view, name='registerRequest')
 ]
