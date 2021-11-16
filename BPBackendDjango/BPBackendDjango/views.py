@@ -27,7 +27,7 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         print(request.data)
         if serializer.is_valid():
-            if User.objects.filter(username=request.data['username']).exists():
+            if not User.objects.filter(username=request.data['username']).exists():
                 serializer.save()
                 
                 data = {
