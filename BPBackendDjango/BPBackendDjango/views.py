@@ -27,10 +27,23 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         print(request.data)
         if serializer.is_valid():
-            user = User.objects.filter(username=request.data['username'])
-            #user = User.objects.get(username=request.data['username'])
-            print(user)
-            return Response(serializer.errors)
+            if User.objects.filter(username=request.data['username']).exists():
+                serializer.save()
+                
+                data = {
+                'Success': 'True',
+                'Description': 'User wurde erstellt'
+                }
+
+                return Response(data)
+            else:
+                data = {
+                'Success': 'False',
+                'Description': 'Username existiert bereits'
+                }
+
+                return Response(data)
+
         return Response(serializer.errors)
 
 
