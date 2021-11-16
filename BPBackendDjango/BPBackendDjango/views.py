@@ -33,7 +33,7 @@ class RegisterView(APIView):
             except user.DoesNotExist:
                 #serializer.save()
                 return Response(serializer.data)
-            return Response()
+            return Response(serializer.errors)
 
 
 
