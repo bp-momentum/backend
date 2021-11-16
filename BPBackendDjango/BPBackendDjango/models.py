@@ -33,15 +33,15 @@ class User(models.Model):
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)
-    o_auth_token = models.CharField(max_length=255)
-    token_time = models.DateTimeField()
+    o_auth_token = models.CharField(max_length=255, null=True)
+    token_time = models.DateTimeField(null=True)
 
 class DoneExercises(models.Model):
     exercise =  models.ForeignKey(Exercise, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.DateField()
-    
+
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
