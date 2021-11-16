@@ -26,13 +26,11 @@ class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         print(request.data)
+        request.data['username']
         if serializer.is_valid():
             user = None
             user = User.objects.get(username=request.data['username'])
             print(user)
-            if user == None:
-                #serializer.save()
-                return Response(serializer.data)
             return Response(serializer.errors)
         return Response(serializer.errors)
 
