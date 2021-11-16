@@ -10,14 +10,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model: User
+        model = User
         fields = (
             'first_name', 'last_name', 'username', 'password', 'o_auth_token'
         )
 
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
-        model: User
+        model = User
         fields = (
             'username', 'password',  'o_auth_token'
         )
