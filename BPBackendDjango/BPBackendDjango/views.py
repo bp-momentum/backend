@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .serializers import UserSerializer
-from .models import User
+from .serializers import *
+from .models import *
 
 class TesView(APIView):
     def get(self, request, *args, **kwargs):
@@ -21,6 +21,21 @@ class TesView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
+
+class RegisterView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        print(request.data)
+        if serializer.is_valid():
+            user = None
+            try:
+                 user = User.objects.get(username=serializer.username)
+            except user.DoesNotExist:
+                #serializer.save()
+                return Response(serializer.data)
+            return Response()
+
+
 
 
 
