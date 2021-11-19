@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from jwttoken import JwToken
+import hashlib
 
 from .serializers import *
 from .models import *
@@ -30,6 +31,8 @@ class RegisterView(APIView):
         if serializer.is_valid():
             #check if username already exists
             if not User.objects.filter(username=request.data['username']).exists():
+                #hashing password
+                serializer.fields['password']=hashlib.sha3_256(request.data['password']).hexdigest
                 #save User in the databank
                 serializer.save()
                 #creating the session_token
