@@ -7,8 +7,6 @@ import hashlib
 from ..serializers import *
 from ..models import *
 
-
-
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
