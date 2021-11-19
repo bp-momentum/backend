@@ -7,8 +7,8 @@ class Trainer(models.Model):
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
  
-   
-    
+
+
 class TrainingSchedule(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField()
@@ -40,8 +40,6 @@ class User(models.Model):
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)
-    o_auth_token = models.CharField(max_length=255, null=True)
-    token_time = models.DateTimeField(null=True)
 
 
 
