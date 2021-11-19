@@ -9,18 +9,18 @@ from ..models import *
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
-        request.data._mutable = True
-        request.data['password'] = str(hashlib.sha3_256(request.data['password'].encode('utf8')).hexdigest())
-        serializer = RegisterSerializer(data=request.data)
-        print(request.data)
+        req_data = dict(request.data)
+        req_data['password'] = str(hashlib.sha3_256(req_data['password'].encode('utf8')).hexdigest())
+        serializer = RegisterSerializer(data=req_data)
+        print(req_data)
         #hashing password
         if serializer.is_valid():
             #check if username already exists
             if not User.objects.filter(username=request.data['username']).exists():
                 #save User in the databank
                 serializer.save()
-                #creating the session_token++
-                session_token = JwToken.create_session_token(request.data['username'])
+                #creating the session_token
+                session_token = JwToken.create_session_token(req_data['username'])
                 data = {
                 'success': 'True',
                 'description': 'User wurde erstellt',
