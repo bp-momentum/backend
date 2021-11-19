@@ -15,10 +15,10 @@ class RegisterView(APIView):
             #check if username already exists
             if not User.objects.filter(username=request.data['username']).exists():
                 #hashing password
-                serializer.fields['password'] = hashlib.sha3_256(request.data['password']).hexdigest
+                serializer.fields['password'] = hashlib.sha3_256(request.data['password'].encode('utf8')).hexdigest()
                 #save User in the databank
                 serializer.save()
-                #creating the session_token
+                #creating the session_token++
                 session_token = JwToken.create_session_token(request.data['username'])
                 data = {
                 'success': 'True',
