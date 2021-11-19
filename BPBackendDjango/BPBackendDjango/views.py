@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from jwttoken import JwToken
 
 from .serializers import *
 from .models import *
@@ -27,19 +28,24 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         print(request.data)
         if serializer.is_valid():
+            #check if username already exists
             if not User.objects.filter(username=request.data['username']).exists():
+                #save User in the databank
                 serializer.save()
-                
+                #creating the session_token
+                session_token = JwToken.create_session_token(request.data['username'])
                 data = {
-                'Success': 'True',
-                'Description': 'User wurde erstellt'
+                'success': 'True',
+                'description': 'User wurde erstellt',
+                'data': {'session_token': session_token}
                 }
 
                 return Response(data)
             else:
                 data = {
-                'Success': 'False',
-                'Description': 'Username existiert bereits'
+                'success': 'False',
+                'description': 'Username existiert bereits',
+                'data': {}
                 }
 
                 return Response(data)
