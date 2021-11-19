@@ -1,15 +1,14 @@
 from jwcrypto import jwt, jwk
 import json
-from datetime import datetime, timedelta
+import time
 from pathlib import Path
 
 
 
 def check_tokentime(token_time):
-    now = datetime.now()
-    token_time = datetime.fromisoformat(token_time)
+    now = time.time()
     age = now - token_time
-    if timedelta(days=1) > age:
+    if now - token_time < 86400:
         return True
     return False
 
@@ -30,7 +29,7 @@ class JwToken(object):
         key = jwk.JWK(**key_dict)
 
         #sign token
-        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": str(datetime.now())})
+        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": time.time()})
         signed_token.make_signed_token(key)
 
         #encrypt the token
