@@ -34,9 +34,9 @@ class JwToken(object):
         signed_token.make_signed_token(key)
 
         #encrypt the token
-        token = jwt.JWT(header={"alg": "A256KW", "enc": "A256CBC-HS512"}, claims=signed_token.serialize())
-        token.make_encrypted_token(key)
-        return token.serialize()
+        #token = jwt.JWT(header={"alg": "A256KW", "enc": "A256CBC-HS512"}, claims=signed_token.serialize())
+        #token.make_encrypted_token(key)
+        return signed_token.serialize()
 
     @staticmethod
     def check_session_token(token):
@@ -50,14 +50,15 @@ class JwToken(object):
         key = jwk.JWK(**key_dict)
         
         #decrypt token
-        try:
-            ET = jwt.JWT(key=key, jwt = token)
-        except:
-            print("Decryption failed")
-            return False, ""
+        # try:
+        #     ET = jwt.JWT(key=key, jwt = token)
+        # except:
+        #     print("Decryption failed")
+        #     return False, ""
+
         #check validation
         try:
-            ST = jwt.JWT(key=key, jwt = ET.claims)
+            ST = jwt.JWT(key=key, jwt = token)
         except:
             print("Signature is not valid")
             return False, ""
