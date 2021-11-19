@@ -9,7 +9,8 @@ from ..models import *
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
-        request.data['passwort'] = str(hashlib.sha3_256(request.data['password'].encode('utf8')).hexdigest())
+        request.data._mutable = True
+        request.data['password'] = str(hashlib.sha3_256(request.data['password'].encode('utf8')).hexdigest())
         serializer = RegisterSerializer(data=request.data)
         print(request.data)
         #hashing password
