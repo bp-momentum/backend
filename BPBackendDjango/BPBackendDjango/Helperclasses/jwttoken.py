@@ -20,12 +20,13 @@ class JwToken(object):
     @staticmethod
     def create_session_token(username):
         #load key
-        if not Path("../../../../jw_key.json").is_file():   
+        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+            print("Erstelle Key File")
             key = jwk.JWK(generate='oct', size=256)
             json.dump(key, open("jw_key.json", "w"))
 
             
-        key_dict = json.load(open("../../../../jw_key.json"))
+        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
         key = jwk.JWK(**key_dict)
 
         #sign token
@@ -40,11 +41,12 @@ class JwToken(object):
     @staticmethod
     def check_session_token(token):
         #load key
-        if not Path("../../../../jw_key.json").is_file():   
+        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+            print("Erstelle Key File")
             key = jwk.JWK(generate='oct', size=256)
             json.dump(key, open("jw_key.json", "w"))
         
-        key_dict = json.load(open("../../../../jw_key.json"))
+        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
         key = jwk.JWK(**key_dict)
         
         #decrypt token
