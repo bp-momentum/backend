@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def check_tokentime(token_time):
-    now = time.time()
+    now = int(time.time())
     age = now - token_time
     if now - token_time < 86400:
         return True
@@ -29,7 +29,7 @@ class JwToken(object):
         key = jwk.JWK(**key_dict)
 
         #sign token
-        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": time.time()})
+        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time())})
         signed_token.make_signed_token(key)
 
         #encrypt the token
