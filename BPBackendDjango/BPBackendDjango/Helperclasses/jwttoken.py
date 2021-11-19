@@ -18,7 +18,7 @@ class JwToken(object):
     @staticmethod
     def create_session_token(username):
         #load key
-        key_dict = json.load(open("jw_key.json",))
+        key_dict = json.load(open("../../../jw_key.json"))
         key = jwk.JWK(**key_dict)
 
         #sign token
@@ -33,7 +33,7 @@ class JwToken(object):
     @staticmethod
     def check_session_token(token):
         #load key
-        key_dict = json.load(open("jw_key.json"))
+        key_dict = json.load(open("../../../jw_key.json"))
         key = jwk.JWK(**key_dict)
         
         #decrypt token
