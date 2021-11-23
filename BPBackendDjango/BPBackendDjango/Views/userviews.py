@@ -52,11 +52,10 @@ class RegisterView(APIView):
                 #save User in the databank
                 serializer.save()
                 #creating the session_token
-                session_token = JwToken.create_session_token(req_data['username'], account_type)
                 data = {
                 'success': 'True',
                 'description': 'User wurde erstellt',
-                'data': {'session_token': session_token}
+                'data': {}
                 }
 
                 return Response(data)
