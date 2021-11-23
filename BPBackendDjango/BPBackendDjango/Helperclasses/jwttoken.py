@@ -70,7 +70,7 @@ class JwToken(object):
         return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
 
     @staticmethod
-    def create_new_user_token(initiator, first_name, last_name, email_address, account_type):
+    def create_new_user_token(initiator, first_name, last_name, email_address, create_account_type):
         #load key
         if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
             print("Erstelle Key File")
@@ -84,7 +84,7 @@ class JwToken(object):
         #sign token
         signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"first_name": first_name,
             "last_name": last_name, "email_address": email_address,
-            "tokentime": int(time.time()), "account_type": account_type, "initiator": initiator})
+            "tokentime": int(time.time()), "create_account_type": create_account_type, "initiator": initiator})
         
         signed_token.make_signed_token(key)
 
@@ -122,7 +122,7 @@ class JwToken(object):
         if not check_tokentime(info['tokentime'], 1209600):
             return {"valid": False, "info": {}}
 
-        return  {"valid": True, "info": {"initiator": info["initiator"], "first_name": info["first_name"], "last_name": info["last_name"], "email_address": info["email_address"], "account_type": info["account_type"]}}    
+        return  {"valid": True, "info": {"initiator": info["initiator"], "first_name": info["first_name"], "last_name": info["last_name"], "email_address": info["email_address"], "create_account_type": info["create_account_type"]}}    
 
 
         
