@@ -27,6 +27,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['78.46.150.116']
 
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "Session-Token",
+]
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
