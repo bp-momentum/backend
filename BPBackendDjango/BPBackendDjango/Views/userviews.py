@@ -13,8 +13,8 @@ from ..models import *
 
 def get_random_password(length):
     letters = string.ascii_lowercase
-    for a in string.ascii_uppercase:
-        letters.append(a)
+    letters += string.ascii_uppercase
+    letters += "0123456789"
     out = ''.join(random.choice(letters) for i in range(length))
     return out
 
