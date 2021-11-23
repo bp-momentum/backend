@@ -40,6 +40,7 @@ class User(models.Model):
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)
+    email_address = models.EmailField(max_length=254, blank=False)
 
 
 
