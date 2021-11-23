@@ -10,15 +10,20 @@ Type: POST
 
 Path: /api/createuser
 
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
 Parameters: 
 ```json
 {
     "first_name": <str>,
     "last_name": <str>,
     "username": <str>,
-    "password": <str>,
     "email_address": <str>,
-    "session_token": <str>
 }
 ```
 Success Return 

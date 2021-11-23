@@ -23,9 +23,7 @@ class RegisterView(APIView):
         req_data = dict(request.data)
         password = get_random_password(10)
         req_data['password'] = str(hashlib.sha3_256(password.encode('utf8')).hexdigest())
-        print(req_data)
-        token = JwToken.check_session_token(req_data['session_token'])
-        req_data.pop("session_token")
+        token = JwToken.check_session_token(request.headers['session_token'])
         #check if token is valid
         if not token["valid"]:
             data = {
