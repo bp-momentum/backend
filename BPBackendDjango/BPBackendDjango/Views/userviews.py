@@ -7,13 +7,13 @@ import hashlib
 from ..serializers import *
 from ..models import *
 
-
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         req_data['password'] = str(hashlib.sha3_256(req_data['password'].encode('utf8')).hexdigest())
         print(req_data)
-        token = JwToken.check_session_token(req_data['token'])
+        token = JwToken.check_session_token(req_data['session_token'])
+        req_data.pop("session_token")
         #check if token is valid
         if not token["valid"]:
             data = {
@@ -82,8 +82,6 @@ def check_password(username, passwd):
         return "invalid"
 
 class LoginView(APIView):
-
-
 
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
