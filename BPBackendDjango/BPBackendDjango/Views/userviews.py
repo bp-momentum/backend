@@ -67,7 +67,7 @@ class RegisterView(APIView):
                     ", \n\n Hiermit erhalten zu Ihr Passwort: " + password +
                      "\n\n Freundliche Grüße\nIhr Bachelorprojekt Team 52",
                      "bachelor.projekt@web.de", 
-                     req_data['email_address'])
+                     [req_data['email_address']])
                 #save User in the databank
                 serializer.save()
                 #creating the session_token
