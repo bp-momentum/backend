@@ -17,7 +17,7 @@ def check_tokentime(token_time):
 class JwToken(object):
     
     @staticmethod
-    def create_session_token(username):
+    def create_session_token(username, account_type):
         #load key
         if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
             print("Erstelle Key File")
@@ -29,7 +29,7 @@ class JwToken(object):
         key = jwk.JWK(**key_dict)
 
         #sign token
-        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time())})
+        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type})
         signed_token.make_signed_token(key)
 
         #encrypt the token
@@ -60,13 +60,13 @@ class JwToken(object):
             ST = jwt.JWT(key=key, jwt = token)
         except:
             print("Signature is not valid")
-            return False, ""
+            return {"valid": False, "info": {}}
         #check if the token is still valid (1 day)
         info = json.loads(str(ST.claims))
         
         if not check_tokentime(info['tokentime']):
-            return False, info['username']
+            return {"valid": False, "info": {}}
 
-        return True, info['username']
+        return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
 
     
