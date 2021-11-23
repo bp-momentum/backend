@@ -21,9 +21,8 @@ def get_random_password(length):
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        password = get_random_password(10)
-        req_data['password'] = str(hashlib.sha3_256(password.encode('utf8')).hexdigest())
-        token = JwToken.check_session_token(request.headers['session_token'])
+        req_data['password'] = str(hashlib.sha3_256(req_data["password"].encode('utf8')).hexdigest())
+        token = JwToken.check_new_user_token(request.data['new_user_token'])
         #check if token is valid
         if not token["valid"]:
             data = {
@@ -34,13 +33,15 @@ class RegisterView(APIView):
             return Response(data)
 
         #check account type
-        
-        if token["info"]["account_type"] == "trainer":
+        req_data["first_name"] = token["info"]["first_name"]
+        req_data["last_name"] = token["info"]["last_name"]
+        req_data["email_address"] = token["info"]["email_address"]
+        if token["info"]["account_type"] == "user":
             trainer_id = Trainer.objects.get(username=token["info"]["username"]).id
             req_data["trainer_id"] = trainer_id
             serializer = CreateUserSerializer(data=req_data)
         
-        elif token["info"]["account_type"] == "admin":
+        elif token["info"]["account_type"] == "trainer":
             serializer = CreateTrainerSerializer(data=req_data)
 
         else:
@@ -60,12 +61,7 @@ class RegisterView(APIView):
                 not Trainer.objects.filter(username=request.data['username']).exists() and 
                 not Admin.objects.filter(username=request.data['username']).exists()):
                 
-                send_mail("BachelorPraktum Passwort",
-                    "Sehr geehrter Herr " + req_data["last_name"] + 
-                    ", \n\n Hiermit erhalten zu Ihr Passwort: " + password +
-                     "\n\n Freundliche Grüße\nIhr Bachelorprojekt Team 52",
-                     "bachelor.projekt@web.de", 
-                     [req_data['email_address']])
+                
                 #save User in the databank
                 serializer.save()
                 #creating the session_token
@@ -86,6 +82,21 @@ class RegisterView(APIView):
                 return Response(data)
 
         return Response(serializer.errors)
+
+
+class CreateUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], req_data["account_type"])
+        
+        send_mail("BachelorPraktum Passwort",
+                    "Sehr geehrter Herr " + req_data["last_name"] + 
+                    ", \n\n Unter folgendem Link können Sie Ihren Registrierungvorgang abschließen:\n http://localhost:3000/register?new_user_token=" + new_user_token +
+                     "\n\n Freundliche Grüße\nIhr Bachelorprojekt Team 52",
+                     "bachelor.projekt@web.de", 
+                     [req_data['email_address']])
+
+
 
 def check_password(username, passwd):
     passwd = str(hashlib.sha3_256(passwd.encode('utf8')).hexdigest())
