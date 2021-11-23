@@ -30,7 +30,7 @@ class RegisterView(APIView):
             account_type = "user"
         
         elif token["info"]["account_type"] == "admin":
-            serializer = CreateUserSerializer(data=req_data)
+            serializer = CreateTrainerSerializer(data=req_data)
             account_type ="trainer"
         else:
             data = {

@@ -18,6 +18,14 @@ class CreateUserSerializer(serializers.ModelSerializer):
         )
 
 
+class CreateTrainerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trainer
+        fields = (
+            'first_name', 'last_name', 'username'
+        )
+
+
 
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
