@@ -87,12 +87,12 @@ class RegisterView(APIView):
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        info = JwToken.check_session_token(request.headers["session_token"])
+        info = JwToken.check_session_token(request.headers["Session-Token"])
 
         if info["account_type"] == "admin":
-            new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], req_data["account_type"])
+            new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], info['account_type'])
         elif info["account_type"] == "trainer":
-            new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], req_data["account_type"])
+            new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], info['account_type'])
         else:
             data = {
                 'success': False,
