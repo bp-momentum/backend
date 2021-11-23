@@ -87,15 +87,34 @@ class RegisterView(APIView):
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], req_data["account_type"])
-        
+        info = JwToken.check_session_token(request.headers["session_token"])
+
+        if info["account_type"] == "admin":
+            new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], req_data["account_type"])
+        elif info["account_type"] == "trainer":
+            new_user_token = JwToken.create_new_user_token(req_data["first_name"], req_data["last_name"], req_data["email_address"], req_data["account_type"])
+        else:
+            data = {
+                'success': False,
+                'description': 'account type is not allowed to add new users',
+                'data': {}
+                }
+
+            return Response(data)
+
         send_mail("BachelorPraktum Passwort",
                     "Sehr geehrter Herr " + req_data["last_name"] + 
                     ", \n\n Unter folgendem Link können Sie Ihren Registrierungvorgang abschließen:\n http://localhost:3000/register?new_user_token=" + new_user_token +
                      "\n\n Freundliche Grüße\nIhr Bachelorprojekt Team 52",
                      "bachelor.projekt@web.de", 
                      [req_data['email_address']])
+        data = {
+                'success': True,
+                'description': 'email with invite was sent',
+                'data': {}
+                }
 
+        return Response(data)
 
 
 def check_password(username, passwd):
