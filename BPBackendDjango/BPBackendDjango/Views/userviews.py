@@ -17,7 +17,7 @@ class RegisterView(APIView):
         #check if token is valid
         if not token["valid"]:
             data = {
-                'success': 'False',
+                'success': False,
                 'description': 'Token is not valid',
                 'data': {}
                 }
@@ -34,7 +34,7 @@ class RegisterView(APIView):
             account_type ="trainer"
         else:
             data = {
-                'success': 'False',
+                'success': False,
                 'description': 'account type cannot create a new account',
                 'data': {}
                 }
@@ -53,7 +53,7 @@ class RegisterView(APIView):
                 serializer.save()
                 #creating the session_token
                 data = {
-                'success': 'True',
+                'success': True,
                 'description': 'User wurde erstellt',
                 'data': {}
                 }
@@ -61,7 +61,7 @@ class RegisterView(APIView):
                 return Response(data)
             else:
                 data = {
-                'success': 'False',
+                'success': False,
                 'description': 'Username existiert bereits',
                 'data': {}
                 }
@@ -89,7 +89,7 @@ class LoginView(APIView):
         passcheck = check_password(req_data['username'], req_data['password'])
         if passcheck == "invalid":
             data = {
-            'success': 'False',
+            'success': False,
             'description': 'Nutzerdaten sind Fehlerhaft',
             'data': {}
             }
@@ -98,7 +98,7 @@ class LoginView(APIView):
 
         session_token = JwToken.create_session_token(req_data['username'], passcheck)
         data = {
-            'success': 'True',
+            'success': True,
             'description': 'Nutzer ist nun eingeloggt',
             'data': {'session_token': session_token}
             }
