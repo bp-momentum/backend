@@ -36,12 +36,12 @@ class RegisterView(APIView):
         req_data["first_name"] = token["info"]["first_name"]
         req_data["last_name"] = token["info"]["last_name"]
         req_data["email_address"] = token["info"]["email_address"]
-        if token["info"]["account_type"] == "user":
+        if token["info"]["create_account_type"] == "user":
             trainer_id = Trainer.objects.get(username=token["info"]["username"]).id
             req_data["trainer_id"] = trainer_id
             serializer = CreateUserSerializer(data=req_data)
         
-        elif token["info"]["account_type"] == "trainer":
+        elif token["info"]["create_account_type"] == "trainer":
             serializer = CreateTrainerSerializer(data=req_data)
 
         else:
