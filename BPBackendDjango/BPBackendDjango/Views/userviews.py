@@ -38,7 +38,7 @@ class RegisterView(APIView):
         req_data["email_address"] = token["info"]["email_address"]
         if token["info"]["create_account_type"] == "user":
             trainer_id = Trainer.objects.get(username=token["info"]["initiator"]).id
-            req_data["trainer_id"] = trainer_id
+            req_data["trainer"] = trainer_id
             serializer = CreateUserSerializer(data=req_data)
         
         elif token["info"]["create_account_type"] == "trainer":
