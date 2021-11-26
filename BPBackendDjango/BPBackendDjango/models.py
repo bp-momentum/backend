@@ -6,6 +6,7 @@ class Trainer(models.Model):
     last_name =  models.CharField(max_length=50)
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
+    email_address = models.EmailField(max_length=254, blank=False)
  
 
 
@@ -43,6 +44,7 @@ class User(models.Model):
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
+    email_address = models.EmailField(max_length=254, blank=False)
 
 
 
@@ -52,7 +54,11 @@ class DoneExercises(models.Model):
     points = models.IntegerField()
     date = models.DateField()
 
-
+class Admin(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    username = models.CharField(max_length=50)
+    password = models.CharField(max_length=255)
 
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')

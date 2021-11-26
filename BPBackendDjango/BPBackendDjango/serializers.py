@@ -1,20 +1,19 @@
 from rest_framework import serializers
 from .models import *
 
-class UserSerializer(serializers.ModelSerializer):
+class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'first_name', 'last_name', 'username', 'password', 'trainer'
+            'first_name', 'last_name', 'username', 'password', 'email_address', 'trainer'
         )
 
 
-
-class RegisterSerializer(serializers.ModelSerializer):
+class CreateTrainerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = Trainer
         fields = (
-            'first_name', 'last_name', 'username', 'password'
+            'first_name', 'last_name', 'username', 'password', 'email_address'
         )
 
 

@@ -20,6 +20,7 @@ from .Views.userviews import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/register', RegisterView.as_view(), name='registerRequest'),
-    path('api/login', LoginView.as_view(), name='loginRequest')
+    path('api/createuser', CreateUserView.as_view(), name='createNewUser'),
+    path('api/register', RegisterView.as_view(), name='register'),
+    path('api/login', LoginView.as_view(), name='login')
 ]

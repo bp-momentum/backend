@@ -27,6 +27,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['78.46.150.116']
 
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "Session-Token",
+]
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
@@ -135,3 +140,11 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.web.de'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'bachelor.projekt@web.de'
+EMAIL_HOST_PASSWORD = ''
