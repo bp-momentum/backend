@@ -4,7 +4,7 @@ from .models import *
 class UserTestCase(TestCase):
     def setUp(self):
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(id=0)
+        trainer = Trainer.objects.get(id=1)
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
     
     def check_if_exists(self):
