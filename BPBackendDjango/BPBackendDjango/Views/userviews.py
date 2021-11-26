@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from ..Helperclasses.jwttoken import JwToken
 import string
 import random
@@ -104,13 +106,12 @@ class CreateUserView(APIView):
                 }
 
             return Response(data)
-
+        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {info["first_name"]} {info["last_name"]}', "account_type": info["account_type"], "link": f'http://localhost:3000?new_user_token={new_user_token}'})
+        plain_message = strip_tags(html_message)
         send_mail("BachelorPraktum Passwort",
-                    "Sehr geehrter Herr " + req_data["last_name"] + 
-                    ", \n\n Unter folgendem Link können Sie Ihren Registrierungvorgang abschließen:\n http://localhost:3000/register?new_user_token=" + new_user_token +
-                     "\n\n Freundliche Grüße\nIhr Bachelorprojekt Team 52",
+                    plain_message,
                      "bachelor.projekt@web.de", 
-                     [req_data['email_address']])
+                     [req_data['email_address']], html_message=html_message)
         data = {
                 'success': True,
                 'description': 'email with invite was sent',
