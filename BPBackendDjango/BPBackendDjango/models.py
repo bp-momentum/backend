@@ -29,6 +29,9 @@ class Team(models.Model):
 
 
 class ExerciseInPlan(models.Model):
+    date = models.DateField()
+    sets = models.IntegerField()
+    repeats_per_set = models.IntegerField()
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.CASCADE)
 
@@ -39,7 +42,7 @@ class User(models.Model):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
-    trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)
+    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
 
 
 
