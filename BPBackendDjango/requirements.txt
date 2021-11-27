@@ -1,0 +1,5 @@
+django-cors-headers
+jwcrypto
+djangorestframework
+django
+psycopg2-binary
