@@ -23,4 +23,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./BPBackendDjango/requirements.txt
       - name: Test
-        run: python ./BPBackendDjango/manage.py test
+        run: python ./BPBackendDjango/manage.py test BPBackendDjango/
