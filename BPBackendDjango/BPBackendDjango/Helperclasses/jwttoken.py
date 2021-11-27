@@ -1,6 +1,7 @@
 from jwcrypto import jwt, jwk
 import json
 import time
+import hashlib
 from pathlib import Path
 
 
@@ -13,11 +14,17 @@ def check_tokentime(token_time, seconds):
     return False
 
 def check_tokentype(token_type, compare):
-    return token_type==compare
+    return token_type == compare
 
 def create_refreshpswd(username, time):
-    str = username + str(time)
-    return "hardcodedshit"
+    uhstr = username + str(time)
+    hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
+    return hstr
+
+def check_refreshpswd(username, time, refreshpswd):
+    uhstr = username + str(time)
+    hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
+    return hstr == refreshpswd
 
 
 
@@ -170,13 +177,16 @@ class JwToken(object):
         except:
             print("Signature is not valid")
             return {"valid": False, "info": {}}
-        #check if the token is still valid (30 days) and of right type
+        #check if the token is still valid (30 days), of right type and pswd is valid
         info = json.loads(str(ST.claims))
         
         if not check_tokentype(info['tokentype'], "refresh"):
             return {"valid": False, "info": {}}
 
         if not check_tokentime(info['tokentime'], 2592000):
+            return {"valid": False, "info": {}}
+
+        if not check_refreshpswd(info['username'], info['tokentime'], info['refreshpswd']):
             return {"valid": False, "info": {}}
 
         return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
