@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 
+KEY_FILE_PATH = "/home/github/bachelor-praktikum/api/store/jw_key.json"
 
 def check_tokentime(token_time, seconds):
     now = int(time.time())
@@ -19,13 +20,13 @@ class JwToken(object):
     @staticmethod
     def create_session_token(username, account_type):
         #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+        if not Path(KEY_FILE_PATH).is_file():
             print("Erstelle Key File")
             key = jwk.JWK(generate='oct', size=256)
             json.dump(key, open("jw_key.json", "w"))
 
             
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
+        key_dict = json.load(open(KEY_FILE_PATH))
         key = jwk.JWK(**key_dict)
 
         #sign token
@@ -40,12 +41,12 @@ class JwToken(object):
     @staticmethod
     def check_session_token(token):
         #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+        if not Path(KEY_FILE_PATH).is_file():
             print("Erstelle Key File")
             key = jwk.JWK(generate='oct', size=256)
             json.dump(key, open("jw_key.json", "w"))
         
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
+        key_dict = json.load(open(KEY_FILE_PATH))
         key = jwk.JWK(**key_dict)
         
         #decrypt token
@@ -72,13 +73,13 @@ class JwToken(object):
     @staticmethod
     def create_new_user_token(initiator, first_name, last_name, email_address, create_account_type):
         #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+        if not Path(KEY_FILE_PATH).is_file():
             print("Erstelle Key File")
             key = jwk.JWK(generate='oct', size=256)
             json.dump(key, open("jw_key.json", "w"))
 
             
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
+        key_dict = json.load(open(KEY_FILE_PATH))
         key = jwk.JWK(**key_dict)
 
         #sign token
@@ -95,12 +96,12 @@ class JwToken(object):
 
     def check_new_user_token(token):
         #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+        if not Path(KEY_FILE_PATH).is_file():
             print("Erstelle Key File")
             key = jwk.JWK(generate='oct', size=256)
             json.dump(key, open("jw_key.json", "w"))
         
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
+        key_dict = json.load(open(KEY_FILE_PATH))
         key = jwk.JWK(**key_dict)
         
         #decrypt token
