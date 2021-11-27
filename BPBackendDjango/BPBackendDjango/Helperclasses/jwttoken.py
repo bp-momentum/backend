@@ -12,6 +12,13 @@ def check_tokentime(token_time, seconds):
         return True
     return False
 
+def check_tokentype(token_type, compare):
+    return token_type==compare
+
+def create_refreshpswd(username, time):
+    str = username + str(time)
+    return "hardcodedshit"
+
 
 
 class JwToken(object):
@@ -29,7 +36,7 @@ class JwToken(object):
         key = jwk.JWK(**key_dict)
 
         #sign token
-        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type})
+        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type, "tokentype": "session"})
         signed_token.make_signed_token(key)
 
         #encrypt the token
@@ -61,9 +68,12 @@ class JwToken(object):
         except:
             print("Signature is not valid")
             return {"valid": False, "info": {}}
-        #check if the token is still valid (1 day)
+        #check if the token is still valid (1 day) and of right type
         info = json.loads(str(ST.claims))
         
+        if not check_tokentype(info['tokentype'], "session"):
+            return {"valid": False, "info": {}}
+
         if not check_tokentime(info['tokentime'], 86400):
             return {"valid": False, "info": {}}
 
@@ -116,7 +126,7 @@ class JwToken(object):
         except:
             print("Signature is not valid")
             return {"valid": False, "info": {}}
-        #check if the token is still valid (1 day)
+        #check if the token is still valid (14 day)
         info = json.loads(str(ST.claims))
         
         if not check_tokentime(info['tokentime'], 1209600):
@@ -124,5 +134,51 @@ class JwToken(object):
 
         return  {"valid": True, "info": {"initiator": info["initiator"], "first_name": info["first_name"], "last_name": info["last_name"], "email_address": info["email_address"], "create_account_type": info["create_account_type"]}}    
 
+    @staticmethod
+    def create_refresh_token(username, account_type):
+        #load key
+        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+            print("Erstelle Key File")
+            key = jwk.JWK(generate='oct', size=256)
+            json.dump(key, open("jw_key.json", "w"))
+
+            
+        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
+        key = jwk.JWK(**key_dict)
+
+        #sign token
+        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type, "tokentype": "refresh", "refreshpswd": create_refreshpswd(username, int(time.time()))})
+        signed_token.make_signed_token(key)
+
+        return signed_token.serialize()
+
+    @staticmethod
+    def check_refresh_token(token):
+        #load key
+        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
+            print("Erstelle Key File")
+            key = jwk.JWK(generate='oct', size=256)
+            json.dump(key, open("jw_key.json", "w"))
+
+            
+        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
+        key = jwk.JWK(**key_dict)
+
+        #check validation
+        try:
+            ST = jwt.JWT(key=key, jwt = token)
+        except:
+            print("Signature is not valid")
+            return {"valid": False, "info": {}}
+        #check if the token is still valid (30 days) and of right type
+        info = json.loads(str(ST.claims))
+        
+        if not check_tokentype(info['tokentype'], "refresh"):
+            return {"valid": False, "info": {}}
+
+        if not check_tokentime(info['tokentime'], 2592000):
+            return {"valid": False, "info": {}}
+
+        return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
 
         
