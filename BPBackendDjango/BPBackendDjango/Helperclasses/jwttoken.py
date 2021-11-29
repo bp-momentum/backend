@@ -18,11 +18,6 @@ def check_tokentime(token_time, seconds):
 def check_tokentype(token_type, compare):
     return token_type == compare
 
-def create_refreshpswd(username, time):
-    uhstr = username + str(time)
-    hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
-    return hstr
-
 def check_refreshpswd(username, refreshpswd):
     if User.objects.filter(username=username).exists():
         user = User.objects.get(username=username)
@@ -170,5 +165,11 @@ class JwToken(object):
         user.refresh_token = pswd
         user.save(force_update=True)
         return True
+
+    @staticmethod
+    def create_refreshpswd(username, time):
+        uhstr = username + str(time)
+        hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
+        return hstr
 
         
