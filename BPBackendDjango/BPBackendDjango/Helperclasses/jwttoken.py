@@ -28,14 +28,6 @@ def check_refreshpswd(username, time, refreshpswd):
     hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
     return hstr == refreshpswd
 
-def save_refreshpswd(username, pswd):
-    if not User.objects.filter(username=username).exists():
-        return False
-    user = User.objects.get(username=username)
-    user.refresh_token = pswd
-    user.save(force_update=True)
-
-
 
 
 class JwToken(object):
@@ -172,5 +164,24 @@ class JwToken(object):
             return {"valid": False, "info": {}}
 
         return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
+
+    @staticmethod
+    def save_refreshpswd(username, pswd):
+        if not User.objects.filter(username=username).exists():
+            if not Trainer.objects.filter(username=username).exists():
+                if not Admin.objects.filter(username=username).exists():
+                    return False
+                admin = Admin.objects.get(username=username)
+                admin.refresh_token = pswd
+                admin.save(force_update=True)
+                return True
+            trainer = Trainer.objects.get(username=username)
+            trainer.refresh_token = pswd
+            trainer.save(force_update=True)
+            return True
+        user = User.objects.get(username=username)
+        user.refresh_token = pswd
+        user.save(force_update=True)
+        return True
 
         

@@ -80,6 +80,7 @@ class RegisterView(APIView):
                 #creating the session_token
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
                 refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"])
+                JwToken.save_refreshpswd(req_data['username'], refresh_token['info']['refreshpswd'])
                 data = {
                 'success': True,
                 'description': 'User wurde erstellt',
@@ -151,6 +152,7 @@ class LoginView(APIView):
 
         session_token = JwToken.create_session_token(req_data['username'], passcheck)
         refresh_token = JwToken.create_refresh_token(req_data['username'], passcheck)
+        JwToken.save_refreshpswd(req_data['username'], refresh_token['info']['refreshpswd'])
         data = {
             'success': True,
             'description': 'Nutzer ist nun eingeloggt',
