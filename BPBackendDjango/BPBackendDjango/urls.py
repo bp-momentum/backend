@@ -22,5 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/createuser', CreateUserView.as_view(), name='createNewUser'),
     path('api/register', RegisterView.as_view(), name='register'),
-    path('api/login', LoginView.as_view(), name='login')
+    path('api/login', LoginView.as_view(), name='login'),
+    path('api/auth', AuthView.as_view(), name='authenticateWithToken'),
+    path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices')
 ]
