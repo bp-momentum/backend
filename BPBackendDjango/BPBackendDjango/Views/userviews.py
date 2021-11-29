@@ -68,11 +68,13 @@ class RegisterView(APIView):
                 serializer.save()
                 #creating the session_token
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
+                refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"])
                 data = {
                 'success': True,
                 'description': 'User wurde erstellt',
                 'data': {
-                    "session_token": session_token
+                    "session_token": session_token,
+                    "refresh_token": refresh_token
                 }
                 }
 
