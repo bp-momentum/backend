@@ -164,6 +164,24 @@ class LoginView(APIView):
 
         return Response(data)
         
+
+
+class LogoutAllDevicesView(APIView):
+
+    def post(self, request, *args, **kqargs):
+        info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
+        token = JwToken.create_refresh_token(info["username"], info["account_type"])
+        JwToken.save_refreshpswd(info['username'], token['info']['refreshpswd'])
+        data = {
+            'changed': True,
+            'description': 'Refresh-Token geändert',
+            'data': {
+                'refresh_token': token
+                }
+            }
+
+        return Response(data)
+
             
 
 
