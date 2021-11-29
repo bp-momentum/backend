@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SETTINGS_JSON = "/home/github/bachelor-praktikum/api/store/settings.json"
 INTERN_SETTINGS = {}
 with open(SETTINGS_JSON) as json_file:
-    INTERN_SETTINGS = json.load(SETTINGS_JSON)
+    INTERN_SETTINGS = json.load(json_file)
     
 
 # Quick-start development settings - unsuitable for production
