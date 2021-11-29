@@ -17,7 +17,7 @@ from jwcrypto import jwt, jwk
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SETTINGS_JSON = "/home/github/bachelor-praktikum/api/store/settings.json"
-INTERN_SETTINGS = {"email_address": "", "email_password": "", "email_smtp_server": "", "admin_username": "admin", "admin_password": "admin", "token_key": {}}
+INTERN_SETTINGS = {"email_address": "", "email_password": "", "email_smtp_server": "", "admin_username": "admin", "admin_password": "admin"}
 try:
     with open(SETTINGS_JSON) as json_file:
         INTERN_SETTINGS = json.load(json_file)
