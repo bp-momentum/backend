@@ -124,14 +124,7 @@ class JwToken(object):
     @staticmethod
     def create_refresh_token(username, account_type):
         #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open("jw_key.json", "w"))
-
-            
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
 
         #sign token
         signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type, "tokentype": "refresh", "refreshpswd": create_refreshpswd(username, int(time.time()))})
@@ -142,14 +135,7 @@ class JwToken(object):
     @staticmethod
     def check_refresh_token(token):
         #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open("jw_key.json", "w"))
-
-            
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
 
         #check validation
         try:
