@@ -23,7 +23,7 @@ class JwToken(object):
         if not Path(KEY_FILE_PATH).is_file():
             print("Erstelle Key File")
             key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, openKEY_FILE_PATH, "w"))
+            json.dump(key, openKEY_FILE_PATH, "w")
 
             
         key_dict = json.load(open(KEY_FILE_PATH))
