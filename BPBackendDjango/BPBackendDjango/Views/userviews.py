@@ -203,7 +203,7 @@ class AuthView(APIView):
                 }
             }
 
-        return data
+        return Response(data)
 
 
             
