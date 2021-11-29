@@ -30,4 +30,4 @@ jobs:
       - run: cp -r BPBackendDjango/* /home/github/bachelor-praktikum/api/test-server/
         name: Copy files
       - run: sudo /usr/bin/systemctl restart bp-test-backend.service
-        name: Restarting server
+        name: Restarting Testserver
