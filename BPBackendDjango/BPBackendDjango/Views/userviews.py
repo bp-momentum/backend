@@ -20,6 +20,17 @@ def get_random_password(length):
     out = ''.join(random.choice(letters) for i in range(length))
     return out
 
+def check_password(username, passwd):
+    passwd = str(hashlib.sha3_256(passwd.encode('utf8')).hexdigest())
+    if User.objects.filter(username=username, password=passwd).exists():
+        return "user"
+    elif Trainer.objects.filter(username=username, password=passwd).exists():
+        return "trainer"
+    elif Admin.objects.filter(username=username, password=passwd).exists():
+        return "admin"
+    else:
+        return "invalid"
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -122,17 +133,6 @@ class CreateUserView(APIView):
 
         return Response(data)
 
-
-def check_password(username, passwd):
-    passwd = str(hashlib.sha3_256(passwd.encode('utf8')).hexdigest())
-    if User.objects.filter(username=username, password=passwd).exists():
-        return "user"
-    elif Trainer.objects.filter(username=username, password=passwd).exists():
-        return "trainer"
-    elif Admin.objects.filter(username=username, password=passwd).exists():
-        return "admin"
-    else:
-        return "invalid"
 
 class LoginView(APIView):
 
