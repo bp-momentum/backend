@@ -101,6 +101,7 @@ DATABASES = {
         'PASSWORD': 'KC2K4ue4aj7bxz7tbAyu',
         'HOST': 'localhost',
         'POST': '',
+        'DISABLE_SERVER_SIDE_CURSORS': True,
     }
 }
 
