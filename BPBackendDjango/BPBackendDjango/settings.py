@@ -12,9 +12,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import json
-import sys
-import os
-from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,6 +32,8 @@ SECRET_KEY = 'django-insecure-isvhbpca@5s(qb6a!d&&njfxtp9d#v93$i_zc)zc&k6e_#k2y+
 DEBUG = True
 
 ALLOWED_HOSTS = ['78.46.150.116']
+
+from corsheaders.defaults import default_headers
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "Session-Token",
@@ -94,25 +93,16 @@ WSGI_APPLICATION = 'BPBackendDjango.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-if sys.argv[1] == 'test':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'bpws',
+        'USER': 'admin',
+        'PASSWORD': 'KC2K4ue4aj7bxz7tbAyu',
+        'HOST': 'localhost',
+        'POST': '',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'bpws',
-            'USER': 'admin',
-            'PASSWORD': 'KC2K4ue4aj7bxz7tbAyu',
-            'HOST': 'localhost',
-            'POST': '',
-        }
-    }
-
+}
 
 
 # Password validation
