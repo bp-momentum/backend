@@ -23,15 +23,15 @@ jobs:
       - name: Create Migrations folder
         run: mkdir ./BPBackendDjango/BPBackendDjango/migrations/
       - name: Collect Migrations
-        run: cp -r /home/github/bachelor-praktikum/api/migrations/* ./BPBackendDjango/BPBackendDjango/migrations/
+        run: cp -r /home/github/bachelor-praktikum/api/test-migrations/* ./BPBackendDjango/BPBackendDjango/migrations/
       - name: Makemigrations
         run: python ./BPBackendDjango/manage.py makemigrations
       - name: Migrate
         run: python ./BPBackendDjango/manage.py migrate
       - name: Delete old migrations
-        run: rm -rf /home/github/bachelor-praktikum/api/migrations/*
+        run: rm -rf /home/github/bachelor-praktikum/api/test-migrations/*
       - name: Save Migrations
-        run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/migrations/
+        run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/test-migrations/
       - name: Test
         run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
 
