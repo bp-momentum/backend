@@ -13,7 +13,7 @@ import hashlib
 from pathlib import Path
 import json
 from jwcrypto import jwt, jwk
-from models import Admin
+from .models import Admin
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
