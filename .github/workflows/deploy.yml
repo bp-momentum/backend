@@ -32,3 +32,5 @@ jobs:
         name: Delete old files
       - run: cp -r BPBackendDjango/* /home/github/bachelor-praktikum/api/server/
         name: Copy files
+      - run: sudo /usr/bin/systemctl restart bp-backend.service
+        name: Restarting server
