@@ -42,7 +42,7 @@ jobs:
       - name: Delete old migrations
         run: rm -rf /home/github/bachelor-praktikum/api/test-migrations/*
       - name: Save Migrations
-        run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/test-migrations/
+        run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/test-migrations/ | echo "No migrations found"
       - run: rm -rf /home/github/bachelor-praktikum/api/test-server/*
         name: Delete old files
       - run: cp -r BPBackendDjango/* /home/github/bachelor-praktikum/api/test-server/
