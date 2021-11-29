@@ -20,6 +20,13 @@ jobs:
           pip install -r ./BPBackendDjango/requirements.txt
       - name: Copy config
         run: cp /home/github/bachelor-praktikum/api/store/test-settings.json ./settings.json
+      - name: Test
+        run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
+
+  deploy-test-server:
+    runs-on: self-hosted
+    needs: test-test-server
+    steps:
       - name: Create Migrations folder
         run: mkdir ./BPBackendDjango/BPBackendDjango/migrations/
       - name: Collect Migrations
@@ -32,13 +39,6 @@ jobs:
         run: rm -rf /home/github/bachelor-praktikum/api/test-migrations/*
       - name: Save Migrations
         run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/test-migrations/
-      - name: Test
-        run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
-
-  deploy-test-server:
-    runs-on: self-hosted
-    needs: test-test-server
-    steps:
       - run: rm -rf /home/github/bachelor-praktikum/api/test-server/*
         name: Delete old files
       - run: cp -r BPBackendDjango/* /home/github/bachelor-praktikum/api/test-server/
