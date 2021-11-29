@@ -16,7 +16,7 @@ from jwcrypto import jwt, jwk
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SETTINGS_JSON = "../settings.json"
+SETTINGS_JSON = "settings.json"
 INTERN_SETTINGS = {
     "email_address": "",
     "email_password": "",
@@ -24,10 +24,10 @@ INTERN_SETTINGS = {
     "admin_username": "admin",
     "admin_password": "admin",
     "database": {
-        'name': 'bpws',
-        'user': 'admin',
-        'password': '',
-        'host': 'localhost',
+        "name": "bpws",
+        "user": "admin",
+        "password": "",
+        "host": "localhost",
     }
 }
 try:
