@@ -57,15 +57,8 @@ class JwToken(object):
 
     @staticmethod
     def create_new_user_token(initiator, first_name, last_name, email_address, create_account_type):
-        #load key
-        if not Path(KEY_FILE_PATH).is_file():
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open(KEY_FILE_PATH, "w"))
 
-            
-        key_dict = json.load(open(KEY_FILE_PATH))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
 
         #sign token
         signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"first_name": first_name,
@@ -80,14 +73,7 @@ class JwToken(object):
         return signed_token.serialize()
 
     def check_new_user_token(token):
-        #load key
-        if not Path(KEY_FILE_PATH).is_file():
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open(KEY_FILE_PATH, "w"))
-        
-        key_dict = json.load(open(KEY_FILE_PATH))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
         
         #decrypt token
         # try:
