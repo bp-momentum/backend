@@ -4,6 +4,12 @@ on: workflow_dispatch
 
 env:
   PYTHON_VERSION: 3.8
+  SETTINGS_PATH: /home/github/bachelor-praktikum/api/store/test-settings.json
+  NEW_MIGRATIONS_PATH: ./BPBackendDjango/BPBackendDjango/migrations/
+  OLD_MIGRATIONS_PATH: /home/github/bachelor-praktikum/api/test-migrations/
+  SERVER_PATH: /home/github/bachelor-praktikum/api/test-server/
+  DJANGO_PATH: ./BPBackendDjango/manage.py
+  SERVICE_NAME: bp-test-backend.service
 
 jobs:
   test-test-server:
@@ -19,7 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./BPBackendDjango/requirements.txt
       - name: Copy settings
-        run: cp /home/github/bachelor-praktikum/api/store/test-settings.json ./settings.json
+        run: cp ${{ env.SETTINGS_PATH }} ./settings.json
       - name: Test
         run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
 
@@ -32,22 +38,22 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Create Migrations folder
-        run: mkdir ./BPBackendDjango/BPBackendDjango/migrations/
+        run: mkdir ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Collect Migrations
-        run: cp -r /home/github/bachelor-praktikum/api/test-migrations/* ./BPBackendDjango/BPBackendDjango/migrations/ | echo "No migrations found"
+        run: cp -r ${{ env.OLD_MIGRATIONS_PATH }}* ${{ env.NEW_MIGRATIONS_PATH }} | echo "No migrations found"
       - name: Makemigrations
-        run: python ./BPBackendDjango/manage.py makemigrations BPBackendDjango
+        run: python ${{ env.DJANGO_PATH }} makemigrations BPBackendDjango
       - name: Migrate
-        run: python ./BPBackendDjango/manage.py migrate BPBackendDjango
+        run: python ${{ env.DJANGO_PATH }} migrate BPBackendDjango
       - name: Delete old migrations
-        run: rm -rf /home/github/bachelor-praktikum/api/test-migrations/*
+        run: rm -rf /home/github/bachelor-praktikum/api/migrations/*
       - name: Save Migrations
-        run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/test-migrations/ | echo "No migrations found"
+        run: mv ${{ env.NEW_MIGRATIONS_PATH }}* ${{ env.OLD_MIGRATIONS_PATH }} | echo "No migrations found"
       - name: Delete old files
-        run: rm -rf /home/github/bachelor-praktikum/api/test-server/*
+        run: rm -rf ${{ env.SERVER_PATH }}*
       - name: Move settings
         run: mv ./settings.json ./BPBackendDjango/
       - name: Copy files
-        run: cp -r BPBackendDjango/* /home/github/bachelor-praktikum/api/test-server/
-      - name: Restarting Testserver
-        run: sudo /usr/bin/systemctl restart bp-test-backend.service
+        run: cp -r BPBackendDjango/* ${{ env.SERVER_PATH }}
+      - name: Restarting server
+        run: sudo /usr/bin/systemctl restart ${{ env.SERVICE_NAME }}
