@@ -45,6 +45,7 @@ class User(models.Model):
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     email_address = models.EmailField(max_length=254, blank=False)
+    refresh_token = models.CharField(max_length=255)
 
 
 
