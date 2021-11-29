@@ -11,7 +11,7 @@ import hashlib
 
 from ..serializers import *
 from ..models import *
-
+from BPBackendDjango.settings import *
 
 def get_random_password(length):
     letters = string.ascii_lowercase
@@ -110,7 +110,7 @@ class CreateUserView(APIView):
         plain_message = strip_tags(html_message)
         send_mail("BachelorPraktum Passwort",
                     plain_message,
-                     "bachelor.projekt@web.de", 
+                     EMAIL_HOST_USER, 
                      [req_data['email_address']], html_message=html_message)
         data = {
                 'success': True,
