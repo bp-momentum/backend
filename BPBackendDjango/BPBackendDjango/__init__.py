@@ -2,7 +2,7 @@ import django
 django.setup()
 import hashlib
 from .models import Admin
-from settings import INTERN_SETTINGS
+from .settings import INTERN_SETTINGS
 
 ## check if at least one admin account exists
 if not Admin.objects.filter().exists():
