@@ -180,6 +180,32 @@ class LogoutAllDevicesView(APIView):
         return Response(data)
 
 
+class AuthView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        token = request.data['refresh_token']
+        info = JwToken.check_refresh_token(token)
+        if not info['valid']:
+            data = {
+            'success': False,
+            'description': 'Refresh-Token ungültig',
+            'data': {}
+            }
+
+            return Response(data)
+
+        session_token = JwToken.create_session_token(username=info['info']['username'], account_type=info['info']['account_type'])
+        data = {
+            'success': True,
+            'description': 'Nutzer ist nun eingeloggt',
+            'data': {
+                'session_token': session_token
+                }
+            }
+
+        return data
+
+
             
 
 
