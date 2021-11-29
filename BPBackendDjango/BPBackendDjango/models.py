@@ -59,7 +59,6 @@ class Admin(models.Model):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
-    cock_size = models.IntegerField(default=100)
 
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
