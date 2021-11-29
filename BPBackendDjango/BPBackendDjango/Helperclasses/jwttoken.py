@@ -29,6 +29,17 @@ def check_refreshpswd(username, refreshpswd):
         return False
     return user.refresh_token == refreshpswd
 
+def get_pswd(username):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return None
+    return user.refresh_token
+
 
 
 class JwToken(object):
@@ -117,12 +128,18 @@ class JwToken(object):
         return  {"valid": True, "info": {"initiator": info["initiator"], "first_name": info["first_name"], "last_name": info["last_name"], "email_address": info["email_address"], "create_account_type": info["create_account_type"]}}    
 
     @staticmethod
-    def create_refresh_token(username, account_type):
+    def create_refresh_token(username, account_type, set_pswd):
         #load key
         key = jwk.JWK(**TOKEN_KEY)
 
         #sign token
-        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type, "tokentype": "refresh", "refreshpswd": create_refreshpswd(username, int(time.time()))})
+        pswd = get_pswd(username)
+        if(set_pswd or pswd == None):
+            pswd = JwToken.create_refreshpswd(username, int(time.time()))
+            signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type, "tokentype": "refresh", "refreshpswd": pswd})
+            JwToken.save_refreshpswd(username, pswd)
+        else:
+            signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type, "tokentype": "refresh", "refreshpswd": pswd})
         signed_token.make_signed_token(key)
 
         return signed_token.serialize()

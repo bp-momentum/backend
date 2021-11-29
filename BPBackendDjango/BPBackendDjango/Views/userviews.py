@@ -8,6 +8,7 @@ from ..Helperclasses.jwttoken import JwToken
 import string
 import random
 import hashlib
+import time
 
 from ..serializers import *
 from ..models import *
@@ -79,8 +80,7 @@ class RegisterView(APIView):
                 serializer.save()
                 #creating the session_token
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
-                refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"])
-                JwToken.save_refreshpswd(req_data['username'], refresh_token['info']['refreshpswd'])
+                refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
                 data = {
                 'success': True,
                 'description': 'User wurde erstellt',
@@ -151,8 +151,7 @@ class LoginView(APIView):
             return Response(data)
 
         session_token = JwToken.create_session_token(req_data['username'], passcheck)
-        refresh_token = JwToken.create_refresh_token(req_data['username'], passcheck)
-        JwToken.save_refreshpswd(req_data['username'], refresh_token['info']['refreshpswd'])
+        refresh_token = JwToken.create_refresh_token(req_data['username'], passcheck, False)
         data = {
             'success': True,
             'description': 'Nutzer ist nun eingeloggt',
@@ -170,17 +169,16 @@ class LogoutAllDevicesView(APIView):
 
     def post(self, request, *args, **kqargs):
         info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
-        token = JwToken.create_refresh_token(info["username"], info["account_type"])
-        JwToken.save_refreshpswd(info['username'], token['info']['refreshpswd'])
+        JwToken.save_refreshpswd(info['username'], JwToken.create_refreshpswd(info['username'], int(time.time())))
         data = {
-            'changed': True,
+            'success': True,
             'description': 'Refresh-Token geändert',
             'data': {
-                'refresh_token': token
                 }
             }
 
         return Response(data)
+
 
             
 
