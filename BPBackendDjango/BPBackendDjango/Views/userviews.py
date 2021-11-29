@@ -150,10 +150,14 @@ class LoginView(APIView):
             return Response(data)
 
         session_token = JwToken.create_session_token(req_data['username'], passcheck)
+        refresh_token = JwToken.create_refresh_token(req_data['username'], passcheck)
         data = {
             'success': True,
             'description': 'Nutzer ist nun eingeloggt',
-            'data': {'session_token': session_token}
+            'data': {
+                'session_token': session_token,
+                'refresh_token': refresh_token
+                }
             }
 
         return Response(data)
