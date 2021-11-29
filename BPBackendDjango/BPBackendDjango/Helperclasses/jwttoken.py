@@ -4,6 +4,9 @@ import time
 import hashlib
 from pathlib import Path
 
+from ..models import *
+from ..serializers import *
+
 
 
 def check_tokentime(token_time, seconds):
@@ -25,6 +28,14 @@ def check_refreshpswd(username, time, refreshpswd):
     uhstr = username + str(time)
     hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
     return hstr == refreshpswd
+
+def save_refreshpswd(username, pswd):
+    if not User.objects.filter(username=username).exists():
+        return False
+    user = User.objects.get(username=username)
+    user.refresh_token = pswd
+    user.save(force_update=True)
+
 
 
 
