@@ -21,7 +21,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r ./BPBackendDjango/requirements.txt
-      - name: Copy config
+      - name: Copy settings
         run: cp /home/github/bachelor-praktikum/api/store/settings.json ./settings.json
       - name: Test
         run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
@@ -46,9 +46,11 @@ jobs:
         run: rm -rf /home/github/bachelor-praktikum/api/migrations/*
       - name: Save Migrations
         run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/migrations/ | echo "No migrations found"
-      - run: rm -rf /home/github/bachelor-praktikum/api/server/*
-        name: Delete old files
-      - run: cp -r BPBackendDjango/* /home/github/bachelor-praktikum/api/server/
-        name: Copy files
-      - run: sudo /usr/bin/systemctl restart bp-backend.service
-        name: Restarting server
+      - name: Delete old files
+        run: rm -rf /home/github/bachelor-praktikum/api/server/*
+      - name: Move settings
+        run: mv ./settings.json ./BPBackendDjango/
+      - name: Copy files
+        run: cp -r BPBackendDjango/* /home/github/bachelor-praktikum/api/server/
+      - name: Restarting server
+        run: sudo /usr/bin/systemctl restart bp-backend.service
