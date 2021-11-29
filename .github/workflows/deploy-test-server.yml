@@ -36,9 +36,9 @@ jobs:
       - name: Collect Migrations
         run: cp -r /home/github/bachelor-praktikum/api/test-migrations/* ./BPBackendDjango/BPBackendDjango/migrations/ | echo "No migrations found"
       - name: Makemigrations
-        run: python ./BPBackendDjango/manage.py makemigrations
+        run: python ./BPBackendDjango/manage.py makemigrations BPBackendDjango
       - name: Migrate
-        run: python ./BPBackendDjango/manage.py migrate
+        run: python ./BPBackendDjango/manage.py migrate BPBackendDjango
       - name: Delete old migrations
         run: rm -rf /home/github/bachelor-praktikum/api/test-migrations/*
       - name: Save Migrations
