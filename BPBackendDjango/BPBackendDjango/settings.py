@@ -11,10 +11,16 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import json
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SETTINGS_JSON = "/home/github/bachelor-praktikum/api/store/settings.json"
+INTERN_SETTINGS = {}
+with open(SETTINGS_JSON) as json_file:
+    INTERN_SETTINGS = json.load(SETTINGS_JSON)
+    
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -144,8 +150,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.web.de'
+EMAIL_HOST = INTERN_SETTINGS["email_smtp_server"]
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'bachelor.projekt@web.de'
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = INTERN_SETTINGS["email_address"]
+EMAIL_HOST_PASSWORD = INTERN_SETTINGS["email_password"]
