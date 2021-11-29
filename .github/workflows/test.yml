@@ -8,6 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: 3.8
+  SETTINGS_PATH: /home/github/bachelor-praktikum/api/store/settings.json
 
 jobs:
   test:
@@ -23,6 +24,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./BPBackendDjango/requirements.txt
       - name: Copy settings
-        run: cp /home/github/bachelor-praktikum/api/store/settings.json ./settings.json
+        run: cp ${{ env.SETTINGS_PATH }} ./settings.json
       - name: Test
         run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
