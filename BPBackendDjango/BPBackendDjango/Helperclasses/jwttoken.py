@@ -3,8 +3,7 @@ import json
 import time
 from pathlib import Path
 
-
-KEY_FILE_PATH = "/home/github/bachelor-praktikum/api/store/jw_key.json"
+from ..settings import TOKEN_KEY
 
 def check_tokentime(token_time, seconds):
     now = int(time.time())
@@ -19,15 +18,8 @@ class JwToken(object):
     
     @staticmethod
     def create_session_token(username, account_type):
-        #load key
-        if not Path(KEY_FILE_PATH).is_file():
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open(KEY_FILE_PATH, "w"))
 
-            
-        key_dict = json.load(open(KEY_FILE_PATH))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
 
         #sign token
         signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type})
@@ -39,15 +31,8 @@ class JwToken(object):
         return signed_token.serialize()
 
     @staticmethod
-    def check_session_token(token):
-        #load key
-        if not Path(KEY_FILE_PATH).is_file():
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open(KEY_FILE_PATH, "w"))
-        
-        key_dict = json.load(open(KEY_FILE_PATH))
-        key = jwk.JWK(**key_dict)
+    def check_session_token(token):          
+        key = jwk.JWK(**TOKEN_KEY)
         
         #decrypt token
         # try:

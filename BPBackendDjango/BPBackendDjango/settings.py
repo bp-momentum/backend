@@ -9,18 +9,39 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import hashlib
 from pathlib import Path
 import json
-
+from jwcrypto import jwt, jwk
+from models import Admin
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SETTINGS_JSON = "/home/github/bachelor-praktikum/api/store/settings.json"
-INTERN_SETTINGS = {}
-with open(SETTINGS_JSON) as json_file:
-    INTERN_SETTINGS = json.load(json_file)
+INTERN_SETTINGS = {"email_address": "", "email_password": "", "email_smtp_server": "", "admin_username": "admin", "admin_password": "admin", "token_key": {}}
+try:
+    with open(SETTINGS_JSON) as json_file:
+        INTERN_SETTINGS = json.load(json_file)
+except:
+    json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
+    print("Please enter settings at: ", SETTINGS_JSON)
+    exit()
+
+
+## check if at least one admin account exists
+if not Admin.objects.filter().exists():
+    newAdmin = Admin(first_name="Admin", last_name="Admin", username=INTERN_SETTINGS["admin_username"], password= str(hashlib.sha3_256(INTERN_SETTINGS["admin_password"].encode('utf-8')).hexdigest()))
+
+try:
+    TOKEN_KEY = INTERN_SETTINGS["token_key"]
+except:
+    key = jwk.JWK(generate='oct', size=256)
+    ## token in settings.json speichern
+    newSetting = INTERN_SETTINGS
+    newSetting["token_key"] = key
+    json.dump(key, open(SETTINGS_JSON, "w"))
     
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
