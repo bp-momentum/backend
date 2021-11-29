@@ -22,9 +22,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r ./BPBackendDjango/requirements.txt
+      - name: Collect Migrations
+        run: cp -r /home/github/bachelor-praktikum/api/migrations/* ./BPBackendDjango/BPBackendDjango/migrations/
       - name: Makemigrations
         run: python ./BPBackendDjango/manage.py makemigrations
       - name: Migrate
         run: python ./BPBackendDjango/manage.py migrate
+      - name: Delete old migrations
+        run: rm -rf /home/github/bachelor-praktikum/api/migrations/*
+      - name: Save Migrations
+        run: mv ./BPBackendDjango/BPBackendDjango/migrations/* /home/github/bachelor-praktikum/api/migrations/
       - name: Test
         run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput

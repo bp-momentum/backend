@@ -2,6 +2,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm+all,visualstudiocode,django
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm+all,visualstudiocode,django
 
+BPBackendDjango/BPBackendDjango/migrations/
+
 ### Django ###
 __init__.py
 *.log
