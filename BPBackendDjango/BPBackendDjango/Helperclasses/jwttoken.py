@@ -23,10 +23,16 @@ def create_refreshpswd(username, time):
     hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
     return hstr
 
-def check_refreshpswd(username, time, refreshpswd):
-    uhstr = username + str(time)
-    hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
-    return hstr == refreshpswd
+def check_refreshpswd(username, refreshpswd):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return False
+    return user.refresh_token == refreshpswd
 
 
 
@@ -160,7 +166,7 @@ class JwToken(object):
         if not check_tokentime(info['tokentime'], 2592000):
             return {"valid": False, "info": {}}
 
-        if not check_refreshpswd(info['username'], info['tokentime'], info['refreshpswd']):
+        if not check_refreshpswd(info['username'], info['refreshpswd']):
             return {"valid": False, "info": {}}
 
         return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
