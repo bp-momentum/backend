@@ -3,7 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm+all,visualstudiocode,django
 
 BPBackendDjango/BPBackendDjango/migrations/
-
+settings.json
 ### Django ###
 __init__.py
 *.log

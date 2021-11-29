@@ -16,8 +16,20 @@ from jwcrypto import jwt, jwk
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SETTINGS_JSON = "/home/github/bachelor-praktikum/api/store/settings.json"
-INTERN_SETTINGS = {"email_address": "", "email_password": "", "email_smtp_server": "", "admin_username": "admin", "admin_password": "admin"}
+SETTINGS_JSON = "../settings.json"
+INTERN_SETTINGS = {
+    "email_address": "",
+    "email_password": "",
+    "email_smtp_server": "",
+    "admin_username": "admin",
+    "admin_password": "admin",
+    "database": {
+        'name': 'bpws',
+        'user': 'admin',
+        'password': '',
+        'host': 'localhost',
+    }
+}
 try:
     with open(SETTINGS_JSON) as json_file:
         INTERN_SETTINGS = json.load(json_file)
@@ -111,10 +123,10 @@ WSGI_APPLICATION = 'BPBackendDjango.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'bpws',
-        'USER': 'admin',
-        'PASSWORD': 'KC2K4ue4aj7bxz7tbAyu',
-        'HOST': 'localhost',
+        'NAME': INTERN_SETTINGS["database"]["name"],
+        'USER': INTERN_SETTINGS["database"]["user"],
+        'PASSWORD': INTERN_SETTINGS["database"]["password"],
+        'HOST': INTERN_SETTINGS["database"]["host"],
         'POST': '',
         'DISABLE_SERVER_SIDE_CURSORS': True,
     }
