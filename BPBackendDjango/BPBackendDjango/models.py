@@ -8,6 +8,7 @@ class Trainer(models.Model):
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
+ 
 
 
 class TrainingSchedule(models.Model):
