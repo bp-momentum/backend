@@ -6,7 +6,6 @@ class Trainer(models.Model):
     last_name =  models.CharField(max_length=50)
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
-    hurensohn = models.BooleanField(default=True)
     email_address = models.CharField(max_length=254, default="")
  
 
