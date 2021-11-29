@@ -173,19 +173,14 @@ class JwToken(object):
 
     @staticmethod
     def save_refreshpswd(username, pswd):
-        if not User.objects.filter(username=username).exists():
-            if not Trainer.objects.filter(username=username).exists():
-                if not Admin.objects.filter(username=username).exists():
-                    return False
-                admin = Admin.objects.get(username=username)
-                admin.refresh_token = pswd
-                admin.save(force_update=True)
-                return True
-            trainer = Trainer.objects.get(username=username)
-            trainer.refresh_token = pswd
-            trainer.save(force_update=True)
-            return True
-        user = User.objects.get(username=username)
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+        elif Trainer.objects.filter(username=username).exists():
+            user = Trainer.objects.get(username=username)
+        elif Admin.objects.filter(username=username).exists():
+            user = Admin.objects.get(username=username)
+        else:
+            return False
         user.refresh_token = pswd
         user.save(force_update=True)
         return True
