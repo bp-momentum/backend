@@ -27,6 +27,10 @@ jobs:
     runs-on: self-hosted
     needs: test-test-server
     steps:
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Create Migrations folder
         run: mkdir ./BPBackendDjango/BPBackendDjango/migrations/
       - name: Collect Migrations
