@@ -6,7 +6,7 @@ class Trainer(models.Model):
     last_name =  models.CharField(max_length=50)
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
-    email_address = models.EmailField(max_length=254, blank=False)
+    email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255)
  
 
@@ -31,9 +31,9 @@ class Team(models.Model):
 
 
 class ExerciseInPlan(models.Model):
-    date = models.DateField()
-    sets = models.IntegerField()
-    repeats_per_set = models.IntegerField()
+    date = models.DateField(default="1970-01-01")
+    sets = models.IntegerField(default=0)
+    repeats_per_set = models.IntegerField(default=0)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.CASCADE)
 
@@ -44,8 +44,8 @@ class User(models.Model):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
-    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
-    email_address = models.EmailField(max_length=254, blank=False)
+    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
+    email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255)
 
 
@@ -54,7 +54,7 @@ class DoneExercises(models.Model):
     exercise =  models.ForeignKey(Exercise, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
-    date = models.DateField()
+    date = models.DateField(default="1970-01-01")
 
 class Admin(models.Model):
     first_name = models.CharField(max_length=50)

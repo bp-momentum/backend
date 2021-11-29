@@ -4,10 +4,9 @@ import time
 import hashlib
 from pathlib import Path
 
+from ..settings import TOKEN_KEY
 from ..models import *
 from ..serializers import *
-
-
 
 def check_tokentime(token_time, seconds):
     now = int(time.time())
@@ -43,15 +42,8 @@ class JwToken(object):
     
     @staticmethod
     def create_session_token(username, account_type):
-        #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open("jw_key.json", "w"))
 
-            
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
 
         #sign token
         signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"username": username, "tokentime": int(time.time()), "account_type": account_type, "tokentype": "session"})
@@ -63,15 +55,8 @@ class JwToken(object):
         return signed_token.serialize()
 
     @staticmethod
-    def check_session_token(token):
-        #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open("jw_key.json", "w"))
-        
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
-        key = jwk.JWK(**key_dict)
+    def check_session_token(token):          
+        key = jwk.JWK(**TOKEN_KEY)
         
         #decrypt token
         # try:
@@ -99,15 +84,8 @@ class JwToken(object):
 
     @staticmethod
     def create_new_user_token(initiator, first_name, last_name, email_address, create_account_type):
-        #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open("jw_key.json", "w"))
 
-            
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
 
         #sign token
         signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"first_name": first_name,
@@ -122,14 +100,7 @@ class JwToken(object):
         return signed_token.serialize()
 
     def check_new_user_token(token):
-        #load key
-        if not Path("/root/BachelorPraktikum/jw_key.json").is_file():   
-            print("Erstelle Key File")
-            key = jwk.JWK(generate='oct', size=256)
-            json.dump(key, open("jw_key.json", "w"))
-        
-        key_dict = json.load(open("/root/BachelorPraktikum/jw_key.json"))
-        key = jwk.JWK(**key_dict)
+        key = jwk.JWK(**TOKEN_KEY)
         
         #decrypt token
         # try:
