@@ -19,7 +19,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./BPBackendDjango/requirements.txt
       - name: Copy config
-        run: cp /home/github/bachelor-praktikum/api/store/test-settings.json ./BPBackendDjango/settings.json
+        run: cp /home/github/bachelor-praktikum/api/store/test-settings.json ./settings.json
       - name: Create Migrations folder
         run: mkdir ./BPBackendDjango/BPBackendDjango/migrations/
       - name: Collect Migrations
