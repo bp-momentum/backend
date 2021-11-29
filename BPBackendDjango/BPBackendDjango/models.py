@@ -6,7 +6,7 @@ class Trainer(models.Model):
     last_name =  models.CharField(max_length=50)
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
-    email_address = models.EmailField(max_length=254, blank=False, default="")
+    email_address = models.CharField(max_length=254, default="")
  
 
 
@@ -44,7 +44,7 @@ class User(models.Model):
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
-    email_address = models.EmailField(max_length=254, blank=False, default="")
+    email_address = models.CharField(max_length=254, default="")
 
 
 
