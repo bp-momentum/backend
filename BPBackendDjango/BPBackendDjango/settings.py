@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import json
+import sys
+import os
 from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -92,16 +94,25 @@ WSGI_APPLICATION = 'BPBackendDjango.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.postgresql_psycopg2',
-       'NAME': 'bpws',
-       'USER': 'admin',
-       'PASSWORD': 'KC2K4ue4aj7bxz7tbAyu',
-       'HOST': 'localhost',
-       'POST': '',
+if sys.argv[1] == 'test':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'bpws',
+            'USER': 'admin',
+            'PASSWORD': 'KC2K4ue4aj7bxz7tbAyu',
+            'HOST': 'localhost',
+            'POST': '',
+        }
+    }
+
 
 
 # Password validation
