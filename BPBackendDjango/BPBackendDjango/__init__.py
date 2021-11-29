@@ -1,12 +1,12 @@
 import os
 
 import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BPBackendDjango.settings')
 django.setup()
 import hashlib
 from .models import Admin
 from .settings import INTERN_SETTINGS
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BPBackendDjango.settings')
 
 ## check if at least one admin account exists
 print("checking admin")
