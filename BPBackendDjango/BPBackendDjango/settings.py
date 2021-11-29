@@ -9,15 +9,10 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
-import django
-django.setup()
-
 import hashlib
 from pathlib import Path
 import json
 from jwcrypto import jwt, jwk
-from .models import Admin
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,11 +25,6 @@ except:
     json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
     print("Please enter settings at: ", SETTINGS_JSON)
     exit()
-
-
-## check if at least one admin account exists
-if not Admin.objects.filter().exists():
-    newAdmin = Admin(first_name="Admin", last_name="Admin", username=INTERN_SETTINGS["admin_username"], password= str(hashlib.sha3_256(INTERN_SETTINGS["admin_password"].encode('utf-8')).hexdigest()))
 
 try:
     TOKEN_KEY = INTERN_SETTINGS["token_key"]
