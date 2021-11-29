@@ -7,7 +7,7 @@ class Trainer(models.Model):
     username =  models.CharField(max_length=50)
     password =  models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
-    refresh_token = models.CharField(max_length=255)
+    refresh_token = models.CharField(max_length=255, null=True)
  
 
 
@@ -46,7 +46,7 @@ class User(models.Model):
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
-    refresh_token = models.CharField(max_length=255)
+    refresh_token = models.CharField(max_length=255, null=True)
 
 
 
@@ -61,7 +61,7 @@ class Admin(models.Model):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
-    refresh_token = models.CharField(max_length=255)
+    refresh_token = models.CharField(max_length=255, null=True)
 
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
