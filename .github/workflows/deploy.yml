@@ -22,7 +22,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./BPBackendDjango/requirements.txt
       - name: Collect Migrations
-       run: cp -r /home/github/bachelor-praktikum/api/migrations/* ./BPBackendDjango/BPBackendDjango/migrations/
+        run: cp -r /home/github/bachelor-praktikum/api/migrations/* ./BPBackendDjango/BPBackendDjango/migrations/
       - name: Makemigrations
         run: python ./BPBackendDjango/manage.py makemigrations
       - name: Migrate
