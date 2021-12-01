@@ -195,11 +195,13 @@ class AuthView(APIView):
             return Response(data)
 
         session_token = JwToken.create_session_token(username=info['info']['username'], account_type=info['info']['account_type'])
+        refresh_token = JwToken.create_refresh_token(username=info['info']['username'], account_type=info['info']['account_type'], set_pswd=False)
         data = {
             'success': True,
             'description': 'Nutzer ist nun eingeloggt',
             'data': {
-                'session_token': session_token
+                'session_token': session_token,
+                'refresh-token': refresh_token
                 }
             }
 
