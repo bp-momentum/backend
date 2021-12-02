@@ -14,6 +14,7 @@ from ..serializers import *
 from ..models import *
 from BPBackendDjango.settings import *
 
+#creating random password
 def get_random_password(length):
     letters = string.ascii_lowercase
     letters += string.ascii_uppercase
@@ -108,6 +109,7 @@ class CreateUserView(APIView):
         req_data = dict(request.data)
         info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
         
+        #check account type and create new-user-token
         if info["account_type"] == "admin":
             new_user_token = JwToken.create_new_user_token(info["username"], req_data["first_name"], req_data["last_name"], req_data["email_address"], "trainer")
         elif info["account_type"] == "trainer":
@@ -120,6 +122,7 @@ class CreateUserView(APIView):
                 }
 
             return Response(data)
+        #create and send mail
         html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://localhost:3000?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         send_mail("BachelorPraktum Passwort",
@@ -140,6 +143,7 @@ class LoginView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         print(req_data)
+        #check password
         passcheck = check_password(req_data['username'], req_data['password'])
         if passcheck == "invalid":
             data = {
@@ -150,6 +154,7 @@ class LoginView(APIView):
 
             return Response(data)
 
+        #create session- and refresh-token
         session_token = JwToken.create_session_token(req_data['username'], passcheck)
         refresh_token = JwToken.create_refresh_token(req_data['username'], passcheck, False)
         data = {
@@ -185,6 +190,7 @@ class AuthView(APIView):
     def post(self, request, *args, **kwargs):
         token = request.data['refresh_token']
         info = JwToken.check_refresh_token(token)
+        #check if token is valid
         if not info['valid']:
             data = {
             'success': False,
@@ -194,6 +200,7 @@ class AuthView(APIView):
 
             return Response(data)
 
+        #create session-token
         session_token = JwToken.create_session_token(username=info['info']['username'], account_type=info['info']['account_type'])
         data = {
             'success': True,
