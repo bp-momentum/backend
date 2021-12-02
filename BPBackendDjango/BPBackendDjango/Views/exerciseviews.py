@@ -1,18 +1,7 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from ..Helperclasses.jwttoken import JwToken
-import string
-import random
-import hashlib
-import time
 
-from ..serializers import *
 from ..models import *
-from BPBackendDjango.settings import *
 
 class GetExerciseView(APIView):
     def get(self, request, *args, **kwargs):
