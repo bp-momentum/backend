@@ -48,7 +48,7 @@ class CreatePlan(serializers.ModelSerializer):
             'trainer'
         }
 
-class CreateExerciseINPlan(serializers.ModelSerializer):
+class CreateExerciseInPlan(serializers.ModelSerializer):
     class Meta:
         model = ExerciseInPlan
         fields = {
