@@ -6,6 +6,7 @@ from ..models import *
 class GetExerciseView(APIView):
     def get(self, request, *args, **kwargs):
         req_data = dict(request.data)
+        #check if requested exercise exists
         if not Exercise.objects.filter(title=req_data['title']).exists():
             data = {
                 'success': False,
@@ -15,8 +16,10 @@ class GetExerciseView(APIView):
 
             return Response(data)
 
+        #get exercise
         ex = Exercise.objects.get(title=req_data['title'])
 
+        #checks wether exercise is activated
         if not ex.activated:
             data = {
                 'success': False,
@@ -29,6 +32,7 @@ class GetExerciseView(APIView):
             }
 
             return Response(data)
+            
         data = {
                 'success': True,
                 'description': 'Übungsdaten zurückgegeben',
