@@ -19,6 +19,7 @@ from django.urls import path
 from BPBackendDjango.BPBackendDjango.Views.exerciseviews import GetExerciseView
 
 from .Views.userviews import *
+from .Views.planviews import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,5 +28,7 @@ urlpatterns = [
     path('api/login', LoginView.as_view(), name='login'),
     path('api/auth', AuthView.as_view(), name='authenticateWithToken'),
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
-    path('api/getexercise', GetExerciseView.as_view(), name='getExercise')
+    path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
+    path('api/createplan', createPlanView.as_view(), name='createPlan'),
+    path('api/addplantouser', addPlanToUserView.as_view(), name='addExistingPlanToUser')
 ]
