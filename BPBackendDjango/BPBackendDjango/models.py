@@ -12,7 +12,7 @@ class Trainer(models.Model):
 
 class TrainingSchedule(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
-    plan_data = models.FileField()
+    plan_data = models.FileField(null=True)
 
 
 class Exercise(models.Model):
@@ -42,6 +42,7 @@ class User(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
+    plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
 
 
 class DoneExercises(models.Model):
