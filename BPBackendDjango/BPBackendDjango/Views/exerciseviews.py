@@ -10,7 +10,7 @@ class GetExerciseView(APIView):
         if not Exercise.objects.filter(title=req_data['title']).exists():
             data = {
                 'success': False,
-                'description': 'Es existiert keine Übung mit diesem Titel',
+                'description': 'no exercise with this title exists',
                 'data': {}
             }
 
@@ -23,7 +23,7 @@ class GetExerciseView(APIView):
         if not ex.activated:
             data = {
                 'success': False,
-                'description': 'Achtung Übung ist zur Zeit deaktiviert! Übungsdaten zurückgegeben',
+                'description': 'Be careful, exercise is deactivated! Returned data',
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
@@ -35,7 +35,7 @@ class GetExerciseView(APIView):
             
         data = {
                 'success': True,
-                'description': 'Übungsdaten zurückgegeben',
+                'description': 'Returned data',
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
