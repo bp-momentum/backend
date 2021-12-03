@@ -70,6 +70,15 @@ class GetExerciseListView(APIView):
                 }
             return Response(data)
 
+        #check if user is allowed to request
+        if not token["account_type"] == "trainer":
+            data = {
+                'success': False,
+                'description': 'Not allowed to request list of exercises',
+                'data': {}
+                }
+            return Response(data)
+
         list = Exercise.objects.all()
         out = []
         for ex in list:
