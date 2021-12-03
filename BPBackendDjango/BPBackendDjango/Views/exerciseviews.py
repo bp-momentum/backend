@@ -70,7 +70,7 @@ class GetExerciseListView(APIView):
                 }
             return Response(data)
 
-        list = Exercise.objects.all
+        list = Exercise.objects.all()
         out = {}
         for ex in list:
             out[str(ex.id)] = ex.title
