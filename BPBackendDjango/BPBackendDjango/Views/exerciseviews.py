@@ -34,7 +34,7 @@ class GetExerciseView(APIView):
             return Response(data)
 
         #check if user is allowed to request
-        if not (token["account_type"] == "trainer" or (token["account_type"] == "user" and user_needs_ex(token['username'], int(req_data['id'])))):
+        if not (token["info"]["account_type"] == "trainer" or (token["info"]["account_type"] == "user" and user_needs_ex(token["info"]['username'], int(req_data['id'])))):
             data = {
                 'success': False,
                 'description': 'Not allowed to request list of exercises',
@@ -85,7 +85,7 @@ class GetExerciseListView(APIView):
             return Response(data)
 
         #check if user is allowed to request
-        if not token["account_type"] == "trainer":
+        if not token["info"]["account_type"] == "trainer":
             data = {
                 'success': False,
                 'description': 'Not allowed to request list of exercises',
