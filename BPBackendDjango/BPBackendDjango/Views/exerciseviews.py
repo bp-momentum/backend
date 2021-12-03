@@ -4,6 +4,11 @@ from rest_framework.response import Response
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
+def user_needs_ex(username, id):
+    #TODO user needs exercise
+    return True
+
+
 class GetExerciseView(APIView):
     def get(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -26,6 +31,15 @@ class GetExerciseView(APIView):
                 'data': {}
             }
 
+            return Response(data)
+
+        #check if user is allowed to request
+        if not (token["account_type"] == "trainer" or (token["account_type"] == "user" and user_needs_ex(token['username'], int(req_data['id'])))):
+            data = {
+                'success': False,
+                'description': 'Not allowed to request list of exercises',
+                'data': {}
+                }
             return Response(data)
 
         #get exercise
