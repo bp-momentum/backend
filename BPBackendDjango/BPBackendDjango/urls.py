@@ -16,8 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from BPBackendDjango.BPBackendDjango.Views.exerciseviews import GetExerciseView
-
+from .Views.exerciseviews import *
 from .Views.userviews import *
 
 urlpatterns = [
