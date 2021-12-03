@@ -39,7 +39,7 @@ class GetExerciseView(APIView):
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
-                    'video': ex.viedo
+                    'video': ex.video
                 }
             }
 
@@ -51,7 +51,7 @@ class GetExerciseView(APIView):
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
-                    'video': ex.viedo
+                    'video': ex.video
                 }
         }
 
