@@ -33,6 +33,7 @@ jobs:
     runs-on: self-hosted
     needs: test-test-server
     steps:
+      - uses: actions/checkout@v2
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v2
         with:
