@@ -41,6 +41,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Copy settings
+        run: cp ${{ env.SETTINGS_PATH }} ./settings.json
       - name: Create Migrations folder
         run: mkdir ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Collect Migrations
