@@ -2,10 +2,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ..models import *
+from ..Helperclasses.jwttoken import JwToken
 
 class GetExerciseView(APIView):
     def get(self, request, *args, **kwargs):
         req_data = dict(request.data)
+
+        token = JwToken.check_new_user_token(request.data['new_user_token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+        
         #check if requested exercise exists
         if not Exercise.objects.filter(title=req_data['title']).exists():
             data = {
