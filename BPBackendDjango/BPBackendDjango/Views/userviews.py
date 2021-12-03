@@ -12,7 +12,7 @@ import time
 
 from ..serializers import *
 from ..models import *
-from BPBackendDjango.settings import *
+from ..settings import *
 
 def get_random_password(length):
     letters = string.ascii_lowercase
