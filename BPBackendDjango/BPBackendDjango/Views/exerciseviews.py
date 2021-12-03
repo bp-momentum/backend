@@ -8,7 +8,7 @@ class GetExerciseView(APIView):
     def get(self, request, *args, **kwargs):
         req_data = dict(request.data)
 
-        token = JwToken.check_new_user_token(request.data['new_user_token'])
+        token = JwToken.check_session_token(request.header['Session-Token'])
         #check if token is valid
         if not token["valid"]:
             data = {
