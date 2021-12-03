@@ -73,10 +73,10 @@ class GetExerciseListView(APIView):
         list = Exercise.objects.all()
         out = []
         for ex in list:
-            out.append = {
+            out.append({
                 'id': ex.id,
                 'title': ex.title
-            }
+            })
 
         data = {
             'success': True,
