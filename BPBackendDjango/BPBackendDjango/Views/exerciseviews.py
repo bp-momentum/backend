@@ -19,7 +19,7 @@ class GetExerciseView(APIView):
             return Response(data)
         
         #check if requested exercise exists
-        if not Exercise.objects.filter(title=req_data['id']).exists():
+        if not Exercise.objects.filter(id=int(req_data['id'])).exists():
             data = {
                 'success': False,
                 'description': 'no exercise with this id exists',
@@ -29,7 +29,7 @@ class GetExerciseView(APIView):
             return Response(data)
 
         #get exercise
-        ex = Exercise.objects.get(title=req_data['id'])
+        ex = Exercise.objects.get(id=int(req_data['id']))
 
         #checks wether exercise is activated
         if not ex.activated:
@@ -71,9 +71,12 @@ class GetExerciseListView(APIView):
             return Response(data)
 
         list = Exercise.objects.all()
-        out = {}
+        out = []
         for ex in list:
-            out[str(ex.id)] = ex.title
+            out.append = {
+                'id': ex.id,
+                'title': ex.title
+            }
 
         data = {
             'success': True,
