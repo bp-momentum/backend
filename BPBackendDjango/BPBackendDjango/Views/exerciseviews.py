@@ -56,3 +56,31 @@ class GetExerciseView(APIView):
         }
 
         return Response(data)
+
+
+class GetExerciseListView(APIView):
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        list = Exercise.objects
+        out = {}
+        for ex in list:
+            out[str(ex.id)] = ex.title
+
+        data = {
+            'success': True,
+            'description': 'list of exercises is provided',
+            'data': {
+                'exercise_list': out
+            }
+        }
+
+        return Response(data)
