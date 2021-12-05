@@ -239,7 +239,7 @@ class DeleteAccountView(APIView):
 
         data = {
             'success': True,
-            'description': 'User deleted',
+            'description': 'User was successfully deleted',
             'data': {}
             }
 

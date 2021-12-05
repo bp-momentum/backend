@@ -60,4 +60,29 @@ Success Return
 }
 ```
 
+## Delete User
 
+Type: POST 
+
+Path: /api/deleteuser
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "User was successfully deleted",
+    "data": {}
+}
+```
