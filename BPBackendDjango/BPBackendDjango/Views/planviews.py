@@ -35,7 +35,7 @@ def create_plan(trainer, date, sets, rps, exercise):
     return "invalid", new_data.errors
 
 
-class createPlanView(APIView):
+class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         req_data = request.data
@@ -107,7 +107,7 @@ class createPlanView(APIView):
         return Response(data)
 
 
-class addPlanToUserView(APIView):
+class AddPlanToUserView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         req_data = request.data
