@@ -78,9 +78,20 @@ class CreatePlanView(APIView):
 
             return Response(data)
 
+        
+        #check if exercise is valid
+        if not Exercise.objects.filter(id=int(req_data['exercise'])).exists():
+            data = {
+                'success': False,
+                'description': 'no valid exercise',
+                'data': {}
+                }
+
+            return Response(data)
+
         #create plan and data
         trainer = Trainer.objects.get(username=token['info']['username'])
-        plan = create_plan(trainer, req_data['date'], int(req_data['sets']), int(req_data['repeats_per_set']), req_data['exercise'])
+        plan = create_plan(trainer, req_data['date'], int(req_data['sets']), int(req_data['repeats_per_set']), int(req_data['exercise']))
         if plan[0] == "invalid":
             return Response(plan[1])
 
