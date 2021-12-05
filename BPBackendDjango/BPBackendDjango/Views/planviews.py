@@ -94,7 +94,7 @@ class CreatePlanView(APIView):
         plan = create_plan(trainer, req_data['date'], int(req_data['sets']), int(req_data['repeats_per_set']), int(req_data['exercise']))
         if plan[0] == "invalid":
             return Response(plan[1])
-
+        plan = plan[1]
         #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=plan.id)
 
