@@ -60,4 +60,39 @@ Success Return
 }
 ```
 
+## Register
+
+Type: POST 
+
+Path: /api/register
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "new_user_token": <str>,
+    "password": <str>,
+    "username": <str>,
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "User was created",
+    "data": {
+        "session_token": session_token,
+        "refresh_token": refresh_token
+    }
+}
+```
+
+
 
