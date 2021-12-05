@@ -92,7 +92,7 @@ Success Return
 
 Type: POST 
 
-Path: /api/logoutdevices
+Path: /api/auth
 
 Header:
 ```json
