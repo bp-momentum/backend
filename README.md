@@ -95,7 +95,7 @@ Success Return
 ## Get exercise list
 Type: GET 
 
-Path: /api/getexercise
+Path: /api/getexerciselist
 
 Header:
 ```json
