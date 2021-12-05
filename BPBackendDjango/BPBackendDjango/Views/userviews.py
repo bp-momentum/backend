@@ -184,8 +184,7 @@ class LogoutAllDevicesView(APIView):
         data = {
             'success': True,
             'description': 'refresh-token changed',
-            'data': {
-                }
+            'data': {}
             }
 
         return Response(data)
@@ -196,6 +195,7 @@ class AuthView(APIView):
     def post(self, request, *args, **kwargs):
         token = request.data['refresh_token']
         info = JwToken.check_refresh_token(token)
+        #check refresh-token
         if not info['valid']:
             data = {
             'success': False,
@@ -205,6 +205,7 @@ class AuthView(APIView):
 
             return Response(data)
 
+        #create new tokens
         session_token = JwToken.create_session_token(username=info['info']['username'], account_type=info['info']['account_type'])
         refresh_token = JwToken.create_refresh_token(username=info['info']['username'], account_type=info['info']['account_type'], set_pswd=False)
         data = {
