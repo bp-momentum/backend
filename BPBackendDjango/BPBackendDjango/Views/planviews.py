@@ -35,7 +35,7 @@ def create_plan(trainer, date, sets, rps, exercise):
         'sets': sets,
         'repeats_per_set': rps,
         'exercise': exercise,
-        'plan': plan
+        'plan': plan.id
     }
     new_data = CreateExerciseInPlan(data=data)
     #check if plan data is valid
