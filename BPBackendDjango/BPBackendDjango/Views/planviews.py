@@ -19,7 +19,7 @@ def add_plan_to_user(username, plan):
     user.save(force_update=True)
     return "success"
 
-def create_plan(trainer, date, sets, rps, exercise):
+def create_plan(trainer):
     #create plan
     data = {
         'trainer': trainer
@@ -30,6 +30,8 @@ def create_plan(trainer, date, sets, rps, exercise):
         plan = new_plan.save()
     else:
         return "invalid", new_plan.errors
+
+def add_exercise_to_plan(plan, date, sets, rps, exercise):
     #create plan data
     data = {
         'date': date,
@@ -42,7 +44,7 @@ def create_plan(trainer, date, sets, rps, exercise):
     #check if plan data is valid
     if new_data.is_valid():
         new_data.save()
-        return "valid", plan
+        return "success", plan
     return "invalid", new_data.errors
 
 
@@ -79,30 +81,44 @@ class CreatePlanView(APIView):
 
             return Response(data)
 
-        
-        #check if exercise is valid
-        if not Exercise.objects.filter(id=int(req_data['exercise'])).exists():
-            data = {
-                'success': False,
-                'description': 'no valid exercise',
-                'data': {}
-                }
-
-            return Response(data)
-
         #create plan and data
         trainer = Trainer.objects.get(username=token['info']['username']).id
-        plan = create_plan(trainer, req_data['date'], int(req_data['sets']), int(req_data['repeats_per_set']), int(req_data['exercise']))
+        plan = create_plan(trainer)
         if plan[0] == "invalid":
             return Response(plan[1])
         plan = plan[1]
+        if not (req_data['exercise'].length == req_data['date'].length and req_data['exercise'].length == req_data['sets'].length and req_data['exercise'].length == req_data['repeats_per_set'].length):
+            data = {
+                    'success': False,
+                    'description': 'all lists must have same length',
+                    'data': {}
+                }
+            
+            return Response(data)
+
+        for i in range(req_data['exercise'].length):
+            #check if exercise is valid
+            if not Exercise.objects.filter(id=int(req_data['exercise'][i])).exists():
+                data = {
+                    'success': False,
+                    'description': 'no valid exercise',
+                    'data': {
+                        'invalid_exercise': req_data['exercise'][i]
+                    }
+                }
+
+                return Response(data)
+
+            res = add_exercise_to_plan(plan, req_data['date'][i], int(req_data['sets'][i]), int(req_data['repeats_per_set'][i]), int(req_data['exercise'][i]))
+            if res[0] == "invalid":
+                return Response(res[1])
         #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=plan.id)
 
         #checks whether assigning was successful
         if res == "user_invalid":
             data = {
-                'success': False,
+                'success': True,
                 'description': 'plan was created but could not be assigned to user',
                 'data': {
                     'plan_id': plan.id

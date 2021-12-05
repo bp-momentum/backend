@@ -76,10 +76,10 @@ Header:
 Parameters: 
 ```json
 {
-    "date": <str>,
-    "sets": <str>,
-    "repeats_per_set": <str>,
-    "exercise": <str>,
+    "date": <list>,
+    "sets": <list>,
+    "repeats_per_set": <list>,
+    "exercise": <list>,
     "user": <str>
 }
 ```
