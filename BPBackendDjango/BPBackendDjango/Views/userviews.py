@@ -206,6 +206,47 @@ class AuthView(APIView):
         return Response(data)
 
 
+class DeleteAccountView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #delete user
+        if User.objects.filter(username=info['username']).exists():
+            User.objects.filter(username=info['username']).delete()
+        elif Trainer.objects.filter(username=info['username']).exists():
+            Trainer.objects.filter(username=info['username']).delete()
+        elif Admin.objects.filter(username=info['username']).exists():
+            Admin.objects.filter(username=info['username']).delete()
+        else:
+            data = {
+            'success': False,
+            'description': 'User not found',
+            'data': {}
+            }
+
+            return Response(data)
+
+        data = {
+            'success': True,
+            'description': 'User deleted',
+            'data': {}
+            }
+
+        return Response(data)
+
+
+
             
 
 

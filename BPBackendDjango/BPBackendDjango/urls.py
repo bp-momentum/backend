@@ -24,5 +24,6 @@ urlpatterns = [
     path('api/register', RegisterView.as_view(), name='register'),
     path('api/login', LoginView.as_view(), name='login'),
     path('api/auth', AuthView.as_view(), name='authenticateWithToken'),
-    path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices')
+    path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
+    path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser')
 ]
