@@ -15,8 +15,7 @@ def add_plan_to_user(username, plan):
     #assign plan to user
     user = User.objects.get(username=username)
     ts = TrainingSchedule.objects.get(id=plan)
-    user.plan = ts
-    print("neuer plan:" , user.plan)
+    user.update(plan=ts)
     return "success"
 
 def create_plan(trainer, date, sets, rps, exercise):
