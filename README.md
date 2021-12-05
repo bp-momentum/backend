@@ -94,6 +94,15 @@ Success Return
     }
 }
 ```
+```json
+{
+    "success": true,
+    "description": 'plan was created but could not be assigned to user',
+    "data": {
+        "plan_id": plan.id
+    }
+}
+```
 
 ## assign plan to user
 
