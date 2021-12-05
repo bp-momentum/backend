@@ -6,22 +6,29 @@ from ..serializers import *
 from ..Helperclasses.jwttoken import JwToken
 
 def add_plan_to_user(username, plan):
+    #checks if user exists
     if not User.objects.filter(username=username).exists():
         return "user_invalid"
+    #checks if plan exists
     if not TrainingSchedule.objects.filter(id=plan).exists():
         return "plan_invalid"
+    #assign plan to user
     user = User.objects.get(username=username)
     ts = TrainingSchedule.objects.get(id=plan)
     user.plan = ts
     return "success"
 
 def create_plan(trainer, date, sets, rps, exercise):
+    #create plan
     new_plan = CreatePlan(trainer=trainer)
+    #check if plan is valid
     if new_plan.is_valid():
         plan = new_plan.save()
     else:
         return "invalid", new_plan.errors
+    #create plan data
     new_data = CreateExerciseInPlan(date=date, sets=sets, repeats_per_set=rps, exercise=exercise, plan=plan)
+    #check if plan data is valid
     if new_data.is_valid():
         new_data.save()
         return "valid", plan
@@ -51,7 +58,8 @@ class createPlanView(APIView):
                 }
             return Response(data)
 
-        if not Trainer.objects.filter(username=token['username']).exists():
+        #checks if trainer exists
+        if not Trainer.objects.filter(username=token['info']['username']).exists():
             data = {
                 'success': False,
                 'description': 'no valid trainer',
@@ -60,13 +68,16 @@ class createPlanView(APIView):
 
             return Response(data)
 
-        trainer = Trainer.objects.get(username=token['username'])
+        #create plan and data
+        trainer = Trainer.objects.get(username=token['info']['username'])
         plan = create_plan(trainer, req_data['date'], int(req_data['sets']), int(req_data['repeats_per_set']), req_data['exercise'])
         if plan[0] == "invalid":
             return Response(plan[1])
 
+        #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=plan.id)
 
+        #checks whether assigning was successful
         if res == "user_invalid":
             data = {
                 'success': False,
@@ -119,8 +130,10 @@ class addPlanToUserView(APIView):
                 }
             return Response(data)
 
+        #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=int(req_data['plan']))
 
+        #checks whether assigning was successful
         if res == "user_invalid":
             data = {
                 'success': False,
