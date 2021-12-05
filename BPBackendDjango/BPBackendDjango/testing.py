@@ -31,3 +31,30 @@ class ExerciseTestCase(TestCase):
         Exercise.objects.filter(title='Liegestütze', description="Mache Liegestütze", video=None, activated=False).delete()
         self.assertFalse(Exercise.objects.filter(title='Kniebeuge', description="Gehe in die Knie, achte...", video=None, activated=True).exists())
         self.assertFalse(Exercise.objects.filter(title='Liegestütze', description="Mache Liegestütze", video=None, activated=False).exists())
+
+
+class PlanTestCase(TestCase):
+    def setUp(self):
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user = User.objects.get(first_name="Erik")
+        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
+        ex = Exercise.objects.get(title='Kniebeuge')
+        TrainingSchedule.objects.create(trainer=trainer)
+        ts = TrainingSchedule.objects.get(trainer=trainer.id)
+        ExerciseInPlan.objects.create(date="2022-01-01", sets=5, repeats_per_set=10, exercise=ex.id, plan=ts.id)
+        user.plan = ts.id
+
+    def test_if_exists(self):
+        self.assertTrue(TrainingSchedule.objects.filter(trainer=1))
+        self.assertTrue(ExerciseInPlan.objects.filter(exercise=1, plan=1))
+        user = User.objects.get(first_name="Erik")
+        self.assertTrue(user.plan == 1)
+
+    def test_if_related_deletes_work(self):
+        Exercise.objects.filter(title='Kniebeuge').delete()
+        self.assertFalse(ExerciseInPlan.objects.filter(exercise=1, plan=1))
+        Trainer.objects.filter(first_name="Erik").delete()
+        self.assertFalse(User.objects.filter(first_name="Erik").exists())
+        self.assertFalse(TrainingSchedule.objects.filter(id=1).exists())
