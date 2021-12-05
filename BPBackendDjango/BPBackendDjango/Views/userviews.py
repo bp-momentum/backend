@@ -183,7 +183,7 @@ class LogoutAllDevicesView(APIView):
         JwToken.save_refreshpswd(info['username'], JwToken.create_refreshpswd(info['username'], int(time.time())))
         data = {
             'success': True,
-            'description': 'Refresh-Token geändert',
+            'description': 'refresh-token changed',
             'data': {
                 }
             }
@@ -199,7 +199,7 @@ class AuthView(APIView):
         if not info['valid']:
             data = {
             'success': False,
-            'description': 'Refresh-Token ungültig',
+            'description': 'refresh-token invalid',
             'data': {}
             }
 
@@ -209,7 +209,7 @@ class AuthView(APIView):
         refresh_token = JwToken.create_refresh_token(username=info['info']['username'], account_type=info['info']['account_type'], set_pswd=False)
         data = {
             'success': True,
-            'description': 'Nutzer ist nun eingeloggt',
+            'description': 'user is now logged in',
             'data': {
                 'session_token': session_token,
                 'refresh-token': refresh_token
