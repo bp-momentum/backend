@@ -32,15 +32,23 @@ class createPlanView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         req_data = request.data
-        token = JwToken.check_session_token(request.headers["Session-Token"])["info"]
-
-        if not token["account_type"] == "trainer":
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
             data = {
                 'success': False,
-                'description': 'account type is not allowed to add training schedules',
+                'description': 'Token is not valid',
                 'data': {}
                 }
+            return Response(data)
 
+        #check if user is allowed to request
+        if not token["info"]["account_type"] == "trainer":
+            data = {
+                'success': False,
+                'description': 'Not allowed to add trainig schedule',
+                'data': {}
+                }
             return Response(data)
 
         if not Trainer.objects.filter(username=token['username']).exists():
@@ -92,15 +100,23 @@ class addPlanToUserView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         req_data = request.data
-        token = JwToken.check_session_token(request.headers["Session-Token"])["info"]
-
-        if not token["account_type"] == "trainer":
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
             data = {
                 'success': False,
-                'description': 'account type is not allowed to assign training schedules',
+                'description': 'Token is not valid',
                 'data': {}
                 }
+            return Response(data)
 
+        #check if user is allowed to request
+        if not token["info"]["account_type"] == "trainer":
+            data = {
+                'success': False,
+                'description': 'Not allowed to request list of exercises',
+                'data': {}
+                }
             return Response(data)
 
         res = add_plan_to_user(username=req_data['user'], plan=int(req_data['plan']))
