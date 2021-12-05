@@ -20,14 +20,24 @@ def add_plan_to_user(username, plan):
 
 def create_plan(trainer, date, sets, rps, exercise):
     #create plan
-    new_plan = CreatePlan(trainer=trainer)
+    data = {
+        'trainer': trainer
+    }
+    new_plan = CreatePlan(data=data)
     #check if plan is valid
     if new_plan.is_valid():
         plan = new_plan.save()
     else:
         return "invalid", new_plan.errors
     #create plan data
-    new_data = CreateExerciseInPlan(date=date, sets=sets, repeats_per_set=rps, exercise=exercise, plan=plan)
+    data = {
+        'date': date,
+        'sets': sets,
+        'repeats_per_set': rps,
+        'exercise': exercise,
+        'plan': plan
+    }
+    new_data = CreateExerciseInPlan(data=data)
     #check if plan data is valid
     if new_data.is_valid():
         new_data.save()
