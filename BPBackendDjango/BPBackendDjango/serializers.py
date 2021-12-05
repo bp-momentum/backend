@@ -44,14 +44,14 @@ class CreateExerciseWithoutVideo(serializers.ModelSerializer):
 class CreatePlan(serializers.ModelSerializer):
     class Meta:
         model = TrainingSchedule
-        fields = {
+        fields = (
             'trainer'
-        }
+        )
 
 class CreateExerciseInPlan(serializers.ModelSerializer):
     class Meta:
         model = ExerciseInPlan
-        fields = {
+        fields = (
             'date', 'sets', 'repeats_per_set', 'exercise', 'plan'
-        }
+        )
 
