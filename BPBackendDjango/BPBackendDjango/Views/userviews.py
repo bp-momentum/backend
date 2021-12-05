@@ -84,7 +84,7 @@ class RegisterView(APIView):
                 refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
                 data = {
                 'success': True,
-                'description': 'User wurde erstellt',
+                'description': 'User was created',
                 'data': {
                     "session_token": session_token,
                     "refresh_token": refresh_token
@@ -95,7 +95,7 @@ class RegisterView(APIView):
             else:
                 data = {
                 'success': False,
-                'description': 'Username existiert bereits',
+                'description': 'Username already exists',
                 'data': {}
                 }
 
@@ -148,7 +148,7 @@ class LoginView(APIView):
         if passcheck == "invalid":
             data = {
             'success': False,
-            'description': 'Nutzerdaten sind fehlerhaft',
+            'description': 'Data of user is invalid',
             'data': {}
             }
 
@@ -159,7 +159,7 @@ class LoginView(APIView):
         refresh_token = JwToken.create_refresh_token(req_data['username'], passcheck, False)
         data = {
             'success': True,
-            'description': 'Nutzer ist nun eingeloggt',
+            'description': 'User is logged in',
             'data': {
                 'session_token': session_token,
                 'refresh_token': refresh_token
