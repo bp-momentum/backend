@@ -90,7 +90,7 @@ class CreatePlanView(APIView):
             return Response(data)
 
         #create plan and data
-        trainer = Trainer.objects.get(username=token['info']['username'])
+        trainer = Trainer.objects.get(username=token['info']['username']).id
         plan = create_plan(trainer, req_data['date'], int(req_data['sets']), int(req_data['repeats_per_set']), int(req_data['exercise']))
         if plan[0] == "invalid":
             return Response(plan[1])
