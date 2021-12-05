@@ -55,7 +55,8 @@ Success Return
     "success": true,
     "description": "User is now logged in",
     "data": {
-        "access_token": <str>
+        "session_token": session_token,
+        "refresh_token": refresh_token
     }
 }
 ```
