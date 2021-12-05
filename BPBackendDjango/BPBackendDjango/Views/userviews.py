@@ -168,7 +168,18 @@ class LoginView(APIView):
 class LogoutAllDevicesView(APIView):
 
     def post(self, request, *args, **kqargs):
-        info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
+        token = JwToken.check_session_token(request.headers["Session-Token"])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        info = token["info"]
+        #creates new password for refresh-token
         JwToken.save_refreshpswd(info['username'], JwToken.create_refreshpswd(info['username'], int(time.time())))
         data = {
             'success': True,
