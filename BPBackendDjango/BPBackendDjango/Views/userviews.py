@@ -168,13 +168,23 @@ class LoginView(APIView):
 class LogoutAllDevicesView(APIView):
 
     def post(self, request, *args, **kqargs):
-        info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
+        token = JwToken.check_session_token(request.headers["Session-Token"])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        info = token["info"]
+        #creates new password for refresh-token
         JwToken.save_refreshpswd(info['username'], JwToken.create_refreshpswd(info['username'], int(time.time())))
         data = {
             'success': True,
-            'description': 'Refresh-Token geändert',
-            'data': {
-                }
+            'description': 'refresh-token changed',
+            'data': {}
             }
 
         return Response(data)
@@ -185,21 +195,25 @@ class AuthView(APIView):
     def post(self, request, *args, **kwargs):
         token = request.data['refresh_token']
         info = JwToken.check_refresh_token(token)
+        #check refresh-token
         if not info['valid']:
             data = {
             'success': False,
-            'description': 'Refresh-Token ungültig',
+            'description': 'refresh-token invalid',
             'data': {}
             }
 
             return Response(data)
 
+        #create new tokens
         session_token = JwToken.create_session_token(username=info['info']['username'], account_type=info['info']['account_type'])
+        refresh_token = JwToken.create_refresh_token(username=info['info']['username'], account_type=info['info']['account_type'], set_pswd=False)
         data = {
             'success': True,
-            'description': 'Nutzer ist nun eingeloggt',
+            'description': 'user is now logged in',
             'data': {
-                'session_token': session_token
+                'session_token': session_token,
+                'refresh-token': refresh_token
                 }
             }
 
