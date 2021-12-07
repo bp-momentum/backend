@@ -120,3 +120,62 @@ Success Return
     }
 }
 ```
+
+
+## Logout all devices
+
+Type: POST 
+
+Path: /api/logoutdevices
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'refresh-token changed',
+    "data": {}
+}
+```
+
+## Login via refresh-token
+
+Type: POST 
+
+Path: /api/auth
+
+Header:
+```json
+{
+}
+```
+
+Parameters: 
+```json
+{
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'user is now logged in',
+    "data": {
+        "session_token": session_token,
+        "refresh-token": refresh_token
+        }
+}
+```
