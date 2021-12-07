@@ -30,12 +30,13 @@ class GetExerciseView(APIView):
 
         if not ex.activated:
             data = {
-                'success': False,
+                'success': True,
                 'description': 'Achtung Übung ist zur Zeit deaktiviert! Übungsdaten zurückgegeben',
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
-                    'video': ex.viedo
+                    'video': ex.video,
+                    'activated': False
                 }
             }
 
@@ -46,7 +47,8 @@ class GetExerciseView(APIView):
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
-                    'video': ex.viedo
+                    'video': ex.video,
+                    'activated': True
                 }
         }
 
