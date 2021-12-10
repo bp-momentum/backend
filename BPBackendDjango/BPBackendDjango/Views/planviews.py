@@ -28,6 +28,7 @@ def create_plan(trainer):
     #check if plan is valid
     if new_plan.is_valid():
         plan = new_plan.save()
+        return "valid", ""
     else:
         return "invalid", new_plan.errors
 
@@ -51,7 +52,6 @@ def add_exercise_to_plan(plan, date, sets, rps, exercise):
 class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        req_data = request.data
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
