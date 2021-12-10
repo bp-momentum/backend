@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from .Views.exerciseviews import *
 from .Views.userviews import *
 
 urlpatterns = [
@@ -24,5 +25,7 @@ urlpatterns = [
     path('api/register', RegisterView.as_view(), name='register'),
     path('api/login', LoginView.as_view(), name='login'),
     path('api/auth', AuthView.as_view(), name='authenticateWithToken'),
-    path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices')
+    path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
+    path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
+    path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList')
 ]

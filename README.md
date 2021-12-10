@@ -60,6 +60,68 @@ Success Return
 }
 ```
 
+## Get exercise
+Type: GET 
+
+Path: /api/getexercise
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "id": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'Returned data',
+    "data": {
+        "title": <str>,
+        "description": <str>,
+        "video": <str>
+    }
+}
+```
+
+## Get exercise list
+Type: GET 
+
+Path: /api/getexerciselist
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'list of exercises is provided',
+    "data": {
+        "exercise_list": <list>
+    }
+}
+```
+
+
 ## Logout all devices
 
 Type: POST 
@@ -103,7 +165,6 @@ Header:
 Parameters: 
 ```json
 {
-    "refresh-token": <str>
 }
 ```
 Success Return 

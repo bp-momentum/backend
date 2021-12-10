@@ -17,11 +17,26 @@ class CreateTrainerSerializer(serializers.ModelSerializer):
         )
 
 
-
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
             'username', 'password'
+        )
+
+
+class CreateExercise(serializers.ModelSerializer):
+    class Meta:
+        model = Exercise
+        fields = (
+            'description', 'path', 'title'
+        )
+
+
+class CreateExerciseWithoutVideo(serializers.ModelSerializer):
+    class Meta:
+        model = Exercise
+        fields = (
+            'description', 'title'
         )
 
