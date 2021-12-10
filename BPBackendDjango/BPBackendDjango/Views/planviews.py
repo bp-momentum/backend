@@ -44,8 +44,8 @@ def add_exercise_to_plan(plan, date, sets, rps, exercise):
     new_data = CreateExerciseInPlan(data=data)
     #check if plan data is valid
     if new_data.is_valid():
-        new_data.save()
-        return "success", plan
+        data = new_data.save()
+        return "success", data
     return "invalid", new_data.errors
 
 
@@ -96,6 +96,7 @@ class CreatePlanView(APIView):
             
             return Response(data)
 
+        ex_in_plans = []
         for i in range(len(req_data['exercise'])):
             #check if exercise is valid
             if not Exercise.objects.filter(id=int(req_data['exercise'][i])).exists():
@@ -111,7 +112,11 @@ class CreatePlanView(APIView):
 
             res = add_exercise_to_plan(plan, req_data['date'][i], int(req_data['sets'][i]), int(req_data['repeats_per_set'][i]), int(req_data['exercise'][i]))
             if res[0] == "invalid":
+                TrainingSchedule.objects.filter(id=plan.id).delete()
+                for ex in ex_in_plans:
+                    ExerciseInPlan.objects.filter(id=ex.id).delete()
                 return Response(res[1])
+            ex_in_plans.append(res[1])
         #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=plan.id)
 
