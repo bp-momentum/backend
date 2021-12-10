@@ -13,7 +13,7 @@ class Trainer(models.Model):
 
 class TrainingSchedule(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
-    plan_data = models.FileField()
+    plan_data = models.FileField(null=True)
 
 
 
