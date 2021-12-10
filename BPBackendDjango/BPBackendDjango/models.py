@@ -19,7 +19,7 @@ class TrainingSchedule(models.Model):
 
 class Exercise(models.Model):
     description = models.TextField()
-    video = models.FilePathField()
+    video = models.FilePathField(null=True)
     title = models.CharField(max_length=255)
     activated = models.BooleanField()
 
