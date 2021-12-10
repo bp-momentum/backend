@@ -29,5 +29,8 @@ urlpatterns = [
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
     path('api/createplan', CreatePlanView.as_view(), name='createPlan'),
-    path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser')
+    path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),
+    path('api/getlistofplans', GetAllPlansView.as_view(), name='getListOfPlans'),
+    path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
+    path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser')
 ]

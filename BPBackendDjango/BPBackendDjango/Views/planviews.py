@@ -47,6 +47,22 @@ def add_exercise_to_plan(plan, date, sets, rps, exercise):
         return "success", plan
     return "invalid", new_data.errors
 
+def getListOfExercises(id):
+    exs = []
+    plan_data = ExerciseInPlan.objects.filter(plan=id)
+    for ex in plan_data:
+        ex_id = ex.id
+        sets = ex.sets
+        rps = ex.repeats_per_set
+        date = ex.date
+        exs.append({
+            'id': ex_id,
+            'sets': sets,
+            'repeats_per_set': rps,
+            'date': date
+        })
+    return exs
+
 
 class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
@@ -192,4 +208,120 @@ class AddPlanToUserView(APIView):
             }
 
         return Response(data)
-        
+
+    
+class ShowPlanView(APIView):
+    def get(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        #check if plan exists
+        if not TrainingSchedule.objects.filter(id=int(req_data['plan'])).exists():
+            data = {
+                'success': False,
+                'description': 'Trainings schedule does not exist',
+                'data': {}
+                }
+            return Response(data)
+
+        exs = getListOfExercises(int(req_data['plan']))
+        data = {
+                'success': True,
+                'description': 'returned plan',
+                'data': {
+                    'exercises': exs
+                }
+        }
+        return Response(data)
+
+
+class GetAllPlansView(APIView):
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+        plans = TrainingSchedule.objects.all()
+        ids = []
+        for plan in plans:
+            ids.append(plan.id)
+        data = {
+                'success': True,
+                'description': 'returning all plan ids',
+                'data': {
+                    'ids': ids
+                }
+        }
+        return Response(data)
+
+
+class GetPlanOfUser(APIView):
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        #user gets own plan
+        if info['account_type'] == 'user':
+            user = User.objects.get(username=info['username'])
+            exs = getListOfExercises(user.plan)
+            data = {
+                'success': True,
+                'description': 'returned plan of this account',
+                'data': {
+                    'exercises': exs
+                }
+            }
+            return Response(data)
+
+        #trainers can request plan of users
+        elif info['account_type'] == 'trainer':
+            req_data = dict(request)
+            #check if user exists
+            if not User.objects.filter(username=req_data['username']):
+                data = {
+                    'success': False,
+                    'description': 'unknown user',
+                    'data': {}
+                    }
+                return Response(data)
+            
+            user = User.objects.get(username=req_data['username'])
+            exs = getListOfExercises(user.plan)
+            data = {
+                'success': True,
+                'description': 'returned plan of user',
+                'data': {
+                    'exercises': exs
+                }
+            }
+
+        else:
+            data = {
+                'success': False,
+                'description': 'no permission to request plan of user',
+                'data': {}
+            }
+            return Response(data)
+
+
