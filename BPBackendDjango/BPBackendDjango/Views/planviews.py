@@ -87,7 +87,7 @@ class CreatePlanView(APIView):
         if plan[0] == "invalid":
             return Response(plan[1])
         plan = plan[1]
-        if not (req_data['exercise'].length == req_data['date'].length and req_data['exercise'].length == req_data['sets'].length and req_data['exercise'].length == req_data['repeats_per_set'].length):
+        if not (len(req_data['exercise']) == len(req_data['date']) and len(req_data['exercise']) == len(req_data['sets']) and len(req_data['exercise']) == len(req_data['repeats_per_set'])):
             data = {
                     'success': False,
                     'description': 'all lists must have same length',
@@ -96,7 +96,7 @@ class CreatePlanView(APIView):
             
             return Response(data)
 
-        for i in range(req_data['exercise'].length):
+        for i in range(len(req_data['exercise'])):
             #check if exercise is valid
             if not Exercise.objects.filter(id=int(req_data['exercise'][i])).exists():
                 data = {
