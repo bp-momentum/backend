@@ -28,7 +28,7 @@ def create_plan(trainer):
     #check if plan is valid
     if new_plan.is_valid():
         plan = new_plan.save()
-        return "valid", ""
+        return "valid", plan
     else:
         return "invalid", new_plan.errors
 
