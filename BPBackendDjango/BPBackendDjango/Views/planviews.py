@@ -88,6 +88,8 @@ class CreatePlanView(APIView):
             return Response(plan[1])
         plan = plan[1]
         if not (len(req_data['exercise']) == len(req_data['date']) and len(req_data['exercise']) == len(req_data['sets']) and len(req_data['exercise']) == len(req_data['repeats_per_set'])):
+            #if lists are invalid, delete already created entries
+            TrainingSchedule.objects.filter(id=plan.id).delete()
             data = {
                     'success': False,
                     'description': 'all lists must have same length',
