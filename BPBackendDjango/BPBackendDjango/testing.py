@@ -36,13 +36,16 @@ class DeleteUserTestCase(TestCase):
         DeleteUserTestCase.trainer_id = trainer.id
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
         User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
-        DeleteUserTestCase.user_id = User.objects.get(first_name='Erik').id
-        DeleteUserTestCase.user_id_2 = User.objects.get(first_name='Jannis').id
+        user1 = User.objects.get(first_name='Erik')
+        user2 = User.objects.get(first_name='Jannis')
+        DeleteUserTestCase.user_id = user1.id
+        DeleteUserTestCase.user_id_2 = user2.id
         Exercise.objects.create(title='Squat', description='Just do it.')
-        DeleteUserTestCase.exercise_id = Exercise.objects.get(title='Squat').id
-        DoneExercises.objects.create(exercise=DeleteUserTestCase.exercise_id, user=DeleteUserTestCase.user_id, points=98)
+        exercise = Exercise.objects.get(title='Squat')
+        DeleteUserTestCase.exercise_id = exercise.id
+        DoneExercises.objects.create(exercise=exercise, user=user1, points=98)
         DeleteUserTestCase.done_ex_id = DoneExercises.objects.get(points=98).id
-        Friends.objects.create(friend1=DeleteUserTestCase.user_id, friend2=DeleteUserTestCase.user_id_2)
+        Friends.objects.create(friend1=user1, friend2=user2)
         DeleteUserTestCase.friends_id = Friends.objects.get(friend1=DeleteUserTestCase.user_id).id
 
     def test_cascade(self):
