@@ -21,7 +21,7 @@ class Exercise(models.Model):
     description = models.TextField()
     video = models.FilePathField(null=True)
     title = models.CharField(max_length=255)
-    activated = models.BooleanField()
+    activated = models.BooleanField(default=True)
 
 
 
