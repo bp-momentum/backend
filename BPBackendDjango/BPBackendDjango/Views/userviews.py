@@ -227,6 +227,7 @@ class DeleteAccountView(APIView):
         elif Trainer.objects.filter(username=info['username']).exists():
             Trainer.objects.filter(username=info['username']).delete()
         elif Admin.objects.filter(username=info['username']).exists():
+            #admins can not be deleted
             data = {
             'success': False,
             'description': 'Admin account can not be deleted',
