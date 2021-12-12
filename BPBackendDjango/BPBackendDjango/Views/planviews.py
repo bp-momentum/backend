@@ -253,6 +253,7 @@ class ShowPlanView(APIView):
                 'success': True,
                 'description': 'returned plan',
                 'data': {
+                    'name': name,
                     'exercises': exs
                 }
         }
@@ -284,16 +285,19 @@ class GetAllPlansView(APIView):
         trainer = Trainer.objects.get(username=info['username'])
         #get all plans as list
         plans = TrainingSchedule.objects.all()
-        ids = []
+        plans_res = []
         #get all ids as list
         for plan in plans:
             if plan.trainer == trainer.id:
-                ids.append(plan.id)
+                plans_res.append({
+                    'id': plan.id,
+                    'name': plan.name
+                    })
         data = {
                 'success': True,
                 'description': 'returning all plan ids',
                 'data': {
-                    'ids': ids
+                    'plans': plans_res
                 }
         }
         return Response(data)
