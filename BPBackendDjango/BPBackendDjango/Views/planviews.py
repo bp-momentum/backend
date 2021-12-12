@@ -227,11 +227,12 @@ class ShowPlanView(APIView):
         if not TrainingSchedule.objects.filter(id=int(req_data['plan'])).exists():
             data = {
                 'success': False,
-                'description': 'Trainings schedule does not exist',
+                'description': 'Training schedule does not exist',
                 'data': {}
                 }
             return Response(data)
 
+        #get exercises of this plan
         exs = getListOfExercises(int(req_data['plan']))
         data = {
                 'success': True,
@@ -254,8 +255,11 @@ class GetAllPlansView(APIView):
                 'data': {}
                 }
             return Response(data)
+        
+        #get all plans as list
         plans = TrainingSchedule.objects.all()
         ids = []
+        #get all ids as list
         for plan in plans:
             ids.append(plan.id)
         data = {
