@@ -268,6 +268,16 @@ class GetAllPlansView(APIView):
                 'data': {}
                 }
             return Response(data)
+
+        info = token['info']
+        #only trainers can request all plans
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'you are not allow to request all plans',
+                'data': {}
+                }
+            return Response(data)
         
         #get all plans as list
         plans = TrainingSchedule.objects.all()
