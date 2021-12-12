@@ -11,6 +11,7 @@ class Trainer(models.Model):
  
 
 class TrainingSchedule(models.Model):
+    name = models.CharField(default="plan", max_length=50)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField(null=True)
 
