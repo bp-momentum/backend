@@ -288,6 +288,15 @@ class GetPlanOfUser(APIView):
         #user gets own plan
         if info['account_type'] == 'user':
             user = User.objects.get(username=info['username'])
+            #check if user has plan assigned
+            if user.plan == None:
+                data = {
+                    'success': False,
+                    'description': 'user has no plan assigned',
+                    'data': {}
+                }
+
+                return Response(data)
             exs = getListOfExercises(user.plan)
             data = {
                 'success': True,
@@ -311,6 +320,15 @@ class GetPlanOfUser(APIView):
                 return Response(data)
             
             user = User.objects.get(username=req_data['username'])
+            #check if user has plan assigned
+            if user.plan == None:
+                data = {
+                    'success': False,
+                    'description': 'user has no plan assigned',
+                    'data': {}
+                }
+
+                return Response(data)
             exs = getListOfExercises(user.plan)
             data = {
                 'success': True,
