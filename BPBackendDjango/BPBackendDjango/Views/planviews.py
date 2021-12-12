@@ -259,6 +259,8 @@ class ShowPlanView(APIView):
 
         #get exercises of this plan
         exs = getListOfExercises(int(req_data['plan']))
+        plan = TrainingSchedule.objects.get(id=int(req_data['plan']))
+        name = plan.name
         data = {
                 'success': True,
                 'description': 'returned plan',
