@@ -15,7 +15,7 @@ from ..models import *
 from BPBackendDjango.settings import *
 
 class GetExerciseView(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         if not Exercise.objects.filter(title=req_data['title']).exists():
             data = {
