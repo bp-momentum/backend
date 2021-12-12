@@ -297,6 +297,8 @@ class GetPlanOfUser(APIView):
                 }
 
                 return Response(data)
+
+            #get exercise in plan
             exs = getListOfExercises(user.plan)
             data = {
                 'success': True,
@@ -329,6 +331,8 @@ class GetPlanOfUser(APIView):
                 }
 
                 return Response(data)
+
+            #get exercises in plan
             exs = getListOfExercises(user.plan)
             data = {
                 'success': True,
