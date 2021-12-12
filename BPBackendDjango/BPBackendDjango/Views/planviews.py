@@ -238,6 +238,16 @@ class ShowPlanView(APIView):
                 }
             return Response(data)
 
+        info = token['info']
+        #only trainers can request plan
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'you are not allow to request all plans',
+                'data': {}
+                }
+            return Response(data)
+
         #check if plan exists
         if not TrainingSchedule.objects.filter(id=int(req_data['plan'])).exists():
             data = {
