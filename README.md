@@ -76,6 +76,7 @@ Header:
 Parameters: 
 ```json
 {
+    "name": <str>,
     "date": <list>,
     "sets": <list>,
     "repeats_per_set": <list>,

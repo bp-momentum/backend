@@ -11,6 +11,7 @@ class Trainer(models.Model):
  
 
 class TrainingSchedule(models.Model):
+    name = models.CharField(default="plan", max_length=50)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField(null=True)
 
@@ -27,7 +28,7 @@ class Team(models.Model):
 
 
 class ExerciseInPlan(models.Model):
-    date = models.DateField(default="1970-01-01")
+    date = models.CharField(default="Monday", max_length=15)
     sets = models.IntegerField(default=0)
     repeats_per_set = models.IntegerField(default=0)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)

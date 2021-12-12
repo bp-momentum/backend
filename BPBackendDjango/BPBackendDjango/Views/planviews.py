@@ -1,3 +1,4 @@
+from os import name
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -19,10 +20,11 @@ def add_plan_to_user(username, plan):
     user.save(force_update=True)
     return "success"
 
-def create_plan(trainer):
+def create_plan(trainer, name):
     #create plan
     data = {
-        'trainer': trainer
+        'trainer': trainer,
+        'name': name
     }
     new_plan = CreatePlan(data=data)
     #check if plan is valid
@@ -99,7 +101,7 @@ class CreatePlanView(APIView):
 
         #create plan and data
         trainer = Trainer.objects.get(username=token['info']['username']).id
-        plan = create_plan(trainer)
+        plan = create_plan(trainer, req_data['name'])
         if plan[0] == "invalid":
             return Response(plan[1])
         plan = plan[1]

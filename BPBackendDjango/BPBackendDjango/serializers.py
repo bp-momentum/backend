@@ -45,7 +45,7 @@ class CreatePlan(serializers.ModelSerializer):
     class Meta:
         model = TrainingSchedule
         fields = (
-            'trainer',
+            'trainer', 'name'
         )
 
 class CreateExerciseInPlan(serializers.ModelSerializer):
