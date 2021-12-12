@@ -17,6 +17,15 @@ from BPBackendDjango.settings import *
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
         if not Exercise.objects.filter(title=req_data['title']).exists():
             data = {
                 'success': False,
@@ -52,4 +61,45 @@ class GetExerciseView(APIView):
                 }
         }
 
+        return Response(data)
+
+
+class GetExerciseListView(APIView):
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        #only trainers can request all exercises
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'you are not allow to request all exercises',
+                'data': {}
+                }
+            return Response(data)
+
+        #get all exercises as list
+        exercises = Exercise.objects.all()
+        exs_res = []
+        #get all ids as list
+        for ex in exercises:
+            exercises.append({
+                'id': ex.id,
+                'title': ex.title
+                })
+        data = {
+                'success': True,
+                'description': 'returning all exercises',
+                'data': {
+                    'plans': exs_res
+                }
+        }
         return Response(data)
