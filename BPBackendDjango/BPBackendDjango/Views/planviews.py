@@ -306,7 +306,7 @@ class GetAllPlansView(APIView):
                 })
         data = {
                 'success': True,
-                'description': 'returning all plan ids',
+                'description': 'returning all plans',
                 'data': {
                     'plans': plans_res
                 }
