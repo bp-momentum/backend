@@ -14,6 +14,7 @@ from ..serializers import *
 from ..models import *
 from BPBackendDjango.settings import *
 
+#creating random password
 def get_random_password(length):
     letters = string.ascii_lowercase
     letters += string.ascii_uppercase
@@ -83,7 +84,7 @@ class RegisterView(APIView):
                 refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
                 data = {
                 'success': True,
-                'description': 'User wurde erstellt',
+                'description': 'User was created',
                 'data': {
                     "session_token": session_token,
                     "refresh_token": refresh_token
@@ -94,7 +95,7 @@ class RegisterView(APIView):
             else:
                 data = {
                 'success': False,
-                'description': 'Username existiert bereits',
+                'description': 'Username already exists',
                 'data': {}
                 }
 
@@ -108,6 +109,7 @@ class CreateUserView(APIView):
         req_data = dict(request.data)
         info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
         
+        #check account type and create new-user-token
         if info["account_type"] == "admin":
             new_user_token = JwToken.create_new_user_token(info["username"], req_data["first_name"], req_data["last_name"], req_data["email_address"], "trainer")
         elif info["account_type"] == "trainer":
@@ -120,6 +122,7 @@ class CreateUserView(APIView):
                 }
 
             return Response(data)
+        #create and send mail
         html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://localhost:3000?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         send_mail("BachelorPraktum Passwort",
@@ -140,21 +143,23 @@ class LoginView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         print(req_data)
+        #check password
         passcheck = check_password(req_data['username'], req_data['password'])
         if passcheck == "invalid":
             data = {
             'success': False,
-            'description': 'Nutzerdaten sind fehlerhaft',
+            'description': 'Data of user is invalid',
             'data': {}
             }
 
             return Response(data)
 
+        #create session- and refresh-token
         session_token = JwToken.create_session_token(req_data['username'], passcheck)
         refresh_token = JwToken.create_refresh_token(req_data['username'], passcheck, False)
         data = {
             'success': True,
-            'description': 'Nutzer ist nun eingeloggt',
+            'description': 'User is logged in',
             'data': {
                 'session_token': session_token,
                 'refresh_token': refresh_token
@@ -168,13 +173,23 @@ class LoginView(APIView):
 class LogoutAllDevicesView(APIView):
 
     def post(self, request, *args, **kqargs):
-        info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
+        token = JwToken.check_session_token(request.headers["Session-Token"])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        info = token["info"]
+        #creates new password for refresh-token
         JwToken.save_refreshpswd(info['username'], JwToken.create_refreshpswd(info['username'], int(time.time())))
         data = {
             'success': True,
-            'description': 'Refresh-Token geändert',
-            'data': {
-                }
+            'description': 'refresh-token changed',
+            'data': {}
             }
 
         return Response(data)
@@ -185,21 +200,25 @@ class AuthView(APIView):
     def post(self, request, *args, **kwargs):
         token = request.data['refresh_token']
         info = JwToken.check_refresh_token(token)
+        #check if token is valid
         if not info['valid']:
             data = {
             'success': False,
-            'description': 'Refresh-Token ungültig',
+            'description': 'refresh-token invalid',
             'data': {}
             }
 
             return Response(data)
 
+        #create new tokens
         session_token = JwToken.create_session_token(username=info['info']['username'], account_type=info['info']['account_type'])
+        refresh_token = JwToken.create_refresh_token(username=info['info']['username'], account_type=info['info']['account_type'], set_pswd=False)
         data = {
             'success': True,
-            'description': 'Nutzer ist nun eingeloggt',
+            'description': 'user is now logged in',
             'data': {
-                'session_token': session_token
+                'session_token': session_token,
+                'refresh-token': refresh_token
                 }
             }
 

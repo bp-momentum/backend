@@ -56,3 +56,19 @@ class DeleteUserTestCase(TestCase):
         self.assertFalse(User.objects.filter(id=DeleteUserTestCase.user_id).exists())
         self.assertFalse(DoneExercises.objects.filter(id=DeleteUserTestCase.done_ex_id).exists())
         self.assertFalse(Friends.objects.filter(id=DeleteUserTestCase.friends_id).exists())
+
+
+class ExerciseTestCase(TestCase):
+    def setUp(self):
+        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
+        Exercise.objects.create(title='Liegestütze', description="Mache Liegestütze", activated=False)
+
+    def test_if_exists(self):
+        self.assertTrue(Exercise.objects.filter(title='Kniebeuge', description="Gehe in die Knie, achte...", video=None, activated=True).exists())
+        self.assertTrue(Exercise.objects.filter(title='Liegestütze', description="Mache Liegestütze", video=None, activated=False).exists())
+
+    def test_if_delete_works(self):
+        Exercise.objects.filter(title='Kniebeuge', description="Gehe in die Knie, achte...", video=None, activated=True).delete()
+        Exercise.objects.filter(title='Liegestütze', description="Mache Liegestütze", video=None, activated=False).delete()
+        self.assertFalse(Exercise.objects.filter(title='Kniebeuge', description="Gehe in die Knie, achte...", video=None, activated=True).exists())
+        self.assertFalse(Exercise.objects.filter(title='Liegestütze', description="Mache Liegestütze", video=None, activated=False).exists())
