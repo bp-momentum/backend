@@ -55,10 +55,107 @@ Success Return
     "success": true,
     "description": "User is now logged in",
     "data": {
-        "access_token": <str>
+        "session_token": session_token,
+        "refresh_token": refresh_token
     }
 }
 ```
+
+## Register
+
+Type: POST 
+
+Path: /api/register
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "new_user_token": <str>,
+    "password": <str>,
+    "username": <str>,
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "User was created",
+    "data": {
+        "session_token": session_token,
+        "refresh_token": refresh_token
+    }
+}
+```
+
+## Get exercise
+Type: GET 
+
+Path: /api/getexercise
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "id": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'Returned data',
+    "data": {
+        "title": <str>,
+        "description": <str>,
+        "video": <str>
+    }
+}
+```
+
+## Get exercise list
+Type: GET 
+
+Path: /api/getexerciselist
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'list of exercises is provided',
+    "data": {
+        "exercise_list": <list>
+    }
+}
+```
+
 
 ## Logout all devices
 
@@ -103,7 +200,6 @@ Header:
 Parameters: 
 ```json
 {
-    "refresh-token": <str>
 }
 ```
 Success Return 
