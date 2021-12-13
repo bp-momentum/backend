@@ -115,20 +115,12 @@ class CreatePlanView(APIView):
             plan = TrainingSchedule.objects.get(id=int(req_data['info']))
             #save all old entries to delete them later on
             to_delete = ExerciseInPlan.objects.filter(plan=plan.id)
-            if not (len(req_data['exercise']) == len(req_data['date']) and len(req_data['exercise']) == len(req_data['sets']) and len(req_data['exercise']) == len(req_data['repeats_per_set'])):
-                #if lists are invalid, nothing changes
-                data = {
-                    'success': False,
-                    'description': 'all lists must have same length',
-                    'data': {}
-                }
             
-                return Response(data)
-
+            list_of_exs_in_plan = req_data['exercise']
             ex_in_plans = []
-            for i in range(len(req_data['exercise'])):
+            for exs in list_of_exs_in_plan:
                 #check if exercise is valid
-                if not Exercise.objects.filter(id=int(req_data['exercise'][i])).exists():
+                if not Exercise.objects.filter(id=int(exs['id'])).exists():
                     #if exercise is invalid delete new created entries
                     for ex in ex_in_plans:
                         ExerciseInPlan.objects.filter(id=ex.id).delete()
@@ -136,13 +128,13 @@ class CreatePlanView(APIView):
                         'success': False,
                         'description': 'no valid exercise',
                         'data': {
-                            'invalid_exercise': req_data['exercise'][i]
+                            'invalid_exercise': exs['id']
                         }
                     }
 
                     return Response(data)
 
-                res = add_exercise_to_plan(plan, req_data['date'][i], int(req_data['sets'][i]), int(req_data['repeats_per_set'][i]), int(req_data['exercise'][i]))
+                res = add_exercise_to_plan(plan, exs['date'], int(exs['sets']), int(exs['repeats_per_set']), int(exs['id']))
                 #check if ExerciseInPlan entry could be created
                 if res[0] == "invalid":
                     #if new data could not be created, because it was invalid, delete new created entries
@@ -168,21 +160,12 @@ class CreatePlanView(APIView):
         if plan[0] == "invalid":
             return Response(plan[1])
         plan = plan[1]
-        if not (len(req_data['exercise']) == len(req_data['date']) and len(req_data['exercise']) == len(req_data['sets']) and len(req_data['exercise']) == len(req_data['repeats_per_set'])):
-            #if lists are invalid, delete already created entries
-            TrainingSchedule.objects.filter(id=plan.id).delete()
-            data = {
-                    'success': False,
-                    'description': 'all lists must have same length',
-                    'data': {}
-                }
-            
-            return Response(data)
 
+        list_of_exs_in_plan = req_data['exercise']
         ex_in_plans = []
-        for i in range(len(req_data['exercise'])):
+        for exs in list_of_exs_in_plan:
             #check if exercise is valid
-            if not Exercise.objects.filter(id=int(req_data['exercise'][i])).exists():
+            if not Exercise.objects.filter(id=int(exs['id'])).exists():
                 #if exercise is invalid delete already created entries
                 TrainingSchedule.objects.filter(id=plan.id).delete()
                 for ex in ex_in_plans:
@@ -191,13 +174,13 @@ class CreatePlanView(APIView):
                     'success': False,
                     'description': 'no valid exercise',
                     'data': {
-                        'invalid_exercise': req_data['exercise'][i]
+                        'invalid_exercise': exs['id']
                     }
                 }
 
                 return Response(data)
-
-            res = add_exercise_to_plan(plan, req_data['date'][i], int(req_data['sets'][i]), int(req_data['repeats_per_set'][i]), int(req_data['exercise'][i]))
+            
+            res = add_exercise_to_plan(plan, exs['date'], int(exs['sets']), int(exs['repeats_per_set']), int(exs['id']))
             #check if ExerciseInPlan entry could be created
             if res[0] == "invalid":
                 #if new data could not be created, because it was invalid, delete already created entries
@@ -206,6 +189,16 @@ class CreatePlanView(APIView):
                     ExerciseInPlan.objects.filter(id=ex.id).delete()
                 return Response(res[1])
             ex_in_plans.append(res[1])
+
+        if req_data.get('user') == None:
+            data = {
+                'success': True,
+                'description': 'plan was created but could not be assigned to user',
+                'data': {
+                    'plan_id': plan.id
+                }
+            }
+            return Response(data)
         #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=plan.id)
 
@@ -262,7 +255,6 @@ class AddPlanToUserView(APIView):
                 }
             return Response(data)
 
-        #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=int(req_data['plan']))
 
         #checks whether assigning was successful
