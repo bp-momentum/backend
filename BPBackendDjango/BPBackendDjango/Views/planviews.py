@@ -104,7 +104,7 @@ class CreatePlanView(APIView):
         #check if new plan should be created
         if not req_data.get('id') == None:
             #check if plan exists
-            if not TrainingSchedule.objects.filter(id=int(req_data['info']), trainer=trainer):
+            if not TrainingSchedule.objects.filter(id=int(req_data['id']), trainer=trainer):
                 data = {
                 'success': False,
                 'description': 'this plan does not exist or does not belong tothis trainer',
@@ -112,7 +112,7 @@ class CreatePlanView(APIView):
                 }
 
                 return Response(data)
-            plan = TrainingSchedule.objects.get(id=int(req_data['info']))
+            plan = TrainingSchedule.objects.get(id=int(req_data['id']))
             #save all old entries to delete them later on
             to_delete = ExerciseInPlan.objects.filter(plan=plan.id)
             
