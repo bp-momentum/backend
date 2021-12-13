@@ -54,7 +54,7 @@ def getListOfExercises(id):
     exs = []
     plan_data = ExerciseInPlan.objects.filter(plan=id)
     for ex in plan_data:
-        ex_id = ex.exercise
+        ex_id = ex.exercise.id
         sets = ex.sets
         rps = ex.repeats_per_set
         date = ex.date
