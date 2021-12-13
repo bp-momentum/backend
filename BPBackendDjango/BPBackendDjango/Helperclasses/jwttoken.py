@@ -11,7 +11,9 @@ from ..serializers import *
 def check_tokentime(token_time, seconds):
     now = int(time.time())
     age = now - token_time
-    if now - token_time < seconds:
+    if age < 0:
+        return False
+    if age < seconds:
         return True
     return False
 

@@ -1,18 +1,13 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from ..Helperclasses.jwttoken import JwToken
-import string
-import random
-import hashlib
-import time
 
-from ..serializers import *
 from ..models import *
-from BPBackendDjango.settings import *
+from ..Helperclasses.jwttoken import JwToken
+
+def user_needs_ex(username, id):
+    #TODO user needs exercise
+    return True
+
 
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
@@ -26,21 +21,34 @@ class GetExerciseView(APIView):
                 'data': {}
                 }
             return Response(data)
-        if not Exercise.objects.filter(title=req_data['title']).exists():
+        
+        #check if requested exercise exists
+        if not Exercise.objects.filter(id=int(req_data['id'])).exists():
             data = {
                 'success': False,
-                'description': 'Es existiert keine Übung mit diesem Titel',
+                'description': 'no exercise with this id exists',
                 'data': {}
             }
 
             return Response(data)
 
-        ex = Exercise.objects.get(title=req_data['title'])
+        #check if user is allowed to request
+        if not (token["info"]["account_type"] == "trainer" or (token["info"]["account_type"] == "user" and user_needs_ex(token["info"]['username'], int(req_data['id'])))):
+            data = {
+                'success': False,
+                'description': 'Not allowed to request list of exercises',
+                'data': {}
+                }
+            return Response(data)
 
+        #get exercise
+        ex = Exercise.objects.get(id=int(req_data['id']))
+
+        #checks wether exercise is activated
         if not ex.activated:
             data = {
                 'success': True,
-                'description': 'Achtung Übung ist zur Zeit deaktiviert! Übungsdaten zurückgegeben',
+                'description': 'Be careful, exercise is deactivated! Returned data',
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
@@ -50,9 +58,10 @@ class GetExerciseView(APIView):
             }
 
             return Response(data)
+            
         data = {
                 'success': True,
-                'description': 'Übungsdaten zurückgegeben',
+                'description': 'Returned data',
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
@@ -102,4 +111,5 @@ class GetExerciseListView(APIView):
                     'plans': exs_res
                 }
         }
+
         return Response(data)

@@ -33,5 +33,6 @@ urlpatterns = [
     path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),
     path('api/getlistofplans', GetAllPlansView.as_view(), name='getListOfPlans'),
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
-    path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser')
+    path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
+    path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList')
 ]
