@@ -450,7 +450,7 @@ class GetPlanOfUser(APIView):
 
 class DeletePlanView(APIView):
     def post(self, request, *args, **kwargs):
-        req_data = dict(request)
+        req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
