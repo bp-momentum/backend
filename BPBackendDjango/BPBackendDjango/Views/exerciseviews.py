@@ -100,7 +100,7 @@ class GetExerciseListView(APIView):
         exs_res = []
         #get all ids as list
         for ex in exercises:
-            exercises.append({
+            exs_res.append({
                 'id': ex.id,
                 'title': ex.title
                 })
