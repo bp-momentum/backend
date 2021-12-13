@@ -456,3 +456,46 @@ class GetPlanOfUser(APIView):
             return Response(data)
 
 
+class DeletePlanView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        #check if user is allowed to delete plans
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'you are not allowed to delete plans',
+                'data': {}
+                }
+            return Response(data)
+
+        trainer = Trainer.objects.get(username=info['username'])
+        #check if plan exists and belongs to trainer
+        if not TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).exists():
+            data = {
+                'success': False,
+                'description': 'plan does not exist or does not belong to this trainer',
+                'data': {}
+                }
+            return Response(data)
+
+        #delete plan
+        TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).delete()
+        data = {
+                'success': True,
+                'description': 'plan deleted',
+                'data': {}
+            }
+        return Response(data)
+        
+
