@@ -108,7 +108,7 @@ class GetExerciseListView(APIView):
                 'success': True,
                 'description': 'returning all exercises',
                 'data': {
-                    'plans': exs_res
+                    'exercises': exs_res
                 }
         }
 
