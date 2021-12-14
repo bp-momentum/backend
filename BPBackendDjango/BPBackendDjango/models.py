@@ -8,6 +8,7 @@ class Trainer(models.Model):
     password =  models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
+    language = models.CharField(max_length=20, default="english")
  
 
 class TrainingSchedule(models.Model):
@@ -58,6 +59,7 @@ class Admin(models.Model):
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255, null=True)
+    language = models.CharField(max_length=20, default="english")
 
 
 class Friends(models.Model):
