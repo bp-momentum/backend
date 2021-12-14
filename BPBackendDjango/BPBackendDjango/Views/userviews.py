@@ -46,6 +46,17 @@ def set_user_language(username, language):
     user.save()
     return True
 
+def get_user_language(username):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return None
+    return user.language
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -182,7 +193,6 @@ class LoginView(APIView):
         return Response(data)
         
 
-
 class LogoutAllDevicesView(APIView):
 
     def post(self, request, *args, **kqargs):
@@ -246,9 +256,9 @@ class ChangeLanguageView(APIView):
         #check if token is valid
         if not info['valid']:
             data = {
-            'success': False,
-            'description': 'Token is not valid',
-            'data': {}
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
             }
 
             return Response(data)
@@ -268,6 +278,44 @@ class ChangeLanguageView(APIView):
             }
 
         return Response(data)
+
+
+class GetLanguageView(APIView):
+    def get(self, request, *args, **kwargs):
+        token = request.data['refresh_token']
+        info = JwToken.check_refresh_token(token)
+        #check if token is valid
+        if not info['valid']:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+
+            return Response(data)
+
+        #get language
+        res = get_user_language(info['username'])
+        #check if valid
+        if res == None:
+            data = {
+                'success': False,
+                'description': 'user not found',
+                'data': {}
+            }
+        else:
+            data = {
+                'success': True,
+                'description': 'language returned',
+                'data': {
+                    'language': res
+                }
+            }
+
+        return Response(data)
+
+
+        
         
 
 
