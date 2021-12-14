@@ -42,6 +42,7 @@ class User(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
+    language = models.CharField(max_length=20, default="english")
 
 
 class DoneExercises(models.Model):
