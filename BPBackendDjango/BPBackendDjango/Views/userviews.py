@@ -33,6 +33,19 @@ def check_password(username, passwd):
     else:
         return "invalid"
 
+def set_user_language(username, language):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return False
+    user.language = language
+    user.save()
+    return True
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -223,6 +236,39 @@ class AuthView(APIView):
             }
 
         return Response(data)
+
+
+class ChangeLanguageView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = request.data['refresh_token']
+        info = JwToken.check_refresh_token(token)
+        #check if token is valid
+        if not info['valid']:
+            data = {
+            'success': False,
+            'description': 'Token is not valid',
+            'data': {}
+            }
+
+            return Response(data)
+
+        #change language
+        if not set_user_language(info['username'], request['language']):
+            data = {
+                'success': False,
+                'description': 'language could not be changed',
+                'data': {}
+            }
+        else:
+            data = {
+                'success': True,
+                'description': 'language was successfully changed',
+                'data': {}
+            }
+
+        return Response(data)
+        
 
 
             
