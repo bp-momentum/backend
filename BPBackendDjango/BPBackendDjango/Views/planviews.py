@@ -84,7 +84,7 @@ class CreatePlanView(APIView):
         if not token["info"]["account_type"] == "trainer":
             data = {
                 'success': False,
-                'description': 'Not allowed to add trainig schedule',
+                'description': 'Not allowed to add or change trainig schedule',
                 'data': {}
                 }
             return Response(data)
@@ -101,64 +101,22 @@ class CreatePlanView(APIView):
 
         trainer = Trainer.objects.get(username=token['info']['username']).id
 
-        #check if new plan should be created
-        if not req_data.get('id') == None:
-            #check if plan exists
-            if not TrainingSchedule.objects.filter(id=int(req_data['id']), trainer=trainer):
-                data = {
-                'success': False,
-                'description': 'this plan does not exist or does not belong tothis trainer',
-                'data': {}
-                }
-
-                return Response(data)
-            plan = TrainingSchedule.objects.get(id=int(req_data['id']))
-            #save all old entries to delete them later on
-            to_delete = ExerciseInPlan.objects.filter(plan=plan.id)
-            
-            list_of_exs_in_plan = req_data['exercise']
-            ex_in_plans = []
-            for exs in list_of_exs_in_plan:
-                #check if exercise is valid
-                if not Exercise.objects.filter(id=int(exs['id'])).exists():
-                    #if exercise is invalid delete new created entries
-                    for ex in ex_in_plans:
-                        ExerciseInPlan.objects.filter(id=ex.id).delete()
-                    data = {
-                        'success': False,
-                        'description': 'no valid exercise',
-                        'data': {
-                            'invalid_exercise': exs['id']
-                        }
-                    }
-
-                    return Response(data)
-
-                res = add_exercise_to_plan(plan, exs['date'], int(exs['sets']), int(exs['repeats_per_set']), int(exs['id']))
-                #check if ExerciseInPlan entry could be created
-                if res[0] == "invalid":
-                    #if new data could not be created, because it was invalid, delete new created entries
-                    for ex in ex_in_plans:
-                        ExerciseInPlan.objects.filter(id=ex.id).delete()
-                    return Response(res[1])
-                ex_in_plans.append(res[1])
-
-            #delete old entries
-            to_delete.delete()
-            data = {
-                'success': True,
-                'description': 'plan was changed',
-                'data': {
-                    'plan_id': plan.id
-                }
-            }
-
-            return Response(data)   
-
         #create plan and data
         plan = create_plan(trainer, req_data['name'])
         if plan[0] == "invalid":
-            return Response(plan[1])
+            #check if plan was created or changed
+            if req_data.get('id') == None:
+                return Response(plan[1])
+            else:
+                data = {
+                        'success': False,
+                        'description': 'plan could not be changed',
+                        'data': {
+                            'error': plan[1],
+                            'plan_id': req_data['id']
+                        }
+                    }
+                return Response(data)
         plan = plan[1]
 
         list_of_exs_in_plan = req_data['exercise']
@@ -170,13 +128,24 @@ class CreatePlanView(APIView):
                 TrainingSchedule.objects.filter(id=plan.id).delete()
                 for ex in ex_in_plans:
                     ExerciseInPlan.objects.filter(id=ex.id).delete()
-                data = {
-                    'success': False,
-                    'description': 'no valid exercise',
-                    'data': {
-                        'invalid_exercise': exs['id']
+                #check if plan was created or changed
+                if req_data.get('id') == None:
+                    data = {
+                        'success': False,
+                        'description': 'no valid exercise',
+                        'data': {
+                            'invalid_exercise': exs['id']
+                        }
                     }
-                }
+                else:
+                    data = {
+                        'success': False,
+                        'description': 'no valid exercise, plan was not changed',
+                        'data': {
+                            'invalid_exercise': exs['id'],
+                            'plan_id': req_data['id']
+                        }
+                    }
 
                 return Response(data)
             
@@ -187,47 +156,105 @@ class CreatePlanView(APIView):
                 TrainingSchedule.objects.filter(id=plan.id).delete()
                 for ex in ex_in_plans:
                     ExerciseInPlan.objects.filter(id=ex.id).delete()
-                return Response(res[1])
+                #check if plan was created or changed
+                if req_data.get('id') == None:
+                    return Response(res[1])
+                else:
+                    data = {
+                        'success': False,
+                        'description': 'plan could not be changed',
+                        'data': {
+                            'error': res[1],
+                            'plan_id': req_data['id']
+                        }
+                    }
+                    return Response(data)
             ex_in_plans.append(res[1])
 
         if req_data.get('user') == None:
-            data = {
-                'success': True,
-                'description': 'plan was created but could not be assigned to user',
-                'data': {
-                    'plan_id': plan.id
+            #check if plan was created or changed
+            if req_data.get('id') == None:
+                data = {
+                    'success': True,
+                    'description': 'plan was created but could not be assigned to user',
+                    'data': {
+                        'plan_id': plan.id
+                    }
                 }
-            }
-            return Response(data)
+                return Response(data)
+            else:
+                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
+                data = {
+                    'success': True,
+                    'description': 'plan was changed, but could not be assigned to user',
+                    'data': {
+                        'plan_id': plan.id
+                    }
+                }
+                return Response(data)
         #assign plan to user
         res = add_plan_to_user(username=req_data['user'], plan=plan.id)
 
         #checks whether assigning was successful
         if res == "user_invalid":
-            data = {
-                'success': True,
-                'description': 'plan was created but could not be assigned to user',
-                'data': {
-                    'plan_id': plan.id
-                }
-            }
-        #should not happen, needed for other view
-        elif res == "plan_invalid":
-            data = {
-                'success': False,
-                'description': 'plan created, but does not exist',
-                'data': {
-                    'plan_id': plan.id
-                }
-            }
-        else:
-            data = {
+            #check if plan was created or changed
+            if req_data.get('id') == None:
+                data = {
                     'success': True,
-                    'description': 'plan created',
+                    'description': 'plan was created but could not be assigned to user',
                     'data': {
                         'plan_id': plan.id
                     }
-            }
+                }
+                return Response(data)
+            else:
+                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
+                data = {
+                    'success': True,
+                    'description': 'plan was changed, but could not be assigned to user',
+                    'data': {
+                        'plan_id': plan.id
+                    }
+                }
+        #should not happen, needed for other view
+        elif res == "plan_invalid":
+            #check if plan was created or changed
+            if req_data.get('id') == None:
+                data = {
+                    'success': False,
+                    'description': 'plan created, but does not exist',
+                    'data': {
+                        'plan_id': plan.id
+                    }
+                }
+            else:
+                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
+                data = {
+                    'success': False,
+                    'description': 'plan was changed, but could not be found',
+                    'data': {
+                        'plan_id': plan.id
+                    }
+                }
+        else:
+            #check if plan was created or changed
+            if req_data.get('id') == None:
+                data = {
+                        'success': True,
+                        'description': 'plan created',
+                        'data': {
+                            'plan_id': plan.id
+                        }
+                }
+            else:
+                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
+                data = {
+                    'success': True,
+                    'description': 'plan was changed',
+                    'data': {
+                        'plan_id': plan.id
+                    }
+                }
 
         return Response(data)
 
