@@ -21,6 +21,7 @@ from .Views.userviews import *
 from .Views.planviews import *
 
 urlpatterns = [
+    #user
     path('admin/', admin.site.urls),
     path('api/createuser', CreateUserView.as_view(), name='createNewUser'),
     path('api/register', RegisterView.as_view(), name='register'),
@@ -30,8 +31,15 @@ urlpatterns = [
     path('api/changelanguage', ChangeLanguageView.as_view(), name='changeLanguage'),
     path('api/getlanguage', GetLanguageView.as_view(), name='getLanguage'),
     path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser'),
+    #exercises
+    path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
+    path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList'),
+    #plans
     path('api/createplan', CreatePlanView.as_view(), name='createPlan'),
     path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),
-    path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList')
+    path('api/getlistofplans', GetAllPlansView.as_view(), name='getListOfPlans'),
+    path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
+    path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
+    path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan')
 ]

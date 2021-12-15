@@ -10,9 +10,8 @@ def user_needs_ex(username, id):
 
 
 class GetExerciseView(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -86,29 +85,31 @@ class GetExerciseListView(APIView):
                 }
             return Response(data)
 
-        #check if user is allowed to request
-        if not token["info"]["account_type"] == "trainer":
+        info = token['info']
+        #only trainers can request all exercises
+        if not info['account_type'] == 'trainer':
             data = {
                 'success': False,
-                'description': 'Not allowed to request list of exercises',
+                'description': 'you are not allow to request all exercises',
                 'data': {}
                 }
             return Response(data)
 
-        list = Exercise.objects.all()
-        out = []
-        for ex in list:
-            out.append({
+        #get all exercises as list
+        exercises = Exercise.objects.all()
+        exs_res = []
+        #get all ids as list
+        for ex in exercises:
+            exs_res.append({
                 'id': ex.id,
                 'title': ex.title
-            })
-
+                })
         data = {
-            'success': True,
-            'description': 'list of exercises is provided',
-            'data': {
-                'exercise_list': out
-            }
+                'success': True,
+                'description': 'returning all exercises',
+                'data': {
+                    'exercises': exs_res
+                }
         }
 
         return Response(data)
