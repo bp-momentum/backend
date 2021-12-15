@@ -89,10 +89,6 @@ class JwToken(object):
         if not check_tokentime(info['tokentime'], 86400):
             return {"valid": False, "info": {}}
 
-        # check if user exists
-        if not User.objects.get(username=info["username"]):
-            return {"valid": False, "info": {}}
-
         #check if token didnt got invalidated
         if User.objects.filter(username=info["username"]).exists():
             user = User.objects.get(username=info["username"])
