@@ -18,6 +18,7 @@ from django.urls import path
 
 from .Views.exerciseviews import *
 from .Views.userviews import *
+from .Views.planviews import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,5 +30,7 @@ urlpatterns = [
     path('api/changelanguage', ChangeLanguageView.as_view(), name='changeLanguage'),
     path('api/getlanguage', GetLanguageView.as_view(), name='getLanguage'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
+    path('api/createplan', CreatePlanView.as_view(), name='createPlan'),
+    path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),
     path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList')
 ]
