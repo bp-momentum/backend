@@ -259,10 +259,12 @@ Parameters:
 ```json
 {
     "name": <str>,
-    "date": <list>,
-    "sets": <list>,
-    "repeats_per_set": <list>,
-    "exercise": <list>,
+    "exercise": <list of dict> ({
+        "date": <str>,
+        "sets": <str>,
+        "repeats_per_set": <str>,
+        "id": <str>
+        }),
     "user": <str>
 }
 ```

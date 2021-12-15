@@ -28,7 +28,7 @@ class Team(models.Model):
 
 
 class ExerciseInPlan(models.Model):
-    date = models.CharField(default="Monday", max_length=15)
+    date = models.CharField(default="monday", max_length=15)
     sets = models.IntegerField(default=0)
     repeats_per_set = models.IntegerField(default=0)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
