@@ -9,7 +9,7 @@ class Trainer(models.Model):
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="english")
- 
+    token_date = models.BigIntegerField(default=0)
 
 class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
@@ -46,6 +46,7 @@ class User(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="english")
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
+    token_date = models.BigIntegerField(default=0)
 
 
 class DoneExercises(models.Model):
@@ -62,7 +63,7 @@ class Admin(models.Model):
     password = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="english")
-
+    token_date = models.BigIntegerField(default=0)
 
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
