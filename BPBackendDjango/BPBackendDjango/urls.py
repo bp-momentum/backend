@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/login', LoginView.as_view(), name='login'),
     path('api/auth', AuthView.as_view(), name='authenticateWithToken'),
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
+    path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
