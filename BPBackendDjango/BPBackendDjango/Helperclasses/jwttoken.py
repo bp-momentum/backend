@@ -2,6 +2,7 @@ from jwcrypto import jwt, jwk
 import json
 import time
 import hashlib
+from ..models import User
 from pathlib import Path
 
 from ..settings import TOKEN_KEY
@@ -79,11 +80,30 @@ class JwToken(object):
             return {"valid": False, "info": {}}
         #check if the token is still valid (1 day) and of right type
         info = json.loads(str(ST.claims))
-        
+
+        # check if token is a session token
         if not check_tokentype(info['tokentype'], "session"):
             return {"valid": False, "info": {}}
 
+        # check if token is not older than 24 hours
         if not check_tokentime(info['tokentime'], 86400):
+            return {"valid": False, "info": {}}
+
+        # check if user exists
+        if not User.objects.get(username=info["username"]):
+            return {"valid": False, "info": {}}
+
+        #check if token didnt got invalidated
+        if User.objects.filter(username=info["username"]).exists():
+            user = User.objects.get(username=info["username"])
+        elif Trainer.objects.filter(username=info["username"]).exists():
+            user = Trainer.objects.get(username=info["username"])
+        elif Admin.objects.filter(username=info["username"]).exists():
+            user = Admin.objects.get(username=info["username"])
+        else:
+            return {"valid": False, "info": {}}
+
+        if user.token_date - info['tokentime'] >= 0:
             return {"valid": False, "info": {}}
 
         return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
@@ -190,5 +210,27 @@ class JwToken(object):
         uhstr = username + str(time)
         hstr = str(hashlib.sha3_256(uhstr.encode('utf8')).hexdigest())
         return hstr
+
+    @staticmethod
+    def invalidate_session_token(username):
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+        elif Trainer.objects.filter(username=username).exists():
+            user = Trainer.objects.get(username=username)
+        elif Admin.objects.filter(username=username).exists():
+            user = Admin.objects.get(username=username)
+        else:
+            return
+
+        user.token_date = int(time.time())
+        user.save(force_update=True)
+
+
+
+
+
+
+
+
 
         
