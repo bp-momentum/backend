@@ -63,8 +63,9 @@ class PlanTestCase(TestCase):
     def test_if_exists(self):
         self.assertTrue(TrainingSchedule.objects.filter(trainer=self.trainer_id).exists())
         self.assertTrue(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id).exists())
+        self.assertTrue(User.objects.filter(first_name="Erik").exists())
         user = User.objects.get(first_name="Erik")
-        self.assertTrue(user.plan.id == self.ts_id)
+        self.assertTrue(user.plan == self.ts_id)
 
     def test_if_related_deletes_work(self):
         Exercise.objects.filter(title='Kniebeuge').delete()
