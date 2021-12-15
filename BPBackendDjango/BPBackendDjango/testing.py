@@ -59,6 +59,7 @@ class PlanTestCase(TestCase):
         self.ts_id = ts.id
         ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
         user.plan = ts
+        user.save()
 
     def test_if_exists(self):
         self.assertTrue(TrainingSchedule.objects.filter(trainer=self.trainer_id).exists())
