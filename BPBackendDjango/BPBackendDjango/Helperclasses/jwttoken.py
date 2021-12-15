@@ -102,7 +102,7 @@ class JwToken(object):
         if user.token_date - info['tokentime'] >= 0:
             return {"valid": False, "info": {}}
 
-        return  {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
+        return {"valid": True, "info": {"username": info["username"], "account_type": info["account_type"]}}
 
     @staticmethod
     def create_new_user_token(initiator, first_name, last_name, email_address, create_account_type):

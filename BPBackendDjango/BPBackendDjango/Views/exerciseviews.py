@@ -14,6 +14,7 @@ class GetExerciseView(APIView):
         req_data = dict(request.data)
 
         token = JwToken.check_session_token(request.headers['Session-Token'])
+        print("Der Token Ist:", token)
         #check if token is valid
         if not token["valid"]:
             data = {
