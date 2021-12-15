@@ -48,12 +48,13 @@ class GetExerciseView(APIView):
         #checks wether exercise is activated
         if not ex.activated:
             data = {
-                'success': False,
+                'success': True,
                 'description': 'Be careful, exercise is deactivated! Returned data',
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
-                    'video': ex.video
+                    'video': ex.video,
+                    'activated': False
                 }
             }
 
@@ -65,7 +66,8 @@ class GetExerciseView(APIView):
                 'data': {
                     'title': ex.title,
                     'description': ex.description,
-                    'video': ex.video
+                    'video': ex.video,
+                    'activated': True
                 }
         }
 

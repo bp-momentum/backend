@@ -19,6 +19,7 @@ from django.urls import path
 from .Views.exerciseviews import *
 from .Views.userviews import *
 from .Views.interfaceviews import *
+from .Views.planviews import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,5 +30,7 @@ urlpatterns = [
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
     path('api/ai', APIView.as_view(), name='callAI'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
+    path('api/createplan', CreatePlanView.as_view(), name='createPlan'),
+    path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),
     path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList')
 ]
