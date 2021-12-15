@@ -57,7 +57,7 @@ class PlanTestCase(TestCase):
         TrainingSchedule.objects.create(trainer=trainer)
         ts = TrainingSchedule.objects.get(trainer=trainer.id)
         self.ts_id = ts.id
-        ExerciseInPlan.objects.create(date="2022-01-01", sets=5, repeats_per_set=10, exercise=ex.id, plan=ts.id)
+        ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex.id, plan=ts.id)
         user.plan = ts.id
 
     def test_if_exists(self):
