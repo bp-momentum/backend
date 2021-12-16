@@ -19,11 +19,19 @@ class AIView(APIView):
                 }
             return Response(data)
         res = AIInterface.call_ai(req_data['exercise'], req_data['video'], token['info']['username'])
-        data = {
-                'success': True,
-                'description': 'Result available',
-                'data': {
-                    'results': res
-                }
-        }
+        if(res[0]):
+            data = {
+                    'success': True,
+                    'description': 'Result available',
+                    'data': {
+                        'results': res[1],
+                        'feedback': res[2]
+                    }
+            }
+        else:
+            data = {
+                    'success': False,
+                    'description': 'Result not available',
+                    'data': {}
+            }
         return Response(data)
