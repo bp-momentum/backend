@@ -79,7 +79,7 @@ Parameters:
 {
     "new_user_token": <str>,
     "password": <str>,
-    "username": <str>,
+    "username": <str>
 }
 ```
 Success Return 
@@ -172,8 +172,7 @@ Header:
 
 Parameters: 
 ```json
-{
-}
+{}
 ```
 Success Return 
 
@@ -212,5 +211,110 @@ Success Return
         "session_token": session_token,
         "refresh-token": refresh_token
         }
+}
+```
+
+## Delete User
+
+Type: POST 
+
+Path: /api/deleteuser
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{}
+```
+
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "User was successfully deleted",
+    "data": {}
+}
+```
+
+## Create plan
+
+Type: POST 
+
+Path: /api/createplan
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "name": <str>,
+    "exercise": <list of dict> ({
+        "date": <str>,
+        "sets": <str>,
+        "repeats_per_set": <str>,
+        "id": <str>
+        }),
+    "user": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'plan created',
+    "data": {
+        "plan_id": plan.id
+    }
+}
+```
+```json
+{
+    "success": true,
+    "description": 'plan was created but could not be assigned to user',
+    "data": {
+        "plan_id": plan.id
+    }
+}
+```
+
+## assign plan to user
+
+Type: POST 
+
+Path: /api/addplantouser
+
+Header:
+```json
+{
+    "session_token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "user": <str>,
+    "plan": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'plan assigned to user',
+    "data": {}
 }
 ```
