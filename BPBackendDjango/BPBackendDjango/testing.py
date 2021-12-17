@@ -118,9 +118,7 @@ class PlanTestCase(TestCase):
         Trainer.objects.filter(first_name="Erik").delete()
         self.assertFalse(User.objects.filter(first_name="Erik").exists())
         self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
-        user = User.objects.get(first_name="Erik")
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
-        self.assertEquals(user.id, None)
         #recreate data        
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         trainer = Trainer.objects.get(first_name="Erik")
