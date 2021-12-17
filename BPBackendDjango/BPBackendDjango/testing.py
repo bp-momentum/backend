@@ -180,3 +180,15 @@ class TestUserViews(TestCase):
         self.assertTrue(True)
 
 
+class TestExerciseView(TestCase):
+    def setUp(self):
+        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
+        Exercise.objects.create(title='Liegestütze', description="Mache Liegestütze", activated=False)
+
+    def test_get(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_get_list(self):
+        #TODO
+        self.assertTrue(True)
