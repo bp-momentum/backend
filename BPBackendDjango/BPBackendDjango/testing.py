@@ -192,3 +192,38 @@ class TestExerciseView(TestCase):
     def test_get_list(self):
         #TODO
         self.assertTrue(True)
+
+
+class TestPlanView(TestCase):
+    def setUp(self):
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+
+    def test_create_new(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_create_change(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_add_user(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_get_list(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_get(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_get_for_user(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_delete(self):
+        #TODO
+        self.assertTrue(True)
