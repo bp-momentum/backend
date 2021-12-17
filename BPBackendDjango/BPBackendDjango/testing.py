@@ -142,7 +142,7 @@ class PlanTestCase(TestCase):
         self.assertEquals(user.plan, None)
 
 
-class TestDeleteView(TestCase):
+class TestUserViews(TestCase):
 
     trainer_id = 1
 
@@ -158,3 +158,25 @@ class TestDeleteView(TestCase):
         #DeleteAccountView.post() #TODO sent correct data
         #TODO test if deleted
         self.assertFalse(False)
+
+    def test_login(self):
+        #TODO
+        self.assertFalse(False)
+    
+    def test_register(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_createUser(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_auth(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_logoutAllDevices(self):
+        #TODO
+        self.assertTrue(True)
+
+
