@@ -137,4 +137,4 @@ class PlanTestCase(TestCase):
         self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
         user = User.objects.get(first_name="Erik")
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
-        self.assertEquals(user.id, None)
+        self.assertEquals(user.plan, None)
