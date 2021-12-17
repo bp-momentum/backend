@@ -1,7 +1,9 @@
 from django.test import TestCase
 from .models import *
+from .Views.userviews import *
 
 class UserTestCase(TestCase):
+
     trainer_id = 1
 
     def setUp(self):
@@ -138,3 +140,20 @@ class PlanTestCase(TestCase):
         user = User.objects.get(first_name="Erik")
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
         self.assertEquals(user.plan, None)
+
+
+class TestDeleteView(TestCase):
+
+    trainer_id = 1
+
+    def setUp(self):
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer_id = trainer.id
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
+
+    def test_delete_account(self):
+        #TODO get valid token(s)
+        DeleteAccountView.post() #TODO sent correct data
+        #TODO test if deleted
