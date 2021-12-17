@@ -105,8 +105,38 @@ class PlanTestCase(TestCase):
         self.assertEquals(user.plan.id, self.ts_id)
 
     def test_if_related_deletes_work(self):
+        #test cascade if Exercise is deleted
         Exercise.objects.filter(title='Kniebeuge').delete()
+        self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
+        #recreate data
+        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
+        ex = Exercise.objects.get(title='Kniebeuge')
+        self.ex_id = ex.id
+        ts = TrainingSchedule.objects.get(id=self.ts_id)
+        ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
+        #test cascade if Trainer is deleted
         Trainer.objects.filter(first_name="Erik").delete()
         self.assertFalse(User.objects.filter(first_name="Erik").exists())
         self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
+        user = User.objects.get(first_name="Erik")
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
+        self.assertEquals(user.id, None)
+        #recreate data        
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer_id = trainer.id
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user = User.objects.get(first_name="Erik")
+        self.user_id = user.id
+        TrainingSchedule.objects.create(trainer=trainer)
+        ts = TrainingSchedule.objects.get(trainer=self.trainer_id)
+        self.ts_id = ts.id
+        ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
+        user.plan = ts
+        user.save()
+        #delete plan
+        TrainingSchedule.objects.filter(id=self.ts_id).delete()
+        self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
+        user = User.objects.get(first_name="Erik")
+        self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
+        self.assertEquals(user.id, None)
