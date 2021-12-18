@@ -157,7 +157,7 @@ class TestUserViews(TestCase):
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
         Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
         user = User.objects.get(first_name="Erik")
         self.user_id = user.id
@@ -170,11 +170,36 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = DeleteAccountView.post(self=APIView, request=request) 
         self.assertTrue(response.get('success'))
-        self.assertTrue(User.objects.filter(id=self.user_id).exists())
+        self.assertFalse(User.objects.filter(id=self.user_id).exists())
+        #setup user again
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
+        user = User.objects.get(first_name="Erik")
+        self.user_id = user.id
 
     def test_login(self):
-        #TODO
-        self.assertFalse(False)
+        #correct
+        request = ViewSupport.setup_request({}, {
+                'username': "DeadlyFarts",
+                'password': "Password1234" 
+            })
+        response = LoginView.post(LoginView, request)
+        self.assertTrue(response.get('success'))
+        #TODO check if returned tokens are valid
+        #invalid username
+        request = ViewSupport.setup_request({}, {
+                'username': "cooleKids",
+                'password': "Password1234" 
+            })
+        response = LoginView.post(LoginView, request)
+        self.assertFalse(response.get('success'))
+        #invalid username
+        request = ViewSupport.setup_request({}, {
+                'username': "DeadlyFarts",
+                'password': "wrong" 
+            })
+        response = LoginView.post(LoginView, request)
+        self.assertFalse(response.get('success'))
     
     def test_register(self):
         #TODO
