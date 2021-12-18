@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.test.utils import setup_test_environment
 from .models import *
 from .Views.userviews import *
+from .Views.exerciseviews import *
 from .Helperclasses.jwttoken import *
 from .Helperclasses.fortests import *
 
@@ -234,7 +235,7 @@ class TestUserViews(TestCase):
         if self.user_refresh_token == None:
             self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
         self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token))
-        request = ViewSupport.setup_request({'Session-Token':self.user_token}, {})
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertTrue(response.data.get('success'))
         self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token))
@@ -243,6 +244,7 @@ class TestUserViews(TestCase):
 class TestExerciseView(TestCase):
 
     trainer_id = 1
+    ex_id = 1
     trainer_token = None
     user_token = None
     admin_token = None
@@ -250,6 +252,7 @@ class TestExerciseView(TestCase):
     def setUp(self):
         Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
         Exercise.objects.create(title='Liegestütze', description="Mache Liegestütze", activated=False)
+        self.ex_id = Exercise.objects.get(title='Kniebeuge').id
 
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         trainer = Trainer.objects.get(first_name="Erik")
@@ -263,11 +266,18 @@ class TestExerciseView(TestCase):
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
 
     def test_get(self):
-        #TODO
-        self.assertTrue(True)
+        #valid exercise
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{'id': self.ex_id})
+        response = GetExerciseView.post(GetExerciseView, request)
+        self.assertTrue(response.data.get('success'))
+        #TODO check data
+        #invalid exercise
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{'id': 2543})
+        response = GetExerciseView.post(GetExerciseView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_get_list(self):
-        #TODO
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{})
         self.assertTrue(True)
 
 
