@@ -214,8 +214,14 @@ class TestUserViews(TestCase):
         self.assertTrue(True)
 
     def test_auth(self):
-        #TODO
-        self.assertTrue(True)
+        #correct
+        request = ViewSupport.setup_request({}, {
+                'refresh': self.user_refresh_token
+            })
+        if self.user_refresh_token != None:
+            response = AuthView.post(AuthView, request)
+            self.assertTrue(response.get('success'))
+        #TODO else create refresh-token
 
     def test_logoutAllDevices(self):
         #TODO
