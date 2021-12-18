@@ -170,7 +170,7 @@ class TestUserViews(TestCase):
     def test_delete_account(self):
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = DeleteAccountView.post(self=APIView, request=request) 
-        self.assertTrue(response.get('success'))
+        self.assertTrue(response.data.get('success'))
         self.assertFalse(User.objects.filter(id=self.user_id).exists())
         #setup user again
         trainer = Trainer.objects.get(id=self.trainer_id)
@@ -185,9 +185,9 @@ class TestUserViews(TestCase):
                 'password': "Password1234" 
             })
         response = LoginView.post(LoginView, request)
-        self.assertTrue(response.get('success'))
-        self.user_token = response.get('data').get('session_token')
-        self.user_refresh_token = response.get('data').get('refresh_token')
+        self.assertTrue(response.data.get('success'))
+        self.user_token = response.data.get('data').get('session_token')
+        self.user_refresh_token = response.data.get('data').get('refresh_token')
         self.assertTrue(JwToken.check_session_token(self.user_token))
         self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token))
         #invalid username
@@ -196,14 +196,14 @@ class TestUserViews(TestCase):
                 'password': "Password1234" 
             })
         response = LoginView.post(LoginView, request)
-        self.assertFalse(response.get('success'))
+        self.assertFalse(response.data.get('success'))
         #invalid username
         request = ViewSupport.setup_request({}, {
                 'username': "DeadlyFarts",
                 'password': "wrong" 
             })
         response = LoginView.post(LoginView, request)
-        self.assertFalse(response.get('success'))
+        self.assertFalse(response.data.get('success'))
     
     def test_register(self):
         #TODO
@@ -220,7 +220,7 @@ class TestUserViews(TestCase):
             })
         if self.user_refresh_token != None:
             response = AuthView.post(AuthView, request)
-            self.assertTrue(response.get('success'))
+            self.assertTrue(response.data.get('success'))
         #TODO else create refresh-token
 
     def test_logoutAllDevices(self):
