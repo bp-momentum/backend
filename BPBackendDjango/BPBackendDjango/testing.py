@@ -185,7 +185,8 @@ class TestUserViews(TestCase):
             })
         response = LoginView.post(LoginView, request)
         self.assertTrue(response.get('success'))
-        #TODO check if returned tokens are valid
+        self.assertTrue(JwToken.check_session_token(response.get('data').get('session_token')))
+        self.assertTrue(JwToken.check_refresh_token(response.get('data').get('refresh_token')))
         #invalid username
         request = ViewSupport.setup_request({}, {
                 'username': "cooleKids",
