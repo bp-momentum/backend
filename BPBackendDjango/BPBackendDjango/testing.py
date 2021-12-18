@@ -1,9 +1,9 @@
 from django.test import TestCase
 from django.test.utils import setup_test_environment
 from .models import *
-from Views.userviews import *
-from Helperclasses.jwttoken import *
-from Helperclasses.fortests import *
+from .Views.userviews import *
+from .Helperclasses.jwttoken import *
+from .Helperclasses.fortests import *
 
 class UserTestCase(TestCase):
 
