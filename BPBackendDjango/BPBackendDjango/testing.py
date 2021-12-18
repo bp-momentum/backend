@@ -151,6 +151,7 @@ class TestUserViews(TestCase):
     user_id = 1
     trainer_token = None
     user_token = None
+    user_refresh_token = None
     admin_token = None
 
     def setUp(self):
@@ -185,8 +186,10 @@ class TestUserViews(TestCase):
             })
         response = LoginView.post(LoginView, request)
         self.assertTrue(response.get('success'))
-        self.assertTrue(JwToken.check_session_token(response.get('data').get('session_token')))
-        self.assertTrue(JwToken.check_refresh_token(response.get('data').get('refresh_token')))
+        self.user_token = response.get('data').get('session_token')
+        self.user_refresh_token = response.get('data').get('refresh_token')
+        self.assertTrue(JwToken.check_session_token(self.user_token))
+        self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token))
         #invalid username
         request = ViewSupport.setup_request({}, {
                 'username': "cooleKids",
