@@ -2,6 +2,7 @@ from django.test import TestCase
 from .models import *
 from Views.userviews import *
 from Helperclasses.jwttoken import *
+from Helperclasses.fortests import *
 
 class UserTestCase(TestCase):
 
@@ -146,6 +147,7 @@ class PlanTestCase(TestCase):
 class TestUserViews(TestCase):
 
     trainer_id = 1
+    user_id = 1
     trainer_token = None
     user_token = None
     admin_token = None
@@ -157,16 +159,18 @@ class TestUserViews(TestCase):
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
         Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
         user = User.objects.get(first_name="Erik")
+        self.user_id = user.id
         admin = Admin.objects.get(first_name="Erik")
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
 
     def test_delete_account(self):
-        #TODO get valid token(s)
-        #DeleteAccountView.post() #TODO sent correct data
-        #TODO test if deleted
-        self.assertFalse(False)
+        request = Request()
+        request.headers = self.user_token
+        request.data = {}
+        DeleteAccountView.post(self=APIView, request=request) 
+        self.assertTrue(User.objects.filter(id=self.user_id).exists())
 
     def test_login(self):
         #TODO
