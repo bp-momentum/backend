@@ -1,6 +1,7 @@
 from django.test import TestCase
 from .models import *
-from .Views.userviews import *
+from Views.userviews import *
+from Helperclasses.jwttoken import *
 
 class UserTestCase(TestCase):
 
@@ -11,7 +12,7 @@ class UserTestCase(TestCase):
         trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_id = trainer.id
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-    
+
     def test_if_exists(self):
         self.assertTrue(Trainer.objects.filter(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234").exists())
         self.assertTrue(User.objects.filter(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=self.trainer_id, email_address="prescher-erik@web.de", password="Password1234").exists())
@@ -145,6 +146,9 @@ class PlanTestCase(TestCase):
 class TestUserViews(TestCase):
 
     trainer_id = 1
+    trainer_token = None
+    user_token = None
+    admin_token = None
 
     def setUp(self):
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
@@ -152,6 +156,11 @@ class TestUserViews(TestCase):
         self.trainer_id = trainer.id
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
         Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
+        user = User.objects.get(first_name="Erik")
+        admin = Admin.objects.get(first_name="Erik")
+        self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
+        self.user_token = JwToken.create_session_token(user.username, 'user')
+        self.admin_token = JwToken.create_session_token(admin.username, 'admin')
 
     def test_delete_account(self):
         #TODO get valid token(s)
@@ -181,9 +190,26 @@ class TestUserViews(TestCase):
 
 
 class TestExerciseView(TestCase):
+
+    trainer_id = 1
+    trainer_token = None
+    user_token = None
+    admin_token = None
+
     def setUp(self):
         Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
         Exercise.objects.create(title='Liegestütze', description="Mache Liegestütze", activated=False)
+
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer_id = trainer.id
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
+        user = User.objects.get(first_name="Erik")
+        admin = Admin.objects.get(first_name="Erik")
+        self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
+        self.user_token = JwToken.create_session_token(user.username, 'user')
+        self.admin_token = JwToken.create_session_token(admin.username, 'admin')
 
     def test_get(self):
         #TODO
@@ -195,10 +221,17 @@ class TestExerciseView(TestCase):
 
 
 class TestPlanView(TestCase):
+
+    trainer_token = None
+    user_token = None
+
     def setUp(self):
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         trainer = Trainer.objects.get(first_name="Erik")
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user = User.objects.get(first_name="Erik")
+        self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
+        self.user_token = JwToken.create_session_token(user.username, 'user')
 
     def test_create_new(self):
         #TODO
