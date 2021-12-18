@@ -218,7 +218,7 @@ class TestUserViews(TestCase):
     def test_auth(self):
         #correct
         request = ViewSupport.setup_request({}, {
-                'refresh': self.user_refresh_token
+                'refresh_token': self.user_refresh_token
             })
         if self.user_refresh_token == None:
             self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
@@ -226,7 +226,7 @@ class TestUserViews(TestCase):
         self.assertTrue(response.data.get('success'))
         #incorrect
         request = ViewSupport.setup_request({}, {
-                'refresh': JwToken.create_refresh_token('DerTrainer', 'trainer', False)
+                'refresh_token': JwToken.create_refresh_token('DerTrainer', 'trainer', False)
             })
         response = AuthView.post(AuthView, request)
         self.assertFalse(response.data.get('success'))
@@ -234,11 +234,11 @@ class TestUserViews(TestCase):
     def test_logoutAllDevices(self):
         if self.user_refresh_token == None:
             self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
-        self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token))
+        self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token).get('valid'))
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token))
+        self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token).get('valid'))
 
 
 class TestExerciseView(TestCase):
@@ -267,7 +267,7 @@ class TestExerciseView(TestCase):
 
     def test_get(self):
         #valid exercise
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{'id': self.ex_id})
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': self.ex_id})
         response = GetExerciseView.post(GetExerciseView, request)
         self.assertTrue(response.data.get('success'))
         #TODO check data
@@ -277,8 +277,8 @@ class TestExerciseView(TestCase):
         self.assertFalse(response.data.get('success'))
 
     def test_get_list(self):
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{})
-        response = GetExerciseListView.get({'Session-Token': self.trainer_token})
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
+        response = GetExerciseListView.get(request)
         self.assertTrue(response.data.get('succuss'))
         self.assertTrue(len(response.data.get('exercises')) == len(Exercise.objects.all()))
 
