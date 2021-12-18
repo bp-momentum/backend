@@ -1,3 +1,4 @@
+from django.http import request
 from django.test import TestCase
 from django.test.utils import setup_test_environment
 from .models import *
@@ -218,14 +219,25 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({}, {
                 'refresh': self.user_refresh_token
             })
-        if self.user_refresh_token != None:
-            response = AuthView.post(AuthView, request)
-            self.assertTrue(response.data.get('success'))
-        #TODO else create refresh-token
+        if self.user_refresh_token == None:
+            self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
+        response = AuthView.post(AuthView, request)
+        self.assertTrue(response.data.get('success'))
+        #incorrect
+        request = ViewSupport.setup_request({}, {
+                'refresh': JwToken.create_refresh_token('DerTrainer', 'trainer', False)
+            })
+        response = AuthView.post(AuthView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_logoutAllDevices(self):
-        #TODO
-        self.assertTrue(True)
+        if self.user_refresh_token == None:
+            self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
+        self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token))
+        request = ViewSupport.setup_request({'Session-Token':self.user_token}, {})
+        response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token))
 
 
 class TestExerciseView(TestCase):
