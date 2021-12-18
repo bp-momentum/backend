@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.test.utils import setup_test_environment
 from .models import *
 from Views.userviews import *
 from Helperclasses.jwttoken import *
@@ -166,10 +167,9 @@ class TestUserViews(TestCase):
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
 
     def test_delete_account(self):
-        request = Request()
-        request.headers = self.user_token
-        request.data = {}
-        DeleteAccountView.post(self=APIView, request=request) 
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
+        response = DeleteAccountView.post(self=APIView, request=request) 
+        self.assertTrue(response.get('success'))
         self.assertTrue(User.objects.filter(id=self.user_id).exists())
 
     def test_login(self):
