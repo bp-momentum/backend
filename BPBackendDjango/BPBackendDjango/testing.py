@@ -313,8 +313,6 @@ class TestPlanView(TestCase):
         ts = TrainingSchedule.objects.get(trainer=trainer.id)
         self.ts_id = ts.id
         ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
-        user.plan = ts
-        user.save()
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
 
@@ -386,8 +384,10 @@ class TestPlanView(TestCase):
         self.assertTrue(True)
 
     def test_get_list(self):
-        #TODO
-        self.assertTrue(True)
+        request = ViewSupport.setup_request({'Session_Token': self.trainer_token}, {})
+        response = GetAllPlansView.get(GetAllPlansView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(len(response.data.get('data').get('plans')), len(TrainingSchedule.objects.filter(trainer=self.trainer_id)))
 
     def test_get(self):
         #TODO
