@@ -377,8 +377,9 @@ class TestPlanView(TestCase):
         })
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data'))).exists())
-        self.assertTrue(True)
+        self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data').get('plan_id'))).exists())
+        self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
+        self.ts_id = int(response.data.get('data').get('plan_id'))
 
     def test_add_user(self):
         #TODO
