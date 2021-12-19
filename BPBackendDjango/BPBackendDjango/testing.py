@@ -4,6 +4,7 @@ from django.test.utils import setup_test_environment
 from .models import *
 from .Views.userviews import *
 from .Views.exerciseviews import *
+from .Views.planviews import *
 from .Helperclasses.jwttoken import *
 from .Helperclasses.fortests import *
 
@@ -147,6 +148,7 @@ class PlanTestCase(TestCase):
         self.assertEquals(user.plan, None)
 
 
+#TODO edge cases
 class TestUserViews(TestCase):
 
     trainer_id = 1
@@ -241,6 +243,7 @@ class TestUserViews(TestCase):
         self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token).get('valid')) #TODO failing
 
 
+#TODO edge cases/every case
 class TestExerciseView(TestCase):
 
     trainer_id = 1
@@ -291,18 +294,70 @@ class TestPlanView(TestCase):
 
     trainer_token = None
     user_token = None
+    trainer_id = 0
+    user_id = 0
+    ex_id = 0
+    ts_id = 0
 
     def setUp(self):
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer_id = trainer.id
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
         user = User.objects.get(first_name="Erik")
+        self.user_id = user.id
+        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
+        ex = Exercise.objects.get(title='Kniebeuge')
+        self.ex_id = ex.id
+        TrainingSchedule.objects.create(trainer=trainer)
+        ts = TrainingSchedule.objects.get(trainer=trainer.id)
+        self.ts_id = ts.id
+        ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
+        user.plan = ts
+        user.save()
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
 
     def test_create_new(self):
-        #TODO
-        self.assertTrue(True)
+        #without user
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
+            'name': 'test_plan',
+            'exercise': [{
+                "date": 'monday',
+                "sets": 4,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }, {
+                "date": 'wednesday',
+                "sets": 3,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }]
+        })
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data'))).exists())
+        #with user
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
+            'name': 'test_plan',
+            'exercise': [{
+                "date": 'monday',
+                "sets": 4,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }, {
+                "date": 'wednesday',
+                "sets": 3,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }],
+            'user': 'DeadlyFarts'
+        })
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data'))).exists())
+        user = User.objects.get(first_name="Erik")
+        self.assertEquals(user.plan.id, self.ts_id)
 
     def test_create_change(self):
         #TODO
