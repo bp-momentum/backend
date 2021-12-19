@@ -5,7 +5,14 @@ from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
 
-class LoginView(APIView):
+class AddEntry(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        entry = Leaderboard(user=req_data['user'], score=request['score'])
+        entry.save()
+        print("saved")
+
+class ListLeaderboard(APIView):
 
     def get(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -25,7 +32,7 @@ class LoginView(APIView):
 
         data = {
             'success': True,
-            'description': 'User is logged in',
+            'description': 'The Leaderboard got listed',
             'data': {
                 'leaderboard': out
                 }
