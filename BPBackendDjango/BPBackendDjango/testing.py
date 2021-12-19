@@ -384,7 +384,7 @@ class TestPlanView(TestCase):
         self.assertTrue(True)
 
     def test_get_list(self):
-        request = ViewSupport.setup_request({'Session_Token': self.trainer_token}, {})
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
         response = GetAllPlansView.get(GetAllPlansView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('plans')), len(TrainingSchedule.objects.filter(trainer=self.trainer_id)))
