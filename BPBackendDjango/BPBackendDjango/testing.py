@@ -286,7 +286,7 @@ class TestExerciseView(TestCase):
     def test_get_list(self):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
         response = GetExerciseListView.get(GetExerciseListView, request)
-        self.assertTrue(response.data.get('succuss'))
+        self.assertTrue(response.data.get('success'))
         self.assertTrue(len(response.data.get('exercises')) == len(Exercise.objects.all()))
 
 
