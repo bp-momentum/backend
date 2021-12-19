@@ -238,7 +238,7 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token).get('valid'))
+        self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token).get('valid')) #TODO failing
 
 
 class TestExerciseView(TestCase):
@@ -270,7 +270,11 @@ class TestExerciseView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': self.ex_id})
         response = GetExerciseView.post(GetExerciseView, request)
         self.assertTrue(response.data.get('success'))
-        #TODO check data
+        data = response.data.get('data')
+        self.assertEquals(data.get('title'), 'Kniebeuge')
+        self.assertEquals(data.get('description'), "Gehe in die Knie, achte...")
+        self.assertEquals(data.get('video'), None)
+        self.assertEquals(data.get('activated'), True)
         #invalid exercise
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{'id': 2543})
         response = GetExerciseView.post(GetExerciseView, request)
