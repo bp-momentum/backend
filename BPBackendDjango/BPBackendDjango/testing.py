@@ -1,6 +1,7 @@
 from django.http import request
 from django.test import TestCase
 from django.test.utils import setup_test_environment
+from rest_framework import response
 from .models import *
 from .Views.userviews import *
 from .Views.exerciseviews import *
@@ -451,5 +452,14 @@ class TestPlanView(TestCase):
         self.assertFalse(response.data.get('success'))
 
     def test_delete(self):
-        #TODO
-        self.assertTrue(True)
+        #valid
+        TrainingSchedule.objects.create(name='delete_plan', trainer=Trainer.objects.get(id=self.trainer_id))
+        ex = TrainingSchedule.objects.get(name='delete_plan')
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': ex.id})
+        response = DeletePlanView.post(DeletePlanView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(TrainingSchedule.objects.filter(id=ex.id).exists())
+        #TODO invalid
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': -1})
+        response = DeletePlanView.post(DeletePlanView, request)
+        self.assertFalse(response.data.get('success'))
