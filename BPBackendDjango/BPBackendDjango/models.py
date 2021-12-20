@@ -4,7 +4,7 @@ from ordered_model.models import OrderedModel
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, primary_key=True)
+    username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
