@@ -440,7 +440,15 @@ class TestPlanView(TestCase):
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=ts.id)))
-        #TODO invalid and as trainer
+        #as trainer
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'username': user.username})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=ts.id)))
+        #invalid
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'username': 'user.username'})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_delete(self):
         #TODO
