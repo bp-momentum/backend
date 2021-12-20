@@ -18,9 +18,8 @@ class ListLeaderboard(APIView):
                 'data': {}
             }
             Response(data)
-        print(token)
+
         info = token['info']
-        print(info)
         if not info['account_type'] == "user":
             data = {
                 'success': False,
@@ -53,15 +52,20 @@ class ListLeaderboard(APIView):
         # user is in top count_of_series
         if user_index < math.floor(count_of_entries/2):
             for l in range(0, count_of_entries):
+                if l >= count_entries:
+                    break
                 rank += 1
                 entry = {"rank": rank, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
                 out.append(entry)
+
 
 
         # user in bottom count_of_series
         elif user_index > count_entries - math.ceil(count_of_entries/2):
             rank = count_entries - count_of_entries
             for l in range(count_entries - count_of_entries, count_entries):
+                if l < 0:
+                    continue
                 rank += 1
                 entry = {"rank": rank, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
                 out.append(entry)
