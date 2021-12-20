@@ -10,11 +10,20 @@ from ..Helperclasses.jwttoken import JwToken
 class ListLeaderboard(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        v, token = JwToken.check_session_token(request.headers['Session-Token'])
-        if not v:
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token['valid']:
             data = {
                 'success': False,
                 'description': 'Token is not valid',
+                'data': {}
+            }
+            Response(data)
+
+        info = token['info']
+        if not info['account_type'] == "user":
+            data = {
+                'success': False,
+                'description': 'Only users can access the leaderboard',
                 'data': {}
             }
             Response(data)
@@ -34,7 +43,7 @@ class ListLeaderboard(APIView):
 
         user_index = 0
         for entry in leaderboard:
-            if entry.user.username == token['username']:
+            if entry.user.username == info['username']:
                 break
             else:
                 user_index += 1
