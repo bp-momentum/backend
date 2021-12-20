@@ -390,7 +390,7 @@ class TestPlanView(TestCase):
         user.save()
         request = ViewSupport.setup_request({'Session-Token':  self.trainer_token}, {
             'plan': self.ts_id,
-            'user': 'DeadlyFarts'
+            'user': 'jbadV'
         })
         response = AddPlanToUserView.post(AddPlanToUserView, request)
         self.assertTrue(response.data.get('success'))
