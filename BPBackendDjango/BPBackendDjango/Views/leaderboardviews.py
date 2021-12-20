@@ -32,7 +32,13 @@ class ListLeaderboard(APIView):
         out = []
         rank = 0
         count_of_entries = req_data['count']
-
+        count_entries = len(leaderboard)
+        user_index = 0
+        for entry in leaderboard:
+            if entry.user.username == info['username']:
+                break
+            else:
+                user_index += 1
         # they are just as many entries as requested
         if len(leaderboard) <= count_of_entries:
             for l in leaderboard:
@@ -41,24 +47,15 @@ class ListLeaderboard(APIView):
                 out.append(entry)
 
 
-        user_index = 0
-        for entry in leaderboard:
-            if entry.user.username == info['username']:
-                break
-            else:
-                user_index += 1
 
-        count_entries = len(leaderboard)
         # user is in top count_of_series
-        if user_index < math.floor(count_of_entries/2):
+        elif user_index < math.floor(count_of_entries/2):
             for l in range(0, count_of_entries):
                 if l >= count_entries:
                     break
                 rank += 1
                 entry = {"rank": rank, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
                 out.append(entry)
-
-
 
         # user in bottom count_of_series
         elif user_index > count_entries - math.ceil(count_of_entries/2):
