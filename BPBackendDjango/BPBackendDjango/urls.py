@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 
 from .Views.exerciseviews import *
-from .Views.leaderboardviews import ListLeaderboard, AddEntry
+from .Views.leaderboardviews import ListLeaderboard
 from .Views.userviews import *
 from .Views.planviews import *
 
