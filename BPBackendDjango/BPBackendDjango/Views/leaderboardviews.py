@@ -16,8 +16,6 @@ class ListLeaderboard(APIView):
                 'data': {}
             }
             Response(data)
-        # sort score DESC
-        Leaderboard.order_with_respect_to("score")
 
         leaderboard = Leaderboard.objects.order_by("-score")
         out = []
