@@ -8,7 +8,8 @@ from ..Helperclasses.jwttoken import JwToken
 class AddEntry(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        entry = Leaderboard(user=req_data['user'], score=req_data['score'])
+        user = User.objects.filter(id=req_data['user'])
+        entry = Leaderboard(user=user, score=req_data['score'])
         entry.save()
         print("saved")
         data = {
