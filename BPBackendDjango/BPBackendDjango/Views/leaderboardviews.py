@@ -20,13 +20,6 @@ class ListLeaderboard(APIView):
             Response(data)
 
         info = token['info']
-        if not info['account_type'] == "user":
-            data = {
-                'success': False,
-                'description': 'Only users can access the leaderboard',
-                'data': {}
-            }
-            Response(data)
 
         leaderboard = Leaderboard.objects.order_by("-score")
         out = []
@@ -34,6 +27,22 @@ class ListLeaderboard(APIView):
         count_of_entries = req_data['count']
         count_entries = len(leaderboard)
         user_index = 0
+
+        if not info['account_type'] == "user":
+
+            for l in range(0, count_of_entries):
+                if l >= count_entries:
+                    continue
+                rank += 1
+                entry = {"rank": rank, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
+                out.append(entry)
+            data = {
+                'success': True,
+                'description': 'Got the top count of users',
+                'data': {}
+            }
+            return Response(data)
+
         for entry in leaderboard:
             if entry.user.username == info['username']:
                 break
