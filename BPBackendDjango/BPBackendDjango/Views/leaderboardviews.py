@@ -31,7 +31,14 @@ class ListLeaderboard(APIView):
                 entry = {"rank": rank, "username": l.user.username, "score": l.score}
                 out.append(entry)
 
-        user_index = leaderboard.index(Leaderboard.objects.get(user=User.objects.get(username=token["username"])))
+
+        user_index = 0
+        for entry in leaderboard:
+            if entry.user.username == token['username']:
+                break
+            else:
+                user_index += 1
+
         count_entries = len(leaderboard)
         # user is in top count_of_series
         if user_index < math.floor(count_of_entries/2):
