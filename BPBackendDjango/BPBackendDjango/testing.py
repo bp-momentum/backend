@@ -383,7 +383,7 @@ class TestPlanView(TestCase):
     def test_add_user(self):
         TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
         self.ts_id = TrainingSchedule.objects.get(name='addtouser_plan').id
-        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=Trainer.objects.get(self.trainer_id), email_address="fake@web.de", password="Password1234")
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=Trainer.objects.get(id=self.trainer_id), email_address="fake@web.de", password="Password1234")
         #valid user and plan
         user = User.objects.get(username='jbadV')
         user.plan = None
