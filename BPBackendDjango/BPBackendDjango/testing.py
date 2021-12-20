@@ -382,7 +382,7 @@ class TestPlanView(TestCase):
 
     def test_add_user(self):
         TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
-        self.ts_id = TrainingSchedule.objects.get(name='addtouser_plan')
+        self.ts_id = TrainingSchedule.objects.get(name='addtouser_plan').id
         #valid user and plan
         user = User.objects.get(username='DeadlyFarts')
         user.plan = None
@@ -437,7 +437,10 @@ class TestPlanView(TestCase):
         TrainingSchedule.objects.create(name='getfromuser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
         ts = TrainingSchedule.objects.get(name='getfromuser_plan')
         #as user
-        if not user.plan.id == ts.id:
+        if user.plan == None:
+            user.plan = ts
+            user.save()
+        elif not user.plan.id == ts.id:
             user.plan = ts
             user.save()
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
