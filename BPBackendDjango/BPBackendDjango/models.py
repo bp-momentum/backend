@@ -1,5 +1,4 @@
 from django.db import models
-from ordered_model.models import OrderedModel
 
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
@@ -68,8 +67,11 @@ class Friends(models.Model):
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
 
 
-class Leaderboard(OrderedModel):
+class Leaderboard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
     score = models.IntegerField(default=0)
-    order_with_respect_to = ('score',)
+
+    class Meta:
+        indexes = [models.Index(fields=["-score"])]
+
 
