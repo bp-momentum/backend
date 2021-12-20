@@ -32,10 +32,11 @@ class ListLeaderboard(APIView):
             }
             Response(data)
 
-        leaderboard = Leaderboard.filter()
+        leaderboard = Leaderboard.objects.order_by("-score")
         out = []
         for l in leaderboard:
-            out.append(l.id)
+            entry = {"username": l.user.username, "score": l.score}
+            out.append(entry)
 
         data = {
             'success': True,
