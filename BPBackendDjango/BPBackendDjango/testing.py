@@ -387,7 +387,7 @@ class TestPlanView(TestCase):
         user = User.objects.get(username='DeadlyFarts')
         user.plan = None
         user.save()
-        request = ViewSupport.setup_request({'Session-Token':  self.trainer_id}, {
+        request = ViewSupport.setup_request({'Session-Token':  self.trainer_token}, {
             'plan': self.ts_id,
             'user': 'DeadlyFarts'
         })
@@ -395,7 +395,7 @@ class TestPlanView(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(user.plan.id, self.ts_id)
         #invalid user
-        request = ViewSupport.setup_request({'Session-Token':  self.trainer_id}, {
+        request = ViewSupport.setup_request({'Session-Token':  self.trainer_token}, {
             'plan': self.ts_id,
             'user': '1234567'
         })
