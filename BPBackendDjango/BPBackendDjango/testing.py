@@ -380,8 +380,35 @@ class TestPlanView(TestCase):
         self.ts_id = int(response.data.get('data').get('plan_id'))
 
     def test_add_user(self):
-        #TODO
-        self.assertTrue(True)
+        #valid user and plan
+        user = User.objects.get(username='DeadlyFarts')
+        user.plan = None
+        user.save()
+        request = ViewSupport.setup_request({'Session-Token':  self.trainer_id}, {
+            'plan': self.ts_id,
+            'user': 'DeadlyFarts'
+        })
+        response = AddPlanToUserView.post(AddPlanToUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(user.plan.id, self.ts_id)
+        #invalid user
+        request = ViewSupport.setup_request({'Session-Token':  self.trainer_id}, {
+            'plan': self.ts_id,
+            'user': '1234567'
+        })
+        response = AddPlanToUserView.post(AddPlanToUserView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid plan
+        user = User.objects.get(username='DeadlyFarts')
+        user.plan = None
+        user.save()
+        request = ViewSupport.setup_request({'Session-Token':  self.trainer_id}, {
+            'plan': -1,
+            'user': 'DeadlyFarts'
+        })
+        response = AddPlanToUserView.post(AddPlanToUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(user.plan.id, None)
 
     def test_get_list(self):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
