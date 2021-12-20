@@ -430,8 +430,17 @@ class TestPlanView(TestCase):
         self.assertFalse(response.data.get('success'))
 
     def test_get_for_user(self):
-        #TODO
-        self.assertTrue(True)
+        user = User.objects.get(id=self.user_id)
+        ts = TrainingSchedule.objects.get(id=self.ts_id)
+        #as user
+        if not user.plan.id == ts.id:
+            user.plan = ts
+            user.save()
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=ts.id)))
+        #TODO invalid and as trainer
 
     def test_delete(self):
         #TODO
