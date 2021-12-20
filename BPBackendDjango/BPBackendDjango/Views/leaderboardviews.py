@@ -18,8 +18,9 @@ class ListLeaderboard(APIView):
                 'data': {}
             }
             Response(data)
-
+        print(token)
         info = token['info']
+        print(info)
         if not info['account_type'] == "user":
             data = {
                 'success': False,
