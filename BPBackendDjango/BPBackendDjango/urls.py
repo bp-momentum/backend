@@ -43,5 +43,4 @@ urlpatterns = [
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
     #leaderboard
     path('api/listleaderboard', ListLeaderboard.as_view(), name='listLeaderboard'),
-    path('api/addentry', AddEntry.as_view(), name='addEntry')
 ]
