@@ -77,8 +77,12 @@ class RegisterView(APIView):
                 not Admin.objects.filter(username=request.data['username']).exists()):
                 
                 
-                #save User in the databank
+                # save User in the databank
                 serializer.save()
+
+                # add user to leaderboard with score of 0
+                Leaderboard.objects.create(User.objects.get(username=request.data['username']), score=0)
+
                 #creating the session_token
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
                 refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)

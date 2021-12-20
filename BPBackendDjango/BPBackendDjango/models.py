@@ -3,9 +3,9 @@ from ordered_model.models import OrderedModel
 
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
-    last_name =  models.CharField(max_length=50)
-    username =  models.CharField(max_length=50)
-    password =  models.CharField(max_length=255)
+    last_name = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, primary_key=True)
+    password = models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
     token_date = models.BigIntegerField(default=0)
@@ -48,7 +48,7 @@ class User(models.Model):
 
 
 class DoneExercises(models.Model):
-    exercise =  models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.DateField(default="1970-01-01")
@@ -62,13 +62,14 @@ class Admin(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     token_date = models.BigIntegerField(default=0)
 
+
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
 
 
 class Leaderboard(OrderedModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
     score = models.IntegerField(default=0)
     order_with_respect_to = ('score',)
 

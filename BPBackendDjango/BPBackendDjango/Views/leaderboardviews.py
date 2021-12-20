@@ -5,22 +5,7 @@ from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
 
-class AddEntry(APIView):
-    def post(self, request, *args, **kwargs):
-        req_data = dict(request.data)
-        user = User.objects.get(username=req_data['user'])
-        entry = Leaderboard(user=user, score=req_data['score'])
-        entry.save()
-        print("saved")
-        data = {
-            'success': False,
-            'description': 'Token is not valid',
-            'data': {}
-        }
-        return Response(data)
-
 class ListLeaderboard(APIView):
-
     def get(self, request, *args, **kwargs):
         req_data = dict(request.data)
         v, token = JwToken.check_session_token(request.headers['Session-Token'])
@@ -31,6 +16,8 @@ class ListLeaderboard(APIView):
                 'data': {}
             }
             Response(data)
+        # sort score DESC
+        Leaderboard.order_with_respect_to("score")
 
         leaderboard = Leaderboard.objects.order_by("-score")
         out = []
