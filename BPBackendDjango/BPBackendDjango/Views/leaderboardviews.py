@@ -39,7 +39,9 @@ class ListLeaderboard(APIView):
             data = {
                 'success': True,
                 'description': 'Got the top count of users',
-                'data': {}
+                'data': {
+                    "leaderboard": out
+                }
             }
             return Response(data)
 
