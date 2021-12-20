@@ -417,8 +417,17 @@ class TestPlanView(TestCase):
         self.assertEquals(len(response.data.get('data').get('plans')), len(TrainingSchedule.objects.filter(trainer=self.trainer_id)))
 
     def test_get(self):
-        #TODO
-        self.assertTrue(True)
+        #valid
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'plan': self.ts_id})
+        response = ShowPlanView.post(ShowPlanView, request)
+        ts = TrainingSchedule.objects.get(id=self.ts_id)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('name'), ts.name)
+        self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=self.ts_id)))
+        #invalid
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'plan': -1})
+        response = ShowPlanView.post(ShowPlanView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_get_for_user(self):
         #TODO
