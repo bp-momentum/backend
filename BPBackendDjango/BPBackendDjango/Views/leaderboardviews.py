@@ -8,9 +8,15 @@ from ..Helperclasses.jwttoken import JwToken
 class AddEntry(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        entry = Leaderboard(user=req_data['user'], score=request['score'])
+        entry = Leaderboard(user=req_data['user'], score=req_data['score'])
         entry.save()
         print("saved")
+        data = {
+            'success': False,
+            'description': 'Token is not valid',
+            'data': {}
+        }
+        return Response(data)
 
 class ListLeaderboard(APIView):
 
