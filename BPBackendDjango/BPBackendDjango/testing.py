@@ -381,6 +381,8 @@ class TestPlanView(TestCase):
         self.ts_id = int(response.data.get('data').get('plan_id'))
 
     def test_add_user(self):
+        TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
+        self.ts_id = TrainingSchedule.objects.get(name='addtouser_plan')
         #valid user and plan
         user = User.objects.get(username='DeadlyFarts')
         user.plan = None
@@ -432,7 +434,8 @@ class TestPlanView(TestCase):
 
     def test_get_for_user(self):
         user = User.objects.get(id=self.user_id)
-        ts = TrainingSchedule.objects.get(id=self.ts_id)
+        TrainingSchedule.objects.create(name='getfromuser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
+        ts = TrainingSchedule.objects.get(name='getfromuser_plan')
         #as user
         if not user.plan.id == ts.id:
             user.plan = ts
@@ -454,11 +457,11 @@ class TestPlanView(TestCase):
     def test_delete(self):
         #valid
         TrainingSchedule.objects.create(name='delete_plan', trainer=Trainer.objects.get(id=self.trainer_id))
-        ex = TrainingSchedule.objects.get(name='delete_plan')
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': ex.id})
+        ts = TrainingSchedule.objects.get(name='delete_plan')
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': ts.id})
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertFalse(TrainingSchedule.objects.filter(id=ex.id).exists())
+        self.assertFalse(TrainingSchedule.objects.filter(id=ts.id).exists())
         #TODO invalid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': -1})
         response = DeletePlanView.post(DeletePlanView, request)
