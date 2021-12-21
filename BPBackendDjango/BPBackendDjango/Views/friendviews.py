@@ -1,8 +1,11 @@
+from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..Helperclasses.jwttoken import JwToken
 
-from ..models import *
+from ..models import Friends
+from ..models import User
+from ..serializers import CreateFriends
 
 def get_friends(user):
     res = list(Friends.objects.filter(friend1=user))
@@ -124,3 +127,44 @@ class GetRequestView(APIView):
         return Response(data)
 
 
+class AddFriendView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #must be user
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                    'success': False,
+                    'description': 'Not a user',
+                    'data': {}
+                }
+            return Response(data)
+
+        #added must be user/exist
+        if not User.objects.filter(username=req_data['username']).exists():
+            data = {
+                    'success': False,
+                    'description': 'Does not exist or is not a user',
+                    'data': {}
+                }
+            return Response(data)
+
+        is_from = User.objects.get(username=info['username'])
+        is_to = User.objects.get(username=req_data['username'])
+        request_data = {
+            'friend1': is_from,
+            'friend2': is_to
+        }
+        serializer = CreateFriends(data=request_data)

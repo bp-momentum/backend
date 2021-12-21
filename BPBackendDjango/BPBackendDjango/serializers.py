@@ -48,10 +48,19 @@ class CreatePlan(serializers.ModelSerializer):
             'trainer', 'name'
         )
 
+
 class CreateExerciseInPlan(serializers.ModelSerializer):
     class Meta:
         model = ExerciseInPlan
         fields = (
             'date', 'sets', 'repeats_per_set', 'exercise', 'plan'
         )
+
+
+class CreateFriends(serializers.ModelSerializer):
+    class Meta:
+        model = Friends
+        fields = {
+            'friend1', 'friend2'
+        }
 
