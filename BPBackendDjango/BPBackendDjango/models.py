@@ -65,3 +65,5 @@ class Admin(models.Model):
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
+    since = models.DateField(null=True)
+    accepted = models.BooleanField(default=False)
