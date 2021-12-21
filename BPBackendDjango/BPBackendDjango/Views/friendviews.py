@@ -88,6 +88,39 @@ class GetPendingRequestView(APIView):
         return Response(data)
     
 
+class GetRequestView(APIView):
 
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #must be user
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                    'success': False,
+                    'description': 'Not a user',
+                    'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+        requests = get_requests(user.id)
+        data = {
+                'success': True,
+                'description': 'returning requests',
+                'data': {
+                    'pending': requests
+                }
+            }
+        return Response(data)
 
 

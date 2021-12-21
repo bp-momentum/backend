@@ -45,5 +45,6 @@ urlpatterns = [
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
-    path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests')
+    path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),
+    path('api/getFriendRequests', GetRequestView.as_view(), name='getFriendRequests')
 ]
