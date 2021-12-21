@@ -272,14 +272,3 @@ class DeleteAccountView(APIView):
 
         return Response(data)
 
-
-
-            
-
-
-
-
-
-
-
-

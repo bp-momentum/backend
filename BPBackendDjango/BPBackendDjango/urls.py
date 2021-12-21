@@ -20,6 +20,7 @@ from .Views.exerciseviews import *
 from .Views.userviews import *
 from .Views.interfaceviews import *
 from .Views.planviews import *
+from .Views.friendviews import *
 
 urlpatterns = [
     #user
@@ -41,5 +42,7 @@ urlpatterns = [
     path('api/getlistofplans', GetAllPlansView.as_view(), name='getListOfPlans'),
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
-    path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan')
+    path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
+    #friends
+    path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends')
 ]
