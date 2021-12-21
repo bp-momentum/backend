@@ -44,5 +44,6 @@ urlpatterns = [
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
     #friends
-    path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends')
+    path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
+    path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests')
 ]
