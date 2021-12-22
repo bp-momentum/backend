@@ -13,7 +13,7 @@ Path: /api/createuser
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -70,7 +70,7 @@ Path: /api/register
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -103,7 +103,7 @@ Path: /api/getexercise
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -135,7 +135,7 @@ Path: /api/getexerciselist
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -166,7 +166,7 @@ Path: /api/logoutdevices
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -223,7 +223,7 @@ Path: /api/deleteuser
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -251,7 +251,7 @@ Path: /api/createplan
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -298,7 +298,7 @@ Path: /api/addplantouser
 Header:
 ```json
 {
-    "session_token": <str>
+    "Session-Token": <str>
 }
 ```
 
@@ -315,6 +315,142 @@ Success Return
 {
     "success": true,
     "description": 'plan assigned to user',
+    "data": {}
+}
+```
+
+## Get List of Plans
+Type: GET 
+
+Path: /api/getlisofplans
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'returning all plans',
+    "data": {
+        'plans': <list>
+    }
+}
+```
+
+## Get Plan
+
+Type: POST 
+
+Path: /api/getplan
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "plan": <int>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'returned plan',
+    "data": {
+            "name": <str>,
+            "exercises": <list>
+        }
+}
+```
+
+## Get Plan of User
+
+Type: POST 
+
+Path: /api/requestplanofuser
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters:
+for users: 
+```json
+{}
+```
+for trainers:
+```json
+{
+    "username": <str> //only needed of called as trainer
+}
+```
+Success Return 
+
+as user:
+```json
+{
+    "success": true,
+    "description": 'returned plan of this account',
+    "data": {
+            "exercises": <list>
+        }
+}
+```
+as trainer:
+```json
+{
+    "success": true,
+    "description": 'returned plan of user',
+    "data": {
+            "exercises": <list>
+        }
+}
+```
+
+## Delete Plan
+
+Type: POST 
+
+Path: /api/deleteplan
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "id": <int>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'plan deleted',
     "data": {}
 }
 ```
