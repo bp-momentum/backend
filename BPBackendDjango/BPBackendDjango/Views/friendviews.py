@@ -179,7 +179,93 @@ class AddFriendView(APIView):
         serializer.save()
         data = {
                 'success': True,
-                'description': 'Entry created',
+                'description': 'Request sent',
+                'data': {}
+            }
+        return Response(data)
+
+
+class AcceptRequestView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #must be user
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                    'success': False,
+                    'description': 'Not a user',
+                    'data': {}
+                }
+            return Response(data)
+
+        #check if request exists
+        if not Friends.objects.filter(id=int(req_data['id']), accepted=False).exists():
+            data = {
+                    'success': False,
+                    'description': 'Invalid request',
+                    'data': {}
+                }
+            return Response(data)
+
+        friend = Friends.objects.get(id=int(req_data['id']))
+        friend.accepted = True
+        friend.save()
+        data = {
+                'success': True,
+                'description': 'Request accepted',
+                'data': {}
+            }
+        return Response(data)
+
+
+class DeclineRequestView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #must be user
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                    'success': False,
+                    'description': 'Not a user',
+                    'data': {}
+                }
+            return Response(data)
+
+        #check if request exists
+        if not Friends.objects.filter(id=int(req_data['id']), accepted=False).exists():
+            data = {
+                    'success': False,
+                    'description': 'Invalid request',
+                    'data': {}
+                }
+            return Response(data)
+
+        Friends.objects.filter(id=int(req_data['id']), accepted=False).delete()
+        data = {
+                'success': True,
+                'description': 'Request decliened',
                 'data': {}
             }
         return Response(data)
