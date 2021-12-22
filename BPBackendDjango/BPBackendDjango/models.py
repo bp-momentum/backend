@@ -8,9 +8,10 @@ class Trainer(models.Model):
     password =  models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
- 
+    token_date = models.BigIntegerField(default=0)
 
 class TrainingSchedule(models.Model):
+    name = models.CharField(default="plan", max_length=50)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField(null=True)
 
@@ -27,7 +28,7 @@ class Team(models.Model):
 
 
 class ExerciseInPlan(models.Model):
-    date = models.DateField(default="1970-01-01")
+    date = models.CharField(default="monday", max_length=15)
     sets = models.IntegerField(default=0)
     repeats_per_set = models.IntegerField(default=0)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
@@ -42,6 +43,8 @@ class User(models.Model):
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
+    plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
+    token_date = models.BigIntegerField(default=0)
 
 
 class DoneExercises(models.Model):
@@ -57,7 +60,7 @@ class Admin(models.Model):
     username = models.CharField(max_length=50)
     password = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255, null=True)
-
+    token_date = models.BigIntegerField(default=0)
 
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
