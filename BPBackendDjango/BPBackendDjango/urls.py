@@ -46,5 +46,6 @@ urlpatterns = [
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
     path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),
-    path('api/getFriendRequests', GetRequestView.as_view(), name='getFriendRequests')
+    path('api/getFriendRequests', GetRequestView.as_view(), name='getFriendRequests'),
+    path('api/addFriend', AddFriendView.as_view(), name='addFriend')
 ]
