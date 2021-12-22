@@ -300,6 +300,7 @@ class DeclineRequestView(APIView):
 
 class DeleteFriendView(APIView):
     def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -322,3 +323,27 @@ class DeleteFriendView(APIView):
             return Response(data)
 
         user = User.objects.get(username=info['username'])
+
+        #check if request exists
+        if not (Friends.objects.filter(id=int(req_data['id']), friend2=user.id).exists() or Friends.objects.filter(id=int(req_data['id']), friend1=user.id).exists()):
+            data = {
+                    'success': False,
+                    'description': 'Invalid request',
+                    'data': {}
+                }
+            return Response(data)
+
+        f = Friends.objects.get(id=int(req_data['id']))
+        removed_friend = f.friend1
+        if removed_friend.id == user.id:
+            removed_friend = f.friend2
+        Friends.objects.filter(id=int(req_data['id'])).delete()
+
+        data = {
+                'success': True,
+                'description': 'Removed friend',
+                'data': {
+                    'removed_friend': removed_friend
+                }
+            }
+        return Response(data)
