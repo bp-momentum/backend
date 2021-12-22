@@ -33,6 +33,15 @@ def check_password(username, passwd):
     else:
         return "invalid"
 
+#only method needs to be changed to get different information about users
+def get_users_data(users):
+    data = []
+    for user in users:
+        data.append({
+            'id': user.id,
+            'username': user.username
+        })
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -270,5 +279,58 @@ class DeleteAccountView(APIView):
             'data': {}
             }
 
+        return Response(data)
+
+
+class SearchUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        users = User.objects.filter(username__unaccent__icontains=req_data['search'])
+        users_data = get_users_data(users)
+
+        data = {
+                'success': True,
+                'description': 'returning list of matching users',
+                'data': {
+                    'users': users_data
+                }
+            }
+        return Response(data)
+
+
+class GetListOfUsers(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        users = User.objects.all()
+        users_data = get_users_data(users)  
+
+        data = {
+                'success': True,
+                'description': 'returning list of users',
+                'data': {
+                    'users': users_data
+                }
+            }
         return Response(data)
 
