@@ -232,8 +232,10 @@ class AcceptRequestView(APIView):
                 }
             return Response(data)
 
+        user = User.objects.get(username=req_data['username'])
+
         #check if request exists
-        if not Friends.objects.filter(id=int(req_data['id']), accepted=False).exists():
+        if not Friends.objects.filter(id=int(req_data['id']), friend2=user.id, accepted=False).exists():
             data = {
                     'success': False,
                     'description': 'Invalid request',
@@ -276,8 +278,10 @@ class DeclineRequestView(APIView):
                 }
             return Response(data)
 
+        user = User.objects.get(username=req_data['username'])
+
         #check if request exists
-        if not Friends.objects.filter(id=int(req_data['id']), accepted=False).exists():
+        if not Friends.objects.filter(id=int(req_data['id']), friend2=user.id, accepted=False).exists():
             data = {
                     'success': False,
                     'description': 'Invalid request',
@@ -292,3 +296,6 @@ class DeclineRequestView(APIView):
                 'data': {}
             }
         return Response(data)
+
+
+class DeleteFriendView(APIView):
