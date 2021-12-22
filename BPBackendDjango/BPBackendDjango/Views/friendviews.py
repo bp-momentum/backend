@@ -232,7 +232,7 @@ class AcceptRequestView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=req_data['username'])
+        user = User.objects.get(username=info['username'])
 
         #check if request exists
         if not Friends.objects.filter(id=int(req_data['id']), friend2=user.id, accepted=False).exists():
@@ -278,7 +278,7 @@ class DeclineRequestView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=req_data['username'])
+        user = User.objects.get(username=info['username'])
 
         #check if request exists
         if not Friends.objects.filter(id=int(req_data['id']), friend2=user.id, accepted=False).exists():
