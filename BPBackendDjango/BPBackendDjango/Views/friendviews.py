@@ -8,15 +8,38 @@ from ..models import User
 from ..serializers import CreateFriends
 
 def get_friends(user):
-    res = list(Friends.objects.filter(friend1=user))
-    res.append(list(Friends.objects.filter(friend2=user)))
+    sql = list(Friends.objects.filter(friend1=user), accepted=True)
+    sql.append(list(Friends.objects.filter(friend2=user)), accepted=True)
+    res = []
+    for f in sql:
+        res.append({
+            'id': f.id,
+            'friend1': f.friend1,
+            'friend2': f.friend2
+        })
     return res
 
 def get_requests(user):
-    return list(Friends.objects.filter(friend2=user, accepted=False))
+    sql = list(Friends.objects.filter(friend2=user, accepted=False))
+    res = []
+    for f in sql:
+        res.append({
+            'id': f.id,
+            'friend1': f.friend1,
+            'friend2': f.friend2
+        })
+    return res
 
 def get_pending_requests(user):
-    return list(Friends.objects.filter(friend1=user, accepted=False))
+    sql =  list(Friends.objects.filter(friend1=user, accepted=False))
+    res = []
+    for f in sql:
+        res.append({
+            'id': f.id,
+            'friend1': f.friend1,
+            'friend2': f.friend2
+        })
+    return res
 
 
 class GetMyFriendsView(APIView):
