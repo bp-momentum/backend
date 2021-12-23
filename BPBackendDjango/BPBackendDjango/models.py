@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.deletion import CASCADE
 
 
 class Trainer(models.Model):
@@ -62,6 +63,18 @@ class Admin(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     token_date = models.BigIntegerField(default=0)
 
+
 class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
+
+
+class Adchievment(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(default="")
+    
+
+class UserAchievedAchievment(models.Model):
+    achievement = models.ForeignKey(Adchievment, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default="1970-01-01")
