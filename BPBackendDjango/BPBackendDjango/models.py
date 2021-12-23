@@ -45,6 +45,7 @@ class User(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
     token_date = models.BigIntegerField(default=0)
+    xp = models.BigIntegerField(default=0)
 
 
 class DoneExercises(models.Model):

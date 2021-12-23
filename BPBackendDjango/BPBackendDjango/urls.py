@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
     path('api/ai', APIView.as_view(), name='callAI'),
     path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser'),
+    path('api/getuserlevel', GetUserLevelView.as_view(), name='GetUserLevel'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),

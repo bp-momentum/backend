@@ -14,6 +14,10 @@ from ..serializers import *
 from ..models import *
 from BPBackendDjango.settings import *
 
+MAX_LEVEL = 200
+MULT_PER_LVL = 2.5
+FIRST_LVL = 300
+
 #creating random password
 def get_random_password(length):
     letters = string.ascii_lowercase
@@ -32,6 +36,21 @@ def check_password(username, passwd):
         return "admin"
     else:
         return "invalid"
+
+def add_xp(username, xp):
+    if not User.objects.filter(username=username).exists():
+        return False
+    user = User.objects.get(username=username)
+    user.xp = user.xp + xp
+    user.save()
+    return True
+
+def calc_level(xp):
+    for i in range(MAX_LEVEL):
+        nxt_lvl = FIRST_LVL * MULT_PER_LVL ** i
+        if xp < nxt_lvl:
+            return i-1, str(xp)+'/'+str(nxt_lvl)
+    return MAX_LEVEL, 'max level reached'
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
@@ -273,8 +292,40 @@ class DeleteAccountView(APIView):
         return Response(data)
 
 
+class GetUserLevelView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
 
-            
+        info = token['info']
+
+        if not User.objects.filter(username=req_data['username']).exists():
+            data = {
+                'success': False,
+                'description': 'User not found',
+                'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(req_data['username'])
+        res = calc_level(user.xp)
+        data = {
+                'success': True,
+                'description': 'returning level and progress of next level',
+                'data': {
+                    'level': res[0],
+                    'progress': res[1]
+                }
+            }
+        return Response(data)
 
 
 
