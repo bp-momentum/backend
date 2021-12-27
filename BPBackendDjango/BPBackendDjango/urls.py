@@ -42,5 +42,5 @@ urlpatterns = [
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
-    path('api/doneexercise', DoneExercises.as_view(), name='doneExercise')
+    path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise')
 ]
