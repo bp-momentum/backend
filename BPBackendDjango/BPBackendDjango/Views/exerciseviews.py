@@ -155,7 +155,7 @@ class DoneExerciseView(APIView):
         return Response(data)
 
 class GetDoneExercisesView(APIView):
-    def GetDone(self, username):
+    def GetDone(self, user):
         ## list of all done in last week
         done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800)
 
@@ -225,7 +225,8 @@ class GetDoneExercisesView(APIView):
             }
             return Response(data)
 
-        data = self.GetDone(req_data['user'])
+        user = User.objects.get(username=req_data['user'])
+        data = self.GetDone(user)
         return Response(data)
 
 
