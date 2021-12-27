@@ -188,7 +188,10 @@ class GetDoneExercisesView(APIView):
         data = {
             "success": True,
             "description": "Returned list of Exercises and if its done",
-            "data": out
+            "data":
+                {"name": a.name,
+                 "exercises": out
+                 }
         }
 
         return data
