@@ -42,7 +42,9 @@ class DeleteUserTestCase(TestCase):
         Exercise.objects.create(title='Squat', description='Just do it.')
         exercise = Exercise.objects.get(title='Squat')
         DeleteUserTestCase.exercise_id = exercise.id
-        DoneExercises.objects.create(exercise=exercise, user=user1, points=98)
+        plan = TrainingSchedule.objects.create(name="testplan", trainer=trainer)
+        exercise_plan = ExerciseInPlan.objects.create(exercise=exercise, plan=plan)
+        DoneExercises.objects.create(exercise=exercise_plan, user=user1, points=98)
         DeleteUserTestCase.done_ex_id = DoneExercises.objects.get(points=98).id
         Friends.objects.create(friend1=user1, friend2=user2)
         DeleteUserTestCase.friends_id = Friends.objects.get(friend1=DeleteUserTestCase.user_id).id
