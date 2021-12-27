@@ -490,11 +490,11 @@ Success Return
     "data": {}
 }
 
-## Get Plan
+## Get Done Exercise Plan
 
-Type: POST 
+Type: GET when user else POST
 
-Path: /api/getplan
+Path: /api/getdoneexercises
 
 Header:
 ```json
