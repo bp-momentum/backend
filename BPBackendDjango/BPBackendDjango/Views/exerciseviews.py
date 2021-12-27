@@ -165,7 +165,7 @@ class GetDoneExercisesView(APIView):
             for d in done:
                 if a.id == d.exercise.id:
                     out.append({"exercise_plan_id": a.id,
-                                "id": a.exercise,
+                                "id": a.exercise.id,
                                 "date": a.date,
                                 "sets": a.sets,
                                 "repeats_per_set": a.repeats_per_set,
@@ -174,7 +174,7 @@ class GetDoneExercisesView(APIView):
                     break
 
             out.append({"exercise_plan_id": a.id,
-                        "id": a.exercise,
+                        "id": a.exercise.id,
                         "date": a.date,
                         "sets": a.sets,
                         "repeats_per_set": a.repeats_per_set,
