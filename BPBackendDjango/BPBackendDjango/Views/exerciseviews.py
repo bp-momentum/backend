@@ -154,6 +154,83 @@ class DoneExerciseView(APIView):
 
         return Response(data)
 
+class GetDoneExercisesView(APIView):
+    def GetDone(self, username):
+        ## list of all done in last week
+        done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800)
+
+        all = ExerciseInPlan.objects.filter(plan=user.plan)
+        out = []
+        for a in all:
+            for d in done:
+                if a.id == d.plan.id:
+                    out.append({"exercise_plan_id": a.id,
+                                "id": a.exercise,
+                                "date": a.date,
+                                "sets": a.sets,
+                                "repeats_per_set": a.repeats_per_set,
+                                "done": True
+                                })
+                    break
+
+            out.append({"exercise_plan_id": a.id,
+                        "id": a.exercise,
+                        "date": a.date,
+                        "sets": a.sets,
+                        "repeats_per_set": a.repeats_per_set,
+                        "done": False
+                        })
+
+        data = {
+            "success": True,
+            "description": "Returned list of Exercises and if its done",
+            "data": out
+        }
+
+        return data
+
+
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        info = token['info']
+        user = User.objects.get(username=info['username'])
+
+        data = self.GetDone(user)
+        return Response(data)
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        if not (token["info"]["account_type"] in ["trainer", "admin"]):
+            data = {
+                'success': False,
+                'description': 'type of account is not allowed to access other users data',
+                'data': {}
+            }
+            return Response(data)
+
+        data = self.GetDone(req_data['user'])
+        return Response(data)
+
+
+
+
 
 
 
