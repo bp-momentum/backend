@@ -130,7 +130,7 @@ class DoneExerciseView(APIView):
 
         info = token['info']
         user = User.objects.get(username=info['username'])
-        eip = ExerciseInPlan.objects.get(id=info['exercise_plan_id'])
+        eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
 
         new_entry = DoneExercises(exercise=eip, user=user, points=0, date=int(time.time()))
         new_entry.save()
