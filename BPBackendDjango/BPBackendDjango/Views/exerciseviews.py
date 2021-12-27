@@ -132,6 +132,18 @@ class DoneExerciseView(APIView):
         user = User.objects.get(username=info['username'])
         eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
 
+        ## check if its alrady done this week
+        done = DoneExercises.objects.filter(exercise=eip, user=user)
+        for d in done:
+            if time.time() - (d.date - d.date%86400) < 604.800:
+                data = {
+                    'success': False,
+                    'description': 'User already did this exercise in this week',
+                    'data': {}
+                }
+                return Response(data)
+
+
         new_entry = DoneExercises(exercise=eip, user=user, points=0, date=int(time.time()))
         new_entry.save()
         data = {
