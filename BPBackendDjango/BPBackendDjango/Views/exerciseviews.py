@@ -134,6 +134,13 @@ class DoneExerciseView(APIView):
 
         new_entry = DoneExercises(exercise=eip, user=user, points=0, date=int(time.time()))
         new_entry.save()
+        data = {
+            'success': True,
+            'description': 'Done Exercise is now saved',
+            'data': {}
+        }
+
+        return Response(data)
 
 
 
