@@ -374,7 +374,13 @@ Success Return
     "description": 'returned plan',
     "data": {
             "name": <str>,
-            "exercises": <list>
+            "exercises": <list>[{
+                          "exercise_plan_id": <int>,
+                          "id": <int>,
+                          "sets": <int>,
+                          "repeats_per_set": <int>,
+                          "date": <str>
+                        }]
         }
 }
 ```
@@ -452,6 +458,73 @@ Success Return
     "success": true,
     "description": 'plan deleted',
     "data": {}
+}
+```
+
+
+## Mark exercise as done
+
+Type: POST 
+
+Path: /api/doneexercise
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "exercise_plan_id": <int>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'Exercise is now marked as done',
+    "data": {}
+}
+
+## Get Plan
+
+Type: POST 
+
+Path: /api/getplan
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "user": <str> #only when trainer
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": 'returned plan',
+    "data": {
+            "name": <str>,
+            "exercises": <list>[{
+                          "exercise_plan_id": <int>,
+                          "id": <int>,
+                          "sets": <int>,
+                          "repeats_per_set": <int>,
+                          "date": <str>
+                        }]
+        }
 }
 ```
 
