@@ -1,3 +1,5 @@
+import time
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -113,3 +115,29 @@ class GetExerciseListView(APIView):
         }
 
         return Response(data)
+
+    class DoneExerciseView(APIView):
+        def post(self, request, *args, **kwargs):
+            req_data = dict(request.data)
+            token = JwToken.check_session_token(request.headers['Session-Token'])
+            if not token["valid"]:
+                data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+                return Response(data)
+
+            info = token['info']
+            user = User.objects.get(username=info['username'])
+            eip = ExerciseInPlan.objects.get(id=info['exercise_plan_id'])
+
+            new_entry = DoneExercises(exercise=eip, user=user, points=0, date=int(time.time()))
+            new_entry.save()
+
+
+
+
+
+
+
