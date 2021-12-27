@@ -135,7 +135,7 @@ class DoneExerciseView(APIView):
         ## check if its alrady done this week
         done = DoneExercises.objects.filter(exercise=eip, user=user)
         for d in done:
-            if time.time() - (d.date - d.date%86400) < 604.800:
+            if time.time() - (d.date - d.date%86400) < 604800:
                 data = {
                     'success': False,
                     'description': 'User already did this exercise in this week',
