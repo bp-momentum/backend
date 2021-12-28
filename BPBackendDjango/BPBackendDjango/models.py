@@ -69,13 +69,14 @@ class Friends(models.Model):
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
 
 
-class Adchievment(models.Model):
+class Achievment(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(default="")
     hidden = models.BooleanField(default=False)
     
 
 class UserAchievedAchievment(models.Model):
-    achievement = models.ForeignKey(Adchievment, on_delete=models.CASCADE)
+    achievement = models.ForeignKey(Achievment, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateField(default="1970-01-01")
+    level = models.IntegerField(default=1)
+    #date = models.DateField(default="1970-01-01") #not useful at the moment

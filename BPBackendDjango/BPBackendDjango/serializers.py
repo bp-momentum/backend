@@ -48,6 +48,7 @@ class CreatePlan(serializers.ModelSerializer):
             'trainer', 'name'
         )
 
+
 class CreateExerciseInPlan(serializers.ModelSerializer):
     class Meta:
         model = ExerciseInPlan
@@ -55,3 +56,10 @@ class CreateExerciseInPlan(serializers.ModelSerializer):
             'date', 'sets', 'repeats_per_set', 'exercise', 'plan'
         )
 
+
+class AchieveAchievement(serializers.ModelSerializer):
+    class Meta:
+        model = UserAchievedAchievment
+        fields = (
+            'achievement', 'user'
+        )
