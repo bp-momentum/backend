@@ -9,6 +9,7 @@ import string
 import random
 import hashlib
 import time
+import datetime
 
 from ..serializers import *
 from ..models import *
@@ -32,6 +33,66 @@ def check_password(username, passwd):
         return "admin"
     else:
         return "invalid"
+
+def streak(user):
+    now = datetime.datetime.now()
+    year = now.year
+    month = now.month
+    day = now.day
+    today = get_string_of_date(day, month, year)
+    if day == 1:
+        if month == 1:
+            month = 12
+            year = year - 1
+            day = 31
+        else:
+            month = month - 1
+            day = get_lastday_of_month(month)
+    yesterday = get_string_of_date(day, month, year)
+    if not User.objects.filter(username=user).exists():
+        return
+    u = User.objects.get(username=user)
+    last_login = u.last_login
+    if last_login == today:
+        return
+    elif last_login == yesterday:
+        old = u.streak
+        u.streak = old + 1
+        u.last_login = today
+        u.save()
+    else:
+        u.streak = 1
+        u.last_login = today
+        u.save()
+
+def get_lastday_of_month(m, y):
+    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
+        return 31
+    elif m == 4 or m == 6 or m == 9 or m == 11:
+        return 30
+    elif m == 2:
+        if y % 400 == 0:
+            return 29
+        elif y % 100 == 0:
+            return 28
+        elif y % 4 == 0:
+            return 29
+        else:
+            return 28
+    else:
+        return -1
+
+def get_string_of_date(d, m, y):
+    if d < 10:
+        day = '0'+str(d)
+    else:
+        day = str(d)
+    if m < 10:
+        month = '0'+str(m)
+    else:
+        month = str(m)
+    return y+'-'+month+'-'+day
+
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
