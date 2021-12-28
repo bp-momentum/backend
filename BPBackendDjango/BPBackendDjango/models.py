@@ -72,6 +72,7 @@ class Friends(models.Model):
 class Adchievment(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(default="")
+    hidden = models.BooleanField(default=False)
     
 
 class UserAchievedAchievment(models.Model):
