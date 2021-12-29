@@ -46,7 +46,7 @@ class User(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
     token_date = models.BigIntegerField(default=0)
-    last_login = models.DateField(null=True)
+    last_login = models.CharField(null=True)
     streak = models.IntegerField(default=0)
 
 

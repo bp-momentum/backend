@@ -144,13 +144,15 @@ class RegisterView(APIView):
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
                 refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
                 data = {
-                'success': True,
-                'description': 'User was created',
-                'data': {
-                    "session_token": session_token,
-                    "refresh_token": refresh_token
-                }
-                }
+                    'success': True,
+                    'description': 'User was created',
+                    'data': {
+                        "session_token": session_token,
+                        "refresh_token": refresh_token
+                        }
+                    }
+
+                streak(req_data['username'])
 
                 return Response(data)
             else:
@@ -227,9 +229,10 @@ class LoginView(APIView):
                 }
             }
 
+        streak(req_data['username'])
+
         return Response(data)
         
-
 
 class LogoutAllDevicesView(APIView):
 
@@ -283,6 +286,8 @@ class AuthView(APIView):
                 'refresh-token': refresh_token
                 }
             }
+
+        streak(info['info']['username'])
 
         return Response(data)
 
