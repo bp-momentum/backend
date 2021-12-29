@@ -66,6 +66,7 @@ class GetAchievementsView(APIView):
 
         user = User.objects.get(username=info['username'])
         achieved = []
+        nr_unachieved_hidden = 0
 
         #iterate over all existing achievements
         for achievement in Achievment.objects.all():
@@ -107,6 +108,8 @@ class GetAchievementsView(APIView):
                         'progress': str(nr_of_exs)+'/10',
                         'hidden': achievement.hidden
                     })
+                else:
+                    nr_unachieved_hidden = nr_unachieved_hidden + 1
             #make a friend
             elif achievement.name == 'havingFriends':
                 nr_of_friends = len(Friends.objects.filter(friend1=user.id).union(Friends.objects.filter(friend2=user.id)))
@@ -127,6 +130,8 @@ class GetAchievementsView(APIView):
                         'progress': '0/1',
                         'hidden': achievement.hidden
                     }) 
+                else:
+                    nr_unachieved_hidden = nr_unachieved_hidden + 1
             #streak
             elif achievement.name == 'streak':
                 streak = user.streak
@@ -175,6 +180,8 @@ class GetAchievementsView(APIView):
                         'progress': str(streak)+'/3',
                         'hidden': achievement.hidden
                     }) 
+                else:
+                    nr_unachieved_hidden = nr_unachieved_hidden + 1
             #perfectExercise
             elif achievement.name == 'perfectExercise':
                 found = False
@@ -199,12 +206,15 @@ class GetAchievementsView(APIView):
                         'progress': '0/1',
                         'hidden': achievement.hidden
                     })
+                else:
+                    nr_unachieved_hidden = nr_unachieved_hidden + 1
 
         data = {
             'success': True,
             'description': 'Returning achievements',
             'data': {
-                'achievements': achieved
+                'achievements': achieved,
+                'nr_unachieved_hidden': nr_unachieved_hidden
                 }
             }
         return Response(data)
