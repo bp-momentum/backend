@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
+MAX_POINTS = 100
+
 def user_needs_ex(username, id):
     #TODO user needs exercise
     return True

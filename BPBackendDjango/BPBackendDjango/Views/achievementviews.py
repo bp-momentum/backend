@@ -4,6 +4,7 @@ from ..Helperclasses.jwttoken import JwToken
 
 from ..serializers import AchieveAchievement
 from ..models import *
+from exerciseviews import MAX_POINTS
 
 def achieve_achievement(user, achievement):
     if not Achievment.objects.filter(name=achievement).exists():
@@ -126,7 +127,78 @@ class GetAchievementsView(APIView):
                         'progress': '0/1',
                         'hidden': achievement.hidden
                     }) 
-
+            #streak
+            elif achievement.name == 'streak':
+                streak = user.streak
+                if streak >= 90:
+                    achieve_achievement(user.id, 'streak')
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 4,
+                        'progress': 'done',
+                        'hidden': achievement.hidden
+                    }) 
+                elif streak >= 30:
+                    achieve_achievement(user.id, 'streak')
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 3,
+                        'progress': str(streak)+'/90',
+                        'hidden': achievement.hidden
+                    }) 
+                elif streak >= 7:
+                    achieve_achievement(user.id, 'streak')
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 2,
+                        'progress': str(streak)+'/30',
+                        'hidden': achievement.hidden
+                    }) 
+                elif streak >= 3:
+                    achieve_achievement(user.id, 'streak')
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 1,
+                        'progress': str(streak)+'/7',
+                        'hidden': achievement.hidden
+                    }) 
+                elif not achievement.hidden:
+                    achieve_achievement(user.id, 'streak')
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 0,
+                        'progress': str(streak)+'/3',
+                        'hidden': achievement.hidden
+                    }) 
+            #perfectExercise
+            elif achievement.name == 'perfectExercise':
+                found = False
+                all = DoneExercises.objects.filter(user=user)
+                for a in all:
+                    if a.points == MAX_POINTS:
+                        found = True
+                        break
+                if found:
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 1,
+                        'progress': 'done',
+                        'hidden': achievement.hidden
+                    })
+                elif not achievement.hidden:
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 0,
+                        'progress': '0/1',
+                        'hidden': achievement.hidden
+                    })
 
         data = {
             'success': True,
