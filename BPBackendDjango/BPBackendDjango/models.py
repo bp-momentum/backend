@@ -54,7 +54,7 @@ class DoneExercises(models.Model):
     exercise =  models.ForeignKey(Exercise, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
-    date = models.DateField(default="1970-01-01")
+    date = models.BigIntegerField(default=0)
 
 
 class Admin(models.Model):

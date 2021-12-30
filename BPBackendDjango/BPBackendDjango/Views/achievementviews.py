@@ -6,19 +6,17 @@ from ..serializers import AchieveAchievement
 from ..models import *
 from exerciseviews import MAX_POINTS
 
+NIGHT_START = 22*84600
+NIGHT_END = 6*84600
+EARLY_END = 8*84600
+
 def achieve_achievement(user, achievement):
-    if not Achievment.objects.filter(name=achievement).exists():
-        return False, 'invalid achievement'
-    if not User.objects.filter(id=user).exists():
-        return False, 'invalid user'
-    a = Achievment.objects.get(name=achievement)
-    u = User.objects.get(id=user)
     data = {
-        'achievement': a.id,
+        'achievement': achievement.id,
         'user': user.id
     }
-    if UserAchievedAchievment.objects.filter(achievement=a.id, user=user.id).exists():
-        return False, 'achievement already achieved'
+    if UserAchievedAchievment.objects.filter(achievement=achievement.id, user=user.id).exists():
+        return True, 'achievement already achieved'
     serializer = AchieveAchievement(data=data)
     if not serializer.is_valid():
         return False, 'new data not valid'
@@ -74,7 +72,17 @@ class GetAchievementsView(APIView):
             if achievement.name == 'doneExercises':
                 nr_of_exs = len(DoneExercises.objects.filter(user=user.id))
                 if nr_of_exs >= 100:
-                    upgrade_level(user.id, 'doneExercises', 3)
+                    res = upgrade_level(user, achievement, 3)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -83,7 +91,17 @@ class GetAchievementsView(APIView):
                         'hidden': achievement.hidden
                     }) 
                 elif nr_of_exs >= 50:
-                    upgrade_level(user.id, 'doneExercises', 2)
+                    res = upgrade_level(user, achievement, 2)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -92,7 +110,17 @@ class GetAchievementsView(APIView):
                         'hidden': achievement.hidden
                     }) 
                 elif nr_of_exs >= 10:
-                    achieve_achievement(user.id, 'doneExercises')
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -114,7 +142,17 @@ class GetAchievementsView(APIView):
             elif achievement.name == 'havingFriends':
                 nr_of_friends = len(Friends.objects.filter(friend1=user.id).union(Friends.objects.filter(friend2=user.id)))
                 if nr_of_friends >= 1:
-                    achieve_achievement(user.id, 'havingFriends')
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -136,7 +174,17 @@ class GetAchievementsView(APIView):
             elif achievement.name == 'streak':
                 streak = user.streak
                 if streak >= 90:
-                    achieve_achievement(user.id, 'streak')
+                    res = upgrade_level(user, achievement, 4)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -145,7 +193,17 @@ class GetAchievementsView(APIView):
                         'hidden': achievement.hidden
                     }) 
                 elif streak >= 30:
-                    achieve_achievement(user.id, 'streak')
+                    res = upgrade_level(user, achievement, 3)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -154,7 +212,17 @@ class GetAchievementsView(APIView):
                         'hidden': achievement.hidden
                     }) 
                 elif streak >= 7:
-                    achieve_achievement(user.id, 'streak')
+                    res = upgrade_level(user, achievement, 2)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -163,7 +231,17 @@ class GetAchievementsView(APIView):
                         'hidden': achievement.hidden
                     }) 
                 elif streak >= 3:
-                    achieve_achievement(user.id, 'streak')
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -172,7 +250,6 @@ class GetAchievementsView(APIView):
                         'hidden': achievement.hidden
                     }) 
                 elif not achievement.hidden:
-                    achieve_achievement(user.id, 'streak')
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
@@ -191,6 +268,91 @@ class GetAchievementsView(APIView):
                         found = True
                         break
                 if found:
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 1,
+                        'progress': 'done',
+                        'hidden': achievement.hidden
+                    })
+                elif not achievement.hidden:
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 0,
+                        'progress': '0/1',
+                        'hidden': achievement.hidden
+                    })
+                else:
+                    nr_unachieved_hidden = nr_unachieved_hidden + 1
+            #night owl
+            elif achievement.name == 'nightOwl':
+                found = False
+                all = DoneExercises.objects.filter(user=user)
+                for a in all:
+                    if ((a.date % 86400) > NIGHT_START) and ((a.date % 84600) < NIGHT_END):
+                        found = True
+                        break
+                if found:
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 1,
+                        'progress': 'done',
+                        'hidden': achievement.hidden
+                    })
+                elif not achievement.hidden:
+                    achieved.append({
+                        'name': achievement.name,
+                        'description': achievement.description,
+                        'level': 0,
+                        'progress': '0/1',
+                        'hidden': achievement.hidden
+                    })
+                else:
+                    nr_unachieved_hidden = nr_unachieved_hidden + 1
+            #earlyBird
+            elif achievement.name == 'earlyBird':
+                found = False
+                all = DoneExercises.objects.filter(user=user)
+                for a in all:
+                    if ((a.date % 86400) > NIGHT_END) and ((a.date % 84600) < EARLY_END):
+                        found = True
+                        break
+                if found:
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
                     achieved.append({
                         'name': achievement.name,
                         'description': achievement.description,
