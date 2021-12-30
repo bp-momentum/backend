@@ -4,7 +4,7 @@ from ..Helperclasses.jwttoken import JwToken
 
 from ..serializers import AchieveAchievement
 from ..models import *
-from exerciseviews import MAX_POINTS
+from .exerciseviews import MAX_POINTS
 
 #data for achievements (hours->seconds)
 NIGHT_START = 22*84600
