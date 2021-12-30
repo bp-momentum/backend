@@ -6,35 +6,39 @@ from ..serializers import AchieveAchievement
 from ..models import *
 from exerciseviews import MAX_POINTS
 
+#data for achievements (hours->seconds)
 NIGHT_START = 22*84600
 NIGHT_END = 6*84600
 EARLY_END = 8*84600
 
 def achieve_achievement(user, achievement):
+    #set up data for new achievement
     data = {
         'achievement': achievement.id,
         'user': user.id
     }
+    #if already achieved do nothing
     if UserAchievedAchievment.objects.filter(achievement=achievement.id, user=user.id).exists():
         return True, 'achievement already achieved'
     serializer = AchieveAchievement(data=data)
+    #if data not valid do nothing
     if not serializer.is_valid():
         return False, 'new data not valid'
+    #save completed achievement
     serializer.save()
     return True, 'user achieved achievement'
 
 def upgrade_level(user, achievement, level):
-    if not Achievment.objects.filter(name=achievement).exists():
-        return False, 'invalid achievement'
-    if not User.objects.filter(id=user).exists():
-        return False, 'invalid user'
-    a = Achievment.objects.get(name=achievement)
-    u = User.objects.get(id=user)
-    if not UserAchievedAchievment.objects.filter(achievement=a.id, user=user.id).exists():
+    #if user has not achieved achievement, he achieves it now
+    if not UserAchievedAchievment.objects.filter(achievement=achievement.id, user=user.id).exists():
         res = achieve_achievement(user, achievement)
         if not res[0]:
             return res
-    uaa = UserAchievedAchievment.objects.get(achievement=a.id,user=user.id)
+    #update level
+    uaa = UserAchievedAchievment.objects.get(achievement=achievement.id,user=user.id)
+    #only update if new level is higher
+    if level < user.level:
+        return True, 'user already achieved higher level'
     uaa.level = level
     uaa.save()
     return True, 'level upgraded'
@@ -54,6 +58,7 @@ class GetAchievementsView(APIView):
 
         info = token['info']
 
+        #only users can get their own achievements
         if not User.objects.filter(username=info['username']).exists():
             data = {
                 'success': False,
@@ -70,7 +75,9 @@ class GetAchievementsView(APIView):
         for achievement in Achievment.objects.all():
             #do excersises
             if achievement.name == 'doneExercises':
+                #get number of done exercises
                 nr_of_exs = len(DoneExercises.objects.filter(user=user.id))
+                #check which level is reached
                 if nr_of_exs >= 100:
                     res = upgrade_level(user, achievement, 3)
                     if not res[0]:
@@ -140,7 +147,9 @@ class GetAchievementsView(APIView):
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
             #make a friend
             elif achievement.name == 'havingFriends':
+                #get number of friends
                 nr_of_friends = len(Friends.objects.filter(friend1=user.id).union(Friends.objects.filter(friend2=user.id)))
+                #check which level is reached
                 if nr_of_friends >= 1:
                     res = achieve_achievement(user, achievement)
                     if not res[0]:
@@ -172,7 +181,9 @@ class GetAchievementsView(APIView):
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
             #streak
             elif achievement.name == 'streak':
+                #get users streak
                 streak = user.streak
+                #check which level is reached
                 if streak >= 90:
                     res = upgrade_level(user, achievement, 4)
                     if not res[0]:
@@ -262,11 +273,14 @@ class GetAchievementsView(APIView):
             #perfectExercise
             elif achievement.name == 'perfectExercise':
                 found = False
+                #get all exercise
                 all = DoneExercises.objects.filter(user=user)
+                #search for exercise with MAX_POINTS
                 for a in all:
                     if a.points == MAX_POINTS:
                         found = True
                         break
+                #set achievement
                 if found:
                     res = achieve_achievement(user, achievement)
                     if not res[0]:
@@ -299,11 +313,14 @@ class GetAchievementsView(APIView):
             #night owl
             elif achievement.name == 'nightOwl':
                 found = False
+                #get all done exercises
                 all = DoneExercises.objects.filter(user=user)
+                #check which exercises where done in the night
                 for a in all:
                     if ((a.date % 86400) > NIGHT_START) and ((a.date % 84600) < NIGHT_END):
                         found = True
                         break
+                #set achievement
                 if found:
                     res = achieve_achievement(user, achievement)
                     if not res[0]:
@@ -336,11 +353,14 @@ class GetAchievementsView(APIView):
             #earlyBird
             elif achievement.name == 'earlyBird':
                 found = False
+                #get all exercises
                 all = DoneExercises.objects.filter(user=user)
+                #check which ones where done erly in the morning
                 for a in all:
                     if ((a.date % 86400) > NIGHT_END) and ((a.date % 84600) < EARLY_END):
                         found = True
                         break
+                #set achievement
                 if found:
                     res = achieve_achievement(user, achievement)
                     if not res[0]:
