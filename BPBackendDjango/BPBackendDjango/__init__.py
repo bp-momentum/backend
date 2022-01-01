@@ -35,7 +35,7 @@ try:
                        trainer=trainer)
 
         newUser.save()
-        Leaderboard.objects.create(User.objects.get(username=INTERN_SETTINGS["user_username"]), score=0)
+        Leaderboard.objects.create(user=User.objects.get(username=INTERN_SETTINGS["user_username"]), score=0)
 except:
     pass
 

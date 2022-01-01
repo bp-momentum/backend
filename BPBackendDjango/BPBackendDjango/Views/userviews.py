@@ -84,7 +84,7 @@ class RegisterView(APIView):
                 serializer.save()
 
                 # add user to leaderboard with score of 0
-                Leaderboard.objects.create(User.objects.get(username=request.data['username']), score=0)
+                Leaderboard.objects.create(user=User.objects.get(username=request.data['username']), score=0)
 
                 #creating the session_token
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
