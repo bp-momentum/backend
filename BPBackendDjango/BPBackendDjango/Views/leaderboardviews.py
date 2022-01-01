@@ -7,7 +7,7 @@ from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
 
-class ListLeaderboard(APIView):
+class ListLeaderboardView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
