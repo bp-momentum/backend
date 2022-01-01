@@ -5,7 +5,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BPBackendDjango.settings')
 django.setup()
 import hashlib
-from .models import Admin, User, Trainer
+from .models import Admin, User, Trainer, Exercise
 from .settings import INTERN_SETTINGS
 
 # check if at least one admin account exists
@@ -35,6 +35,13 @@ try:
                        trainer=trainer)
 
         newUser.save()
+except:
+    pass
+
+try:
+    if not Exercise.objects.filter().exists():
+        newExercise = Exercise(title="Example Exercise", description="This is a Example Exercise")
+        newExercise.save()
 except:
     pass
 
