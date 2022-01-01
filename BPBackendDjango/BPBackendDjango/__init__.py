@@ -5,7 +5,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BPBackendDjango.settings')
 django.setup()
 import hashlib
-from .models import Admin, User, Trainer, Exercise
+from .models import Admin, User, Trainer, Exercise, Leaderboard
 from .settings import INTERN_SETTINGS
 
 # check if at least one admin account exists
@@ -35,6 +35,7 @@ try:
                        trainer=trainer)
 
         newUser.save()
+        Leaderboard.objects.create(User.objects.get(username=INTERN_SETTINGS["user_username"]), score=0)
 except:
     pass
 
