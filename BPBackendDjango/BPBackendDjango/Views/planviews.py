@@ -435,7 +435,7 @@ class GetPlanOfUser(APIView):
 
         #trainers can request plan of users
         elif info['account_type'] == 'trainer':
-            req_data = dict(request)
+            req_data = dict(request.data)
             #check if user exists
             if not User.objects.filter(username=req_data['username']):
                 data = {
