@@ -18,20 +18,24 @@ except:
     pass
 
 try:
-    if not User.objects.filter().exists():
-        newUser = User(first_name="User", last_name="User", username=INTERN_SETTINGS["user_username"],
-                       password=str(hashlib.sha3_256(INTERN_SETTINGS["user_password"].encode('utf-8')).hexdigest()))
-
-        newUser.save()
-except:
-    pass
-
-try:
     if not Trainer.objects.filter().exists():
-        newTrainer = Trainer(first_name="User", last_name="User", username=INTERN_SETTINGS["trainer_username"],
+        newTrainer = Trainer(first_name="Trainer", last_name="Trainer", username=INTERN_SETTINGS["trainer_username"],
                              password=str(
                                  hashlib.sha3_256(INTERN_SETTINGS["trainer_password"].encode('utf-8')).hexdigest()))
 
         newTrainer.save()
 except:
     pass
+
+try:
+    if not User.objects.filter().exists():
+        trainer = Trainer.objects.get(username=INTERN_SETTINGS["trainer_username"])
+        newUser = User(first_name="User", last_name="User", username=INTERN_SETTINGS["user_username"],
+                       password=str(hashlib.sha3_256(INTERN_SETTINGS["user_password"].encode('utf-8')).hexdigest()),
+                       trainer=trainer)
+
+        newUser.save()
+except:
+    pass
+
+
