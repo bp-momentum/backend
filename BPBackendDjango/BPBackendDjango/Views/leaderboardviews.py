@@ -79,7 +79,7 @@ class ListLeaderboardView(APIView):
                 out.append(entry)
 
         else:
-            for l in range(user_index - math.floor(count_of_entries/2), user_index + math.ceil(count_entries/2)):
+            for l in range(user_index - math.floor(count_of_entries/2), user_index + math.ceil(count_of_entries/2)):
                 entry = {"rank": l + 1, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
                 out.append(entry)
 
