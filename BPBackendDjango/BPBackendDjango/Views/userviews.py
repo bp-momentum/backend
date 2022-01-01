@@ -15,6 +15,9 @@ from ..models import *
 from BPBackendDjango.settings import *
 
 #creating random password
+from ..settings import EMAIL_HOST_USER
+
+
 def get_random_password(length):
     letters = string.ascii_lowercase
     letters += string.ascii_uppercase
@@ -136,7 +139,9 @@ class CreateUserView(APIView):
         data = {
                 'success': True,
                 'description': 'email with invite was sent',
-                'data': {}
+                'data': {
+                    "new_user_token": new_user_token
+                }
                 }
 
         return Response(data)
