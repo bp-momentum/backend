@@ -123,7 +123,7 @@ class CreateUserView(APIView):
 
             return Response(data)
         #create and send mail
-        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://localhost:3000?new_user_token={new_user_token}'})
+        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         send_mail("BachelorPraktum Passwort",
                     plain_message,
