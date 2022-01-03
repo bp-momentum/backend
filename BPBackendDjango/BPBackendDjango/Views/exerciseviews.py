@@ -161,7 +161,7 @@ class DoneExerciseView(APIView):
         cleanliness = b['cleanliness']
 
         points = int(math.ceil((intensity + speed + cleanliness) / 3))
-        leaderboard_entry = Leaderboard.object.get(user=user)
+        leaderboard_entry = Leaderboard.objects.get(user=user)
         leaderboard_entry.score += points
         leaderboard_entry.save(force_update=True)
         # creating the new DoneExercise entry
