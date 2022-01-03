@@ -3,3 +3,4 @@ jwcrypto
 djangorestframework
 django
 psycopg2-binary
+django-ordered-model

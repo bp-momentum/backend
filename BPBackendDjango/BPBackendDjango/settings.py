@@ -23,6 +23,10 @@ INTERN_SETTINGS = {
     "email_smtp_server": "",
     "admin_username": "admin",
     "admin_password": "admin",
+    "trainer_username": "trainer",
+    "trainer_password": "trainer",
+    "user_username": "user",
+    "user_password": "user",
     "database": {
         "name": "bpws",
         "user": "admin",
@@ -82,7 +86,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'BPBackendDjango',
-    'corsheaders'
+    'corsheaders',
+    'ordered_model'
 ]
 
 MIDDLEWARE = [
