@@ -94,7 +94,7 @@ def get_string_of_date(d, m, y):
         month = '0'+str(m)
     else:
         month = str(m)
-    return y+'-'+month+'-'+day
+    return str(y)+'-'+str(month)+'-'+str(day)
 
 
 class RegisterView(APIView):
