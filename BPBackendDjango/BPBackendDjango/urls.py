@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path
 
 from .Views.exerciseviews import *
+from .Views.leaderboardviews import ListLeaderboardView
 from .Views.userviews import *
 from .Views.interfaceviews import *
 from .Views.planviews import *
@@ -41,5 +42,7 @@ urlpatterns = [
     path('api/getlistofplans', GetAllPlansView.as_view(), name='getListOfPlans'),
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
-    path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan')
+    path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
+    #leaderboard
+    path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
 ]
