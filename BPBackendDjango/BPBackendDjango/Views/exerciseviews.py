@@ -1,8 +1,10 @@
+import math
 import time
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from ..Helperclasses.ai import DummyAI
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
@@ -132,9 +134,18 @@ class DoneExerciseView(APIView):
         user = User.objects.get(username=info['username'])
         eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
 
-        ## check if its alrady done this week
+        if eip == None:
+            data = {
+                'success': False,
+                'description': 'Exercise in plan id does not exists',
+                'data': {}
+            }
+            return Response(data)
+
+        # check if its alrady done this week
         done = DoneExercises.objects.filter(exercise=eip, user=user)
         for d in done:
+            # calculate the timespan and if its already done done
             if time.time() - (d.date - d.date%86400) < 604800:
                 data = {
                     'success': False,
@@ -143,8 +154,16 @@ class DoneExerciseView(APIView):
                 }
                 return Response(data)
 
+        # calculating points
+        a, b, c = DummyAI.dummy_function(ex=eip.exercise.id, video=None)
+        intensity = b['intensity']
+        speed = b['speed']
+        cleanliness = b['cleanliness']
 
-        new_entry = DoneExercises(exercise=eip, user=user, points=0, date=int(time.time()))
+        points = int(math.ceil((intensity + speed + cleanliness) / 3))
+
+        # creating the new DoneExercise entry
+        new_entry = DoneExercises(exercise=eip, user=user, points=points, date=int(time.time()))
         new_entry.save()
         data = {
             'success': True,
@@ -156,9 +175,11 @@ class DoneExerciseView(APIView):
 
 class GetDoneExercisesView(APIView):
     def GetDone(self, user):
-        ## list of all done in last week
+        # list of all done in last week
+        # calculation of timespan and filter
         done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800)
 
+        # list of all exercises to done
         all = ExerciseInPlan.objects.filter(plan=user.plan)
         out = []
         for a in all:
@@ -194,10 +215,12 @@ class GetDoneExercisesView(APIView):
                  }
         }
 
+        #returns the data as in the get plan but with a additional var "done"
         return data
 
 
     def get(self, request, *args, **kwargs):
+        #check session token
         token = JwToken.check_session_token(request.headers['Session-Token'])
         if not token["valid"]:
             data = {
@@ -210,11 +233,13 @@ class GetDoneExercisesView(APIView):
         info = token['info']
         user = User.objects.get(username=info['username'])
 
+        #create data in form of get plan
         data = self.GetDone(user)
         return Response(data)
 
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
+        #check session token
         token = JwToken.check_session_token(request.headers['Session-Token'])
         if not token["valid"]:
             data = {
@@ -224,6 +249,7 @@ class GetDoneExercisesView(APIView):
             }
             return Response(data)
 
+        # security: only trainer and admin can access other users data
         if not (token["info"]["account_type"] in ["trainer", "admin"]):
             data = {
                 'success': False,
