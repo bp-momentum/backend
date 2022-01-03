@@ -16,6 +16,9 @@ from ..models import *
 from BPBackendDjango.settings import *
 
 #creating random password
+from ..settings import EMAIL_HOST_USER
+
+
 def get_random_password(length):
     letters = string.ascii_lowercase
     letters += string.ascii_uppercase
@@ -138,8 +141,12 @@ class RegisterView(APIView):
                 not Admin.objects.filter(username=request.data['username']).exists()):
                 
                 
-                #save User in the databank
+                # save User in the databank
                 serializer.save()
+
+                # add user to leaderboard with score of 0
+                Leaderboard.objects.create(user=User.objects.get(username=request.data['username']), score=0)
+
                 #creating the session_token
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
                 refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
@@ -186,7 +193,7 @@ class CreateUserView(APIView):
 
             return Response(data)
         #create and send mail
-        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://localhost:3000?new_user_token={new_user_token}'})
+        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         send_mail("BachelorPraktum Passwort",
                     plain_message,
@@ -195,7 +202,9 @@ class CreateUserView(APIView):
         data = {
                 'success': True,
                 'description': 'email with invite was sent',
-                'data': {}
+                'data': {
+                    "new_user_token": new_user_token
+                }
                 }
 
         return Response(data)
