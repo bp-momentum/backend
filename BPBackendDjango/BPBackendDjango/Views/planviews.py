@@ -59,6 +59,7 @@ def getListOfExercises(id):
         rps = ex.repeats_per_set
         date = ex.date
         exs.append({
+            'exercise_plan_id': ex.id,
             'id': ex_id,
             'sets': sets,
             'repeats_per_set': rps,
