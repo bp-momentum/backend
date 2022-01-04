@@ -27,3 +27,4 @@ class MyConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         # Called when the socket closes
+        pass
