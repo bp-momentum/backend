@@ -70,17 +70,17 @@ class Friends(models.Model):
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
 
 
-class Achievment(models.Model):
+class Achievement(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(default="")
     hidden = models.BooleanField(default=False)
     
 
-class UserAchievedAchievment(models.Model):
-    achievement = models.ForeignKey(Achievment, on_delete=models.CASCADE)
+class UserAchievedAchievement(models.Model):
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     level = models.IntegerField(default=1)
-    #date = models.DateField(default="1970-01-01") #not useful at the moment
+    #date = models.BigIntegerField(default=0) #not useful at the moment
 
 class Leaderboard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)

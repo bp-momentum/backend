@@ -59,7 +59,7 @@ class CreateExerciseInPlan(serializers.ModelSerializer):
 
 class AchieveAchievement(serializers.ModelSerializer):
     class Meta:
-        model = UserAchievedAchievment
+        model = UserAchievedAchievement
         fields = (
             'achievement', 'user'
         )

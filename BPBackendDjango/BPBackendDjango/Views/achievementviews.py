@@ -18,7 +18,7 @@ def achieve_achievement(user, achievement):
         'user': user.id
     }
     #if already achieved do nothing
-    if UserAchievedAchievment.objects.filter(achievement=achievement.id, user=user.id).exists():
+    if UserAchievedAchievement.objects.filter(achievement=achievement.id, user=user.id).exists():
         return True, 'achievement already achieved'
     serializer = AchieveAchievement(data=data)
     #if data not valid do nothing
@@ -30,12 +30,12 @@ def achieve_achievement(user, achievement):
 
 def upgrade_level(user, achievement, level):
     #if user has not achieved achievement, he achieves it now
-    if not UserAchievedAchievment.objects.filter(achievement=achievement.id, user=user.id).exists():
+    if not UserAchievedAchievement.objects.filter(achievement=achievement.id, user=user.id).exists():
         res = achieve_achievement(user, achievement)
         if not res[0]:
             return res
     #update level
-    uaa = UserAchievedAchievment.objects.get(achievement=achievement.id,user=user.id)
+    uaa = UserAchievedAchievement.objects.get(achievement=achievement.id,user=user.id)
     #only update if new level is higher
     if level < user.level:
         return True, 'user already achieved higher level'
@@ -72,7 +72,7 @@ class GetAchievementsView(APIView):
         nr_unachieved_hidden = 0
 
         #iterate over all existing achievements
-        for achievement in Achievment.objects.all():
+        for achievement in Achievement.objects.all():
             #do excersises
             if achievement.name == 'doneExercises':
                 #get number of done exercises
