@@ -120,7 +120,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'BPBackendDjango.wsgi.application'
-
+ASGI_APPLICATION = 'mysite.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
