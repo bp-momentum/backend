@@ -79,6 +79,7 @@ CORS_ALLOWED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -120,7 +121,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'BPBackendDjango.wsgi.application'
-ASGI_APPLICATION = 'mysite.asgi.application'
+ASGI_APPLICATION = 'BPBackendDjango.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
