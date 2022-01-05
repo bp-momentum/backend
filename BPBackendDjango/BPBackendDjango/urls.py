@@ -18,6 +18,7 @@ from django.urls import path
 
 from .Views.exerciseviews import *
 from .Views.leaderboardviews import ListLeaderboardView
+from .Views.socketviews import index
 from .Views.userviews import *
 from .Views.interfaceviews import *
 from .Views.planviews import *
@@ -47,4 +48,5 @@ urlpatterns = [
     path('api/getdoneexercises', GetDoneExercisesView.as_view(), name='getdoneExercise'),
     #leaderboard
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
+    path('api/index', index, name='index'),
 ]
