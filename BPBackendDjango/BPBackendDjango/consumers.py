@@ -8,9 +8,6 @@ from .Helperclasses.ai import AIInterface, DummyAI
 
 
 class ChatConsumer(WebsocketConsumer):
-    def __init__(self):
-        self.doing_set = False
-
     async def send_stats(self, ex_id):
         while self.doing_set:
             # calculating points
@@ -29,9 +26,11 @@ class ChatConsumer(WebsocketConsumer):
             }))
 
     def connect(self):
+        self.doing_set = False
         self.accept()
 
     def disconnect(self, close_code):
+        self.doing_set = False
         pass
 
     def receive(self, text_data):
