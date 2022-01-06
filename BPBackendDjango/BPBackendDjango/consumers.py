@@ -4,7 +4,7 @@ import json
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from BPBackendDjango.BPBackendDjango.Helperclasses.ai import AIInterface, DummyAI
+from Helperclasses.ai import AIInterface, DummyAI
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
