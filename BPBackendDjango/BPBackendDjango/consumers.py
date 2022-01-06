@@ -4,10 +4,10 @@ import json
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from Helperclasses.ai import AIInterface, DummyAI
+from .Helperclasses.ai import AIInterface, DummyAI
 
 
-class ChatConsumer(AsyncWebsocketConsumer):
+class ChatConsumer(WebsocketConsumer):
     def __init__(self):
         self.doing_set = False
 
