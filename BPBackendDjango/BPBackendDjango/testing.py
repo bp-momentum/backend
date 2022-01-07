@@ -1,5 +1,9 @@
 from django.test import TestCase
+
+from BPBackendDjango.BPBackendDjango.Helperclasses.fortests import ViewSupport
 from .models import *
+from .Helperclasses.jwttoken import JwToken
+from .Views.achievementviews import GetAchievementsView
 
 class UserTestCase(TestCase):
     trainer_id = 1
@@ -112,3 +116,28 @@ class PlanTestCase(TestCase):
         self.assertFalse(User.objects.filter(first_name="Erik").exists())
         self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
+
+
+class AchievementTestCase(TestCase):
+
+    trainer = None
+    user1 = None
+    user2 = None
+
+    def setUp(self) -> None:
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer = trainer
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
+        user1 = User.objects.get(first_name='Erik')
+        user2 = User.objects.get(first_name='Jannis')
+        self.user1 = user1
+        self.user2 = user2
+
+    def test_get_achievements_empty(self):
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {})
+        response = GetAchievementsView.get(request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(len(response.data.get('achievements')), 0)
+        self.assertEquals(response.data.get('nr_unachieved_hidden'), 0)
