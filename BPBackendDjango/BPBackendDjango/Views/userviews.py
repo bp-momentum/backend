@@ -324,7 +324,7 @@ class GetUserLevelView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(req_data['username'])
+        user = User.objects.get(username=req_data['username'])
         res = calc_level(user.xp)
         data = {
                 'success': True,
