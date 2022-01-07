@@ -137,7 +137,7 @@ class AchievementTestCase(TestCase):
 
     def test_get_achievements_empty(self):
         request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {})
-        response = GetAchievementsView.get(request)
+        response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('achievements')), 0)
         self.assertEquals(response.data.get('nr_unachieved_hidden'), 0)
