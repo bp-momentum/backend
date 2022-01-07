@@ -1,6 +1,10 @@
+import math
+import time
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from ..Helperclasses.ai import DummyAI
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
@@ -115,3 +119,159 @@ class GetExerciseListView(APIView):
         }
 
         return Response(data)
+
+class DoneExerciseView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        info = token['info']
+        user = User.objects.get(username=info['username'])
+        eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
+
+        if eip == None:
+            data = {
+                'success': False,
+                'description': 'Exercise in plan id does not exists',
+                'data': {}
+            }
+            return Response(data)
+
+        # check if its alrady done this week
+        done = DoneExercises.objects.filter(exercise=eip, user=user)
+        for d in done:
+            # calculate the timespan and if its already done done
+            if time.time() - (d.date - d.date%86400) < 604800:
+                data = {
+                    'success': False,
+                    'description': 'User already did this exercise in this week',
+                    'data': {}
+                }
+                return Response(data)
+
+        # calculating points
+        a, b, c = DummyAI.dummy_function(ex=eip.exercise.id, video=None)
+        intensity = b['intensity']
+        speed = b['speed']
+        cleanliness = b['cleanliness']
+
+        points = int(math.ceil((intensity + speed + cleanliness) / 3))
+        leaderboard_entry = Leaderboard.objects.get(user=user)
+        leaderboard_entry.score += points
+        leaderboard_entry.save(force_update=True)
+        # creating the new DoneExercise entry
+        new_entry = DoneExercises(exercise=eip, user=user, points=points, date=int(time.time()))
+        new_entry.save()
+        data = {
+            'success': True,
+            'description': 'Done Exercise is now saved',
+            'data': {}
+        }
+
+        return Response(data)
+
+class GetDoneExercisesView(APIView):
+    def GetDone(self, user):
+        # list of all done in last week
+        # calculation of timespan and filter
+        done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800)
+
+        # list of all exercises to done
+        all = ExerciseInPlan.objects.filter(plan=user.plan)
+        out = []
+        for a in all:
+            done_found = False
+            for d in done:
+                if a.id == d.exercise.id:
+                    out.append({"exercise_plan_id": a.id,
+                                "id": a.exercise.id,
+                                "date": a.date,
+                                "sets": a.sets,
+                                "repeats_per_set": a.repeats_per_set,
+                                "done": True
+                                })
+                    done_found  = True
+                    break
+            if done_found:
+                continue
+
+            out.append({"exercise_plan_id": a.id,
+                        "id": a.exercise.id,
+                        "date": a.date,
+                        "sets": a.sets,
+                        "repeats_per_set": a.repeats_per_set,
+                        "done": False
+                        })
+
+        data = {
+            "success": True,
+            "description": "Returned list of Exercises and if its done",
+            "data":
+                {"name": user.plan.name,
+                 "exercises": out
+                 }
+        }
+
+        #returns the data as in the get plan but with a additional var "done"
+        return data
+
+
+    def get(self, request, *args, **kwargs):
+        #check session token
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        info = token['info']
+        user = User.objects.get(username=info['username'])
+
+        #create data in form of get plan
+        data = self.GetDone(user)
+        return Response(data)
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        #check session token
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        # security: only trainer and admin can access other users data
+        if not (token["info"]["account_type"] in ["trainer", "admin"]):
+            data = {
+                'success': False,
+                'description': 'type of account is not allowed to access other users data',
+                'data': {}
+            }
+            return Response(data)
+
+        user = User.objects.get(username=req_data['user'])
+        data = self.GetDone(user)
+        return Response(data)
+
+
+
+
+
+
+
+
+
+

@@ -45,6 +45,8 @@ urlpatterns = [
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
     path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
+    path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise'),
+    path('api/getdoneexercises', GetDoneExercisesView.as_view(), name='getdoneExercise'),
     #leaderboard
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #achievements

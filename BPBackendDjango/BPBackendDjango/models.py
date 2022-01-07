@@ -50,7 +50,7 @@ class User(models.Model):
 
 
 class DoneExercises(models.Model):
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.BigIntegerField(default=0)
