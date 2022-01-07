@@ -50,9 +50,9 @@ def add_xp(username, xp):
 
 def calc_level(xp):
     for i in range(MAX_LEVEL):
-        nxt_lvl = FIRST_LVL * MULT_PER_LVL ** i
+        nxt_lvl = FIRST_LVL * MULT_PER_LVL ** (i + 1)
         if xp < nxt_lvl:
-            return i-1, str(xp)+'/'+str(nxt_lvl)
+            return i, str(xp)+'/'+str(nxt_lvl)
     return MAX_LEVEL, 'max level reached'
 
 class RegisterView(APIView):
