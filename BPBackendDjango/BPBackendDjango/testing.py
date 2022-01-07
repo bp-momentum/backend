@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from BPBackendDjango.BPBackendDjango.Helperclasses.fortests import ViewSupport
+from .Helperclasses.fortests import ViewSupport
 from .models import *
 from .Helperclasses.jwttoken import JwToken
 from .Views.achievementviews import GetAchievementsView
