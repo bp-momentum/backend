@@ -1,7 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from ..Helperclasses.jwttoken import JwToken
+import json
 
+from ..Helperclasses.jwttoken import JwToken
 from ..serializers import AchieveAchievement
 from ..models import *
 from .exerciseviews import MAX_POINTS
@@ -42,6 +43,22 @@ def upgrade_level(user, achievement, level):
     uaa.level = level
     uaa.save()
     return True, 'level upgraded'
+
+def get_correct_description(username, description):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return "invalid user"
+    lang = user.language
+    desc = json.loads(description)
+    res = desc.get(lang)
+    if res == None:
+        return "description not available in "+lang
+    return res
 
 
 class GetAchievementsView(APIView):
@@ -92,7 +109,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 3,
                         'progress': 'done',
                         'hidden': achievement.hidden
@@ -111,7 +128,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 2,
                         'progress': str(nr_of_exs)+'/100',
                         'hidden': achievement.hidden
@@ -130,7 +147,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 1,
                         'progress': str(nr_of_exs)+'/50',
                         'hidden': achievement.hidden
@@ -138,7 +155,7 @@ class GetAchievementsView(APIView):
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 0,
                         'progress': str(nr_of_exs)+'/10',
                         'hidden': achievement.hidden
@@ -164,7 +181,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden
@@ -172,7 +189,7 @@ class GetAchievementsView(APIView):
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden
@@ -198,7 +215,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 4,
                         'progress': 'done',
                         'hidden': achievement.hidden
@@ -217,7 +234,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 3,
                         'progress': str(streak)+'/90',
                         'hidden': achievement.hidden
@@ -236,7 +253,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 2,
                         'progress': str(streak)+'/30',
                         'hidden': achievement.hidden
@@ -255,7 +272,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 1,
                         'progress': str(streak)+'/7',
                         'hidden': achievement.hidden
@@ -263,7 +280,7 @@ class GetAchievementsView(APIView):
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 0,
                         'progress': str(streak)+'/3',
                         'hidden': achievement.hidden
@@ -295,7 +312,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden
@@ -303,7 +320,7 @@ class GetAchievementsView(APIView):
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden
@@ -335,7 +352,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden
@@ -343,7 +360,7 @@ class GetAchievementsView(APIView):
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden
@@ -375,7 +392,7 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden
@@ -383,7 +400,7 @@ class GetAchievementsView(APIView):
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'description': achievement.description,
+                        'description': get_correct_description(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden
