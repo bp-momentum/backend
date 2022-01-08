@@ -191,21 +191,22 @@ class AddFriendView(APIView):
             'friend2': is_to.id
         }
         serializer = CreateFriends(data=request_data)
-        if not serializer.is_valid():
+        if serializer.is_valid():
+            serializer.save()
             data = {
-                    'success': False,
-                    'description': 'invalid data',
+                    'success': True,
+                    'description': 'Request sent',
                     'data': {}
                 }
             return Response(data)
 
-        serializer.save()
         data = {
-                'success': True,
-                'description': 'Request sent',
+                'success': False,
+                'description': 'invalid data',
                 'data': {}
             }
         return Response(data)
+
 
 
 class AcceptRequestView(APIView):
