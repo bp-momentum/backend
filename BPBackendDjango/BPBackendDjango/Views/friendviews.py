@@ -187,8 +187,8 @@ class AddFriendView(APIView):
         is_from = User.objects.get(username=info['username'])
         is_to = User.objects.get(username=req_data['username'])
         request_data = {
-            'friend1': is_from,
-            'friend2': is_to
+            'friend1': is_from.id,
+            'friend2': is_to.id
         }
         serializer = CreateFriends(data=request_data)
         if not serializer.is_valid():
