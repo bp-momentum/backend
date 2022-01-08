@@ -60,7 +60,7 @@ class CreateExerciseInPlan(serializers.ModelSerializer):
 class CreateFriends(serializers.ModelSerializer):
     class Meta:
         model = Friends
-        fields = {
+        fields = (
             'friend1', 'friend2'
-        }
+        )
 
