@@ -1,4 +1,8 @@
 from django.test import TestCase
+
+from BPBackendDjango.BPBackendDjango.Helperclasses.fortests import ViewSupport
+from BPBackendDjango.BPBackendDjango.Helperclasses.jwttoken import JwToken
+from BPBackendDjango.BPBackendDjango.Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
 from .models import *
 
 class UserTestCase(TestCase):
@@ -110,3 +114,69 @@ class PlanTestCase(TestCase):
         self.assertFalse(User.objects.filter(first_name="Erik").exists())
         self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
+
+
+class FriendViewTestCase(TestCase):
+
+    user1 = None
+    user2 = None
+    user3 = None
+    trainer = None
+
+    def setUp(self) -> None:
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer = trainer
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user = User.objects.get(first_name="Erik")
+        self.user1 = user
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user = User.objects.get(first_name="Jannis")
+        self.user2 = user
+        User.objects.create(first_name="Julian", last_name="Imhof", username="JUL14N", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user = User.objects.get(first_name="Julian")
+        self.user3 = user
+
+    def test_friends(self):
+        token1 = JwToken.create_session_token(self.user1.username, 'user')
+        token2 = JwToken.create_session_token(self.user2.username, 'user')
+        token3 = JwToken.create_session_token(self.user3.username, 'user')
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'username': self.user2.username})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(Friends.objects.filter(friend1=self.user1, friend2=self.user2, accepted=False).exists())
+        request = ViewSupport.setup_request({'Session-Token': token1}, {})
+        response = GetPendingRequestView.get(GetPendingRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('pending'), get_pending_requests(self.user1))
+        request = ViewSupport.setup_request({'Session-Token': token2}, {})
+        response = GetRequestView.get(GetRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('requests'), get_requests(self.user2))
+        request = ViewSupport.setup_request({'Session-Token': token2}, {'username': self.user1.username})
+        response = AcceptRequestView.post(AcceptRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(Friends.objects.filter(friend1=self.user1, friend2=self.user2, accepted=True).exists())
+        request = ViewSupport.setup_request({'Session-Token': token1}, {})
+        response = GetMyFriendsView.get(GetMyFriendsView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('friends'), get_friends(self.user1))
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'username': self.user3.username})
+        response = AddFriendView.post(AddFriendView, request)
+        request = ViewSupport.setup_request({'Session-Token': token3}, {'username': self.user1.username})
+        response = DeclineRequestView.post(DeclineRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(Friends.objects.filter(friend1=self.user1, friend2=self.user3).exists())
+        request = ViewSupport.setup_request({'Session-Token': token1}, {})
+        response = GetPendingRequestView.get(GetPendingRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('pending'), [])
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'username': self.user2.username})
+        response = DeleteFriendView.post(DeleteFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(Friends.objects.filter(friend1=self.user1, friend2=self.user2).exists())
+        request = ViewSupport.setup_request({'Session-Token': token1}, {})
+        response = GetMyFriendsView.get(GetMyFriendsView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('friends'), [])
+        

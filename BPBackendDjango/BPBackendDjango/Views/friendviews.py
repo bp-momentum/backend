@@ -144,7 +144,7 @@ class GetRequestView(APIView):
                 'success': True,
                 'description': 'returning requests',
                 'data': {
-                    'pending': requests
+                    'requests': requests
                 }
             }
         return Response(data)
