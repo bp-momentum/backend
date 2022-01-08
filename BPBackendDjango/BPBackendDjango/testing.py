@@ -1,8 +1,8 @@
 from django.test import TestCase
 
-from BPBackendDjango.BPBackendDjango.Helperclasses.fortests import ViewSupport
-from BPBackendDjango.BPBackendDjango.Helperclasses.jwttoken import JwToken
-from BPBackendDjango.BPBackendDjango.Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
+from .Helperclasses.fortests import ViewSupport
+from .Helperclasses.jwttoken import JwToken
+from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
 from .models import *
 
 class UserTestCase(TestCase):
@@ -179,4 +179,3 @@ class FriendViewTestCase(TestCase):
         response = GetMyFriendsView.get(GetMyFriendsView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('friends'), [])
-        
