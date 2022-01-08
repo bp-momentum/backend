@@ -8,8 +8,8 @@ from ..models import User
 from ..serializers import CreateFriends
 
 def get_friends(user):
-    sql = list(Friends.objects.filter(friend1=user), accepted=True)
-    sql.append(list(Friends.objects.filter(friend2=user)), accepted=True)
+    sql = list(Friends.objects.filter(friend1=user, accepted=True))
+    sql.append(list(Friends.objects.filter(friend2=user, accepted=True)))
     res = []
     for f in sql:
         res.append({
