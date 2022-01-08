@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path
 
 from .Views.exerciseviews import *
+from .Views.leaderboardviews import ListLeaderboardView
 from .Views.userviews import *
 from .Views.interfaceviews import *
 from .Views.planviews import *
@@ -45,6 +46,10 @@ urlpatterns = [
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
+    path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise'),
+    path('api/getdoneexercises', GetDoneExercisesView.as_view(), name='getdoneExercise'),
+    #leaderboard
+    path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
     path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),
