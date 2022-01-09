@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from ..Helperclasses.ai import DummyAI
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
+from ..Helperclasses.handlers import ErrorHandler
 
 def user_needs_ex(username, id):
     #TODO user needs exercise
@@ -15,6 +16,15 @@ def user_needs_ex(username, id):
 
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['id'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -79,6 +89,15 @@ class GetExerciseView(APIView):
 
 class GetExerciseListView(APIView):
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -118,8 +137,18 @@ class GetExerciseListView(APIView):
 
         return Response(data)
 
+
 class DoneExerciseView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['exercise_plan_id'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         if not token["valid"]:
@@ -175,7 +204,9 @@ class DoneExerciseView(APIView):
 
         return Response(data)
 
+
 class GetDoneExercisesView(APIView):
+
     def GetDone(self, user):
         # list of all done in last week
         # calculation of timespan and filter
@@ -220,8 +251,16 @@ class GetDoneExercisesView(APIView):
         #returns the data as in the get plan but with a additional var "done"
         return data
 
-
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         #check session token
         token = JwToken.check_session_token(request.headers['Session-Token'])
         if not token["valid"]:
@@ -240,6 +279,15 @@ class GetDoneExercisesView(APIView):
         return Response(data)
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['user'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         #check session token
         token = JwToken.check_session_token(request.headers['Session-Token'])
