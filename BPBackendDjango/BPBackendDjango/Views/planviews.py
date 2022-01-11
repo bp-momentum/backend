@@ -248,6 +248,9 @@ class CreatePlanView(APIView):
                         }
                 }
             else:
+                users = User.objects.filter(plan=req_data['id'])
+                for user in users:
+                    add_plan_to_user(user.username, req_data['id'])
                 TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
                 data = {
                     'success': True,
