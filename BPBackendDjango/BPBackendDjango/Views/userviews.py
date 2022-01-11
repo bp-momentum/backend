@@ -309,9 +309,9 @@ class ChangeLanguageView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         token = request.headers['Session-Token']
-        info = JwToken.check_session_token(token)
+        token_data = JwToken.check_session_token(token)
         #check if token is valid
-        if not info['valid']:
+        if not token_data['valid']:
             data = {
                     'success': False,
                     'description': 'Token is not valid',
@@ -320,8 +320,10 @@ class ChangeLanguageView(APIView):
 
             return Response(data)
 
+        info = token_data['info']
+
         #change language
-        if not set_user_language(info['username'], request['language']):
+        if not set_user_language(info['username'], req_data['language']):
             data = {
                 'success': False,
                 'description': 'language could not be changed',
@@ -340,9 +342,9 @@ class ChangeLanguageView(APIView):
 class GetLanguageView(APIView):
     def get(self, request, *args, **kwargs):
         token = request.headers['Session-Token']
-        info = JwToken.check_session_token(token)
+        token_data = JwToken.check_session_token(token)
         #check if token is valid
-        if not info['valid']:
+        if not token_data['valid']:
             data = {
                 'success': False,
                 'description': 'Token is not valid',
@@ -350,6 +352,9 @@ class GetLanguageView(APIView):
             }
 
             return Response(data)
+
+        info = token_data['info']
+
         #get language
         res = get_user_language(info['username'])
         #check if valid
