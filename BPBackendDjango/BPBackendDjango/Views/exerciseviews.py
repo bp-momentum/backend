@@ -23,7 +23,7 @@ def get_correct_description(username, description):
     else:
         return "invalid user"
     lang = user.language
-    desc = json.loads(description)
+    desc = json.parse(description)
     res = desc.get(lang)
     if res == None:
         return "description not available in "+lang
