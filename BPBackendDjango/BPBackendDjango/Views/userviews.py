@@ -282,7 +282,45 @@ class DeleteAccountView(APIView):
         return Response(data)
 
 
+class GetUsersOfTrainer(APIView):
 
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'Only Trainers are allowed to see their users',
+                'data': {}
+            }
+            return Response(data)
+
+        trainer = Trainer.objects.get(username=info['username'])
+        users = User.objects.filter(trainer=trainer)
+        
+
+    def post(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
             
 
 
