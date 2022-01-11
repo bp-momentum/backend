@@ -308,8 +308,8 @@ class DeleteAccountView(APIView):
 class ChangeLanguageView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        token = request.data['refresh_token']
-        info = JwToken.check_refresh_token(token)
+        token = request.headers['Session-Token']
+        info = JwToken.check_session_token(token)
         #check if token is valid
         if not info['valid']:
             data = {
@@ -339,8 +339,8 @@ class ChangeLanguageView(APIView):
 
 class GetLanguageView(APIView):
     def get(self, request, *args, **kwargs):
-        token = request.data['refresh_token']
-        info = JwToken.check_refresh_token(token)
+        token = request.headers['Session-Token']
+        info = JwToken.check_session_token(token)
         #check if token is valid
         if not info['valid']:
             data = {
