@@ -3,6 +3,7 @@ import time
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+import json
 
 from ..Helperclasses.ai import DummyAI
 from ..models import *
@@ -12,11 +13,28 @@ def user_needs_ex(username, id):
     #TODO user needs exercise
     return True
 
+def get_correct_description(username, description):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return "invalid user"
+    lang = user.language
+    desc = json.loads(description.replace("'", "\""))
+    res = desc.get(lang)
+    if res == None:
+        return "description not available in "+lang
+    return res
+
 
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
+        info = token['info']
         #check if token is valid
         if not token["valid"]:
             data = {
@@ -55,7 +73,7 @@ class GetExerciseView(APIView):
                 'description': 'Be careful, exercise is deactivated! Returned data',
                 'data': {
                     'title': ex.title,
-                    'description': ex.description,
+                    'description': get_correct_description(info['username'], ex.description),
                     'video': ex.video,
                     'activated': False
                 }
@@ -68,7 +86,7 @@ class GetExerciseView(APIView):
                 'description': 'Returned data',
                 'data': {
                     'title': ex.title,
-                    'description': ex.description,
+                    'description': get_correct_description(info['username'], ex.description),
                     'video': ex.video,
                     'activated': True
                 }
