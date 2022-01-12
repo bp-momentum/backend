@@ -53,6 +53,7 @@ class ChatConsumer(WebsocketConsumer):
             AIInterface.call_ai(exercise, video)
 
         elif m_type == "start_set":
+            self.send_stats(1)
             self.doing_set = True
 
         elif m_type == "end_set":
