@@ -415,8 +415,7 @@ class SearchUserView(APIView):
 
 
 class GetListOfUsers(APIView):
-    def post(self, request, *args, **kwargs):
-        req_data = dict(request.data)
+    def get(self, request, *args, **kwargs):
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
