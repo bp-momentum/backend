@@ -41,7 +41,6 @@ class ChatConsumer(WebsocketConsumer):
         except:
             pass
         self.doing_set = False
-        pass
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -72,6 +71,3 @@ class ChatConsumer(WebsocketConsumer):
             if self.doing_set:
                 self.f_stop.set()
             self.doing_set = False
-
-
-
