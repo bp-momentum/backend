@@ -144,7 +144,7 @@ class CreateUserView(APIView):
             addon = " not "
         data = {
                 'success': True,
-                'description': 'email with' + addon + 'invite was sent',
+                'description': 'email with invite was' + addon + ' sent',
                 'data': {
                     "new_user_token": new_user_token
                 }

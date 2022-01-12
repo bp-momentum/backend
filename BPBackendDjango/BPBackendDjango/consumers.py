@@ -1,38 +1,45 @@
-import time
-
 from channels.generic.websocket import WebsocketConsumer
 
 import json
-import asyncio
-from channels.generic.websocket import AsyncWebsocketConsumer
-
-from .Helperclasses.ai import AIInterface, DummyAI
+import threading
+from .Helperclasses.ai import DummyAI
+import random
 
 
 class ChatConsumer(WebsocketConsumer):
     def send_stats(self, ex_id):
-        while self.doing_set:
-            # calculating points
-            a, b, c = DummyAI.dummy_function(ex=ex_id, video=None)
-            intensity = b['intensity']
-            speed = b['speed']
-            cleanliness = b['cleanliness']
-            self.send(text_data=json.dumps({
-                'success': True,
-                'description': "This is the accuracy",
-                'data': {
-                    'intensity': intensity,
-                    'speed': speed,
-                    'cleanliness': cleanliness
-                }
-            }))
-            time.sleep(3)
+        # calculating points
+        if not self.doing_set:
+            return
+        a, b, c = DummyAI.dummy_function(ex=ex_id, video=None)
+        intensity = b['intensity']
+        speed = b['speed']
+        cleanliness = b['cleanliness']
+        self.send(text_data=json.dumps({
+            'success': True,
+            'description': "This is the accuracy",
+            'data': {
+                'intensity': intensity,
+                'speed': speed,
+                'cleanliness': cleanliness
+            }
+        }))
+
+    def f(self, f_stop):
+        self.send_stats(1)
+        if not f_stop.is_set():
+            wait = random.randint(3, 8)
+            threading.Timer(wait, self.f, [f_stop]).start()
 
     def connect(self):
         self.doing_set = False
         self.accept()
 
     def disconnect(self, close_code):
+        try:
+            self.f_stop.set()
+        except:
+            pass
         self.doing_set = False
         pass
 
@@ -53,11 +60,18 @@ class ChatConsumer(WebsocketConsumer):
                     'description': "The set must be started to send the video Stream",
                     'data': {}
                 }))
-            #AIInterface.call_ai(exercise, video, "user")
+            # AIInterface.call_ai(exercise, video, "user")
 
         elif m_type == "start_set":
-            self.doing_set = True
-            #self.send_stats(1)
+            if not self.doing_set:
+                self.f_stop = threading.Event()
+                self.doing_set = True
+                self.f(self.f_stop)
 
         elif m_type == "end_set":
+            if self.doing_set:
+                self.f_stop.set()
             self.doing_set = False
+
+
+
