@@ -69,6 +69,7 @@ def get_users_data(users):
             'id': user.id,
             'username': user.username
         })
+    return data
 
 #only method needs to be changed to get different information about users
 def get_trainers_data(trainers):
@@ -78,6 +79,7 @@ def get_trainers_data(trainers):
             'id': trainer.id,
             'username': trainer.username
         })
+    return data
 
 
 class RegisterView(APIView):
