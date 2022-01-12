@@ -1,4 +1,8 @@
 from django.test import TestCase
+from .Helperclasses.fortests import ViewSupport
+
+from .Helperclasses.jwttoken import JwToken
+from .Views.userviews import GetUsersOfTrainerView, GetTrainersView, get_users_data
 from .models import *
 
 class UserTestCase(TestCase):
@@ -112,3 +116,44 @@ class PlanTestCase(TestCase):
         self.assertFalse(User.objects.filter(first_name="Erik").exists())
         self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
+
+
+class getUsersAndTrainersTestCase(TestCase):
+
+    admin = None
+    trainers = []
+    users = []
+
+    def setUp(self) -> None:
+        Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", email_address="prescher-erik@web.de", password="Password1234")
+        self.admin = Admin.objects.get(username="DerAdmin")
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainers.append(Trainer.objects.get(first_name="Erik"))
+        Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerAndereTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainers.append(Trainer.objects.get(first_name="Jannis"))
+        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user6", email_address="user6@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user7", email_address="user7@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user8", email_address="user8@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user9", email_address="user9@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user10", email_address="user10@users.com", trainer=self.trainers[1],password="pswd22")
+
+    def test_methods(self):
+        token1 = JwToken.create_session_token(self.admin.username, 'admin')
+        token2 = JwToken.create_session_token(self.trainers[0].username, 'trainer')
+        request = ViewSupport.setup_request({'Session-Token': token2}, {})
+        response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.filter(trainer=self.trainers[0])))
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'id': self.trainers[1].id})
+        response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.filter(trainer=self.trainers[1])))
+        request = ViewSupport.setup_request({'Session-Token': token1}, {})
+        response = GetTrainersView.get(GetTrainersView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data(Trainer.objects.all()))
