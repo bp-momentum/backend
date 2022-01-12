@@ -61,6 +61,16 @@ def get_user_language(username):
         return None
     return user.language
 
+#only method needs to be changed to get different information about users
+def get_users_data(users):
+    data = []
+    for user in users:
+        data.append({
+            'id': user.id,
+            'username': user.username
+        })
+
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -376,7 +386,7 @@ class GetLanguageView(APIView):
         return Response(data)
 
       
-class GetUsersOfTrainer(APIView):
+class GetUsersOfTrainerView(APIView):
 
     def get(self, request, *args, **kwargs):
         token = JwToken.check_session_token(request.headers['Session-Token'])
@@ -401,9 +411,19 @@ class GetUsersOfTrainer(APIView):
 
         trainer = Trainer.objects.get(username=info['username'])
         users = User.objects.filter(trainer=trainer)
+        users_data = get_users_data(users)
+        data = {
+            'success': True,
+            'description': 'Returning users',
+            'data': {
+                'users': users_data
+            }
+        }
+        return Response(data)
         
 
     def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -415,4 +435,33 @@ class GetUsersOfTrainer(APIView):
             return Response(data)
 
         info = token['info']
+
+        if not info['account_type'] == 'admin':
+            data = {
+                'success': False,
+                'description': 'Only admins can get other trainers users',
+                'data': {}
+            }
+            return Response(data)
+
+        if not Trainer.objects.filter(id=req_data['id']).exists():
+            data = {
+                'success': False,
+                'description': 'Trainer not found',
+                'data': {}
+            }
+            return Response(data)
+
+        trainer = Trainer.objects.get(id=req_data['id'])
+        users = User.objects.filter(trainer=trainer)
+        users_data = get_users_data(users)
+
+        data = {
+            'success': True,
+            'description': 'Returned users of trainer',
+            'data': {
+                'users': users_data
+            }
+        }
+        return Response(data)
                   
