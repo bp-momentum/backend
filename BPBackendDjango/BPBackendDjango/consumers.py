@@ -8,7 +8,7 @@ from .Helperclasses.ai import AIInterface, DummyAI
 
 
 class ChatConsumer(WebsocketConsumer):
-    async def send_stats(self, ex_id):
+    def send_stats(self, ex_id):
         while self.doing_set:
             # calculating points
             a, b, c = DummyAI.dummy_function(ex=ex_id, video=None)
