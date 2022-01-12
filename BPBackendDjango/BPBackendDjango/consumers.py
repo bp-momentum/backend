@@ -6,7 +6,7 @@ from .Helperclasses.ai import DummyAI
 import random
 
 
-class ChatConsumer(WebsocketConsumer):
+class SetConsumer(WebsocketConsumer):
     def send_stats(self, ex_id):
         # calculating points
         if not self.doing_set:
