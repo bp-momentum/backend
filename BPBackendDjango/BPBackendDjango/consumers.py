@@ -15,7 +15,7 @@ class ChatConsumer(WebsocketConsumer):
             intensity = b['intensity']
             speed = b['speed']
             cleanliness = b['cleanliness']
-            await self.send(text_data=json.dumps({
+            self.send(text_data=json.dumps({
                 'success': True,
                 'description': "These are the current stats of this set",
                 'data': {
