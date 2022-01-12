@@ -125,7 +125,7 @@ class getUsersAndTrainersTestCase(TestCase):
     users = []
 
     def setUp(self) -> None:
-        Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", email_address="prescher-erik@web.de", password="Password1234")
+        Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", password="Password1234")
         self.admin = Admin.objects.get(username="DerAdmin")
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainers.append(Trainer.objects.get(first_name="Erik"))
