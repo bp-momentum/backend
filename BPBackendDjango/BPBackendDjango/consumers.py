@@ -1,3 +1,5 @@
+import time
+
 from channels.generic.websocket import WebsocketConsumer
 
 import json
@@ -24,6 +26,7 @@ class ChatConsumer(WebsocketConsumer):
                     'cleanliness': cleanliness
                 }
             }))
+            time.sleep(3)
 
     def connect(self):
         self.doing_set = False
