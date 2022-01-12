@@ -156,4 +156,4 @@ class getUsersAndTrainersTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(Trainer.objects.all()))
+        self.assertEquals(response.data.get('data').get('trainers'), get_users_data(Trainer.objects.all()))
