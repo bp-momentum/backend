@@ -53,7 +53,7 @@ class ChatConsumer(WebsocketConsumer):
                     'description': "The set must be started to send the video Stream",
                     'data': {}
                 }))
-            #AIInterface.call_ai(exercise, video)
+            #AIInterface.call_ai(exercise, video, "user")
 
         elif m_type == "start_set":
             self.doing_set = True
