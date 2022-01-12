@@ -1,3 +1,4 @@
+from django.db.models.query_utils import refs_expression
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -36,6 +37,30 @@ def check_password(username, passwd):
         return "admin"
     else:
         return "invalid"
+
+def set_user_language(username, language):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return False
+    user.language = language
+    user.save()
+    return True
+
+def get_user_language(username):
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username)
+    elif Trainer.objects.filter(username=username).exists():
+        user = Trainer.objects.get(username=username)
+    elif Admin.objects.filter(username=username).exists():
+        user = Admin.objects.get(username=username)
+    else:
+        return None
+    return user.language
 
 def streak(user):
     now = datetime.datetime.now()
@@ -308,9 +333,9 @@ class DeleteAccountView(APIView):
         #check if token is valid
         if not token["valid"]:
             data = {
-                'success': False,
-                'description': 'Token is not valid',
-                'data': {}
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
                 }
             return Response(data)
 
@@ -324,21 +349,20 @@ class DeleteAccountView(APIView):
         elif Admin.objects.filter(username=info['username']).exists():
             #admins can not be deleted
             data = {
-            'success': False,
-            'description': 'Admin account can not be deleted',
-            'data': {}
+                'success': False,
+                'description': 'Admin account can not be deleted',
+                'data': {}
             }
 
             return Response(data)
         else:
             data = {
-            'success': False,
-            'description': 'User not found',
-            'data': {}
-            }
+                'success': False,
+                'description': 'User not found',
+                'data': {}
+               }
 
             return Response(data)
-
         data = {
             'success': True,
             'description': 'User was successfully deleted',
@@ -348,13 +372,74 @@ class DeleteAccountView(APIView):
         return Response(data)
 
 
+class ChangeLanguageView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = request.headers['Session-Token']
+        token_data = JwToken.check_session_token(token)
+        #check if token is valid
+        if not token_data['valid']:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+            }
+
+            return Response(data)
+
+        info = token_data['info']
+
+        #change language
+        if not set_user_language(info['username'], req_data['language']):
+            data = {
+                'success': False,
+                'description': 'language could not be changed',
+                'data': {}
+            }
+        else:
+            data = {
+                'success': True,
+                'description': 'language was successfully changed',
+                'data': {}
+            }
+
+        return Response(data)
+
+
+class GetLanguageView(APIView):
+    def get(self, request, *args, **kwargs):
+        token = request.headers['Session-Token']
+        token_data = JwToken.check_session_token(token)
+        #check if token is valid
+        if not token_data['valid']:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+
+            return Response(data)
+
+        info = token_data['info']
+
+        #get language
+        res = get_user_language(info['username'])
+        #check if valid
+        if res == None:
+            data = {
+                'success': False,
+                'description': 'user not found',
+                'data': {}
+            }
+        else:
+            data = {
+                'success': True,
+                'description': 'language returned',
+                'data': {
+                    'language': res
+                }
+            }
+
+        return Response(data)
 
             
-
-
-
-
-
-
-
-
