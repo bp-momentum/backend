@@ -31,7 +31,8 @@ urlpatterns = [
     path('api/login', LoginView.as_view(), name='login'),
     path('api/auth', AuthView.as_view(), name='authenticateWithToken'),
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
-    path('api/ai', APIView.as_view(), name='callAI'),
+    path('api/changelanguage', ChangeLanguageView.as_view(), name='changeLanguage'),
+    path('api/getlanguage', GetLanguageView.as_view(), name='getLanguage'),
     path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser'),
     path('api/searchuser', SearchUserView.as_view(), name='searchUser'),
     path('api/getlistofusers', GetListOfUsers.as_view(), name='getListOfUsers'),
@@ -39,6 +40,8 @@ urlpatterns = [
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
     path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList'),
+    path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise'),
+    path('api/getdoneexercises', GetDoneExercisesView.as_view(), name='getdoneExercise'),
     #plans
     path('api/createplan', CreatePlanView.as_view(), name='createPlan'),
     path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),
@@ -46,8 +49,8 @@ urlpatterns = [
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
-    path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise'),
-    path('api/getdoneexercises', GetDoneExercisesView.as_view(), name='getdoneExercise'),
+    #other
+    path('api/ai', AIView.as_view(), name='callAI'),
     #leaderboard
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #friends
