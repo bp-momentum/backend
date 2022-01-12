@@ -70,6 +70,15 @@ def get_users_data(users):
             'username': user.username
         })
 
+#only method needs to be changed to get different information about users
+def get_trainers_data(trainers):
+    data = []
+    for trainer in trainers:
+        data.append({
+            'id': trainer.id,
+            'username': trainer.username
+        })
+
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
@@ -465,3 +474,38 @@ class GetUsersOfTrainerView(APIView):
         }
         return Response(data)
                   
+
+class GetTrainersView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not info['account_type'] == 'admin':
+            data = {
+                'success': False,
+                'description': 'Only Admins are allowed to see trainers',
+                'data': {}
+            }
+            return Response(data)
+
+        trainers = Trainer.objects.all()
+        trainers_data = get_trainers_data(trainers)
+
+        data = {
+            'success': True,
+            'description': 'Returning all trainers',
+            'data': {
+                'trainers': trainers_data
+            }
+        }
+        return Response(data)
