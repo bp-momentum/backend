@@ -381,4 +381,45 @@ class GetLanguageView(APIView):
 
         return Response(data)
 
-            
+
+class ChangeUsernameView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        user = User.objects.get(username=info['username'])
+        if (User.objects.filter(username=req_data['username']).exists() or
+                Trainer.objects.filter(username=req_data['username']).exists() or 
+                Admin.objects.filter(username=req_data['username']).exists()):
+            data = {
+                'success': False,
+                'description': 'Username already used',
+                'data': {}
+            }
+            return Response(data)
+
+        user.username = req_data['username']
+        user.save()
+        #creating the session_token
+        session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
+        refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
+        data = {
+            'success': True,
+            'description': 'User was created',
+            'data': {
+                "session_token": session_token,
+                "refresh_token": refresh_token
+            }
+        }
+        return Response(data)
