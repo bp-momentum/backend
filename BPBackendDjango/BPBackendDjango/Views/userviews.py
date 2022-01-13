@@ -65,7 +65,7 @@ def get_user_language(username):
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
-        check = ErrorHandler.check_arguments([], request.headers, ['password', 'new_user_token'], request.data)
+        check = ErrorHandler.check_arguments([], request.headers, ['password', 'username', 'new_user_token'], request.data)
         if not check.get('valid'):
             data = {
                 'success': False,
