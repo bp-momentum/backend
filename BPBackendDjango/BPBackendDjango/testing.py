@@ -2,7 +2,7 @@ from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
 
 from .Helperclasses.jwttoken import JwToken
-from .Views.userviews import DeleteTrainerView, GetUsersOfTrainerView, GetTrainersView, get_users_data
+from .Views.userviews import DeleteTrainerView, GetUsersOfTrainerView, GetTrainersView, get_users_data_for_upper
 from .models import *
 
 class UserTestCase(TestCase):
@@ -148,15 +148,15 @@ class getUsersAndTrainersTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': token2}, {})
         response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.filter(trainer=self.trainers[0])))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[0])))
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': self.trainers[1].id})
         response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.filter(trainer=self.trainers[1])))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[1])))
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('trainers'), get_users_data(Trainer.objects.all()))
+        self.assertEquals(response.data.get('data').get('trainers'), get_users_data_for_upper(Trainer.objects.all()))
         id = self.trainers[1].id
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
         response = DeleteTrainerView.post(DeleteTrainerView, request)

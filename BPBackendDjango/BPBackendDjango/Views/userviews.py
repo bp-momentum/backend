@@ -62,12 +62,13 @@ def get_user_language(username):
     return user.language
 
 #only method needs to be changed to get different information about users
-def get_users_data(users):
+def get_users_data_for_upper(users):
     data = []
     for user in users:
         data.append({
             'id': user.id,
-            'username': user.username
+            'username': user.username,
+            'plan': user.plan.id
         })
     return data
 
@@ -428,7 +429,7 @@ class GetUsersOfTrainerView(APIView):
 
         trainer = Trainer.objects.get(username=info['username'])
         users = User.objects.filter(trainer=trainer)
-        users_data = get_users_data(users)
+        users_data = get_users_data_for_upper(users)
         data = {
             'success': True,
             'description': 'Returning users',
@@ -471,7 +472,7 @@ class GetUsersOfTrainerView(APIView):
 
         trainer = Trainer.objects.get(id=req_data['id'])
         users = User.objects.filter(trainer=trainer)
-        users_data = get_users_data(users)
+        users_data = get_users_data_for_upper(users)
 
         data = {
             'success': True,
