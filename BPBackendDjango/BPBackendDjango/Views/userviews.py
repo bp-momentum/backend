@@ -118,7 +118,8 @@ class RegisterView(APIView):
                 serializer.save()
 
                 # add user to leaderboard with score of 0
-                Leaderboard.objects.create(user=User.objects.get(username=request.data['username']), score=0)
+                if token["info"]["create_account_type"] == "user":
+                    Leaderboard.objects.create(user=User.objects.get(username=request.data['username']), score=0)
 
                 #creating the session_token
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
@@ -166,13 +167,18 @@ class CreateUserView(APIView):
         #create and send mail
         html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
-        send_mail("BachelorPraktum Passwort",
+        addon = " "
+        try:
+            send_mail("BachelorPraktikum Passwort",
                     plain_message,
                      EMAIL_HOST_USER, 
                      [req_data['email_address']], html_message=html_message)
+
+        except:
+            addon = " not "
         data = {
                 'success': True,
-                'description': 'email with invite was sent',
+                'description': 'email with invite was' + addon + ' sent',
                 'data': {
                     "new_user_token": new_user_token
                 }
