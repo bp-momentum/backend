@@ -65,10 +65,14 @@ def get_user_language(username):
 def get_users_data_for_upper(users):
     data = []
     for user in users:
+        if user.plan == None:
+            plan_id = None
+        else:
+            plan_id = user.plan.id
         data.append({
             'id': user.id,
             'username': user.username,
-            'plan': user.plan.id
+            'plan': plan_id
         })
     return data
 
