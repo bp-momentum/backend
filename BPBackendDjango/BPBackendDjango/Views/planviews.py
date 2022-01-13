@@ -181,91 +181,28 @@ class CreatePlanView(APIView):
                     }
                     return Response(data)
             ex_in_plans.append(res[1])
-
-        if req_data.get('user') == None:
-            #check if plan was created or changed
-            if req_data.get('id') == None:
-                data = {
+        
+        #check if plan was created or changed
+        if req_data.get('id') == None:
+            data = {
                     'success': True,
-                    'description': 'plan was created but could not be assigned to user',
+                    'description': 'plan created',
                     'data': {
                         'plan_id': plan.id
                     }
-                }
-                return Response(data)
-            else:
-                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
-                data = {
-                    'success': True,
-                    'description': 'plan was changed, but could not be assigned to user',
-                    'data': {
-                        'plan_id': plan.id
-                    }
-                }
-                return Response(data)
-        #assign plan to user
-        res = add_plan_to_user(username=req_data['user'], plan=plan.id)
-
-        #checks whether assigning was successful
-        if res == "user_invalid":
-            #check if plan was created or changed
-            if req_data.get('id') == None:
-                data = {
-                    'success': True,
-                    'description': 'plan was created but could not be assigned to user',
-                    'data': {
-                        'plan_id': plan.id
-                    }
-                }
-                return Response(data)
-            else:
-                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
-                data = {
-                    'success': True,
-                    'description': 'plan was changed, but could not be assigned to user',
-                    'data': {
-                        'plan_id': plan.id
-                    }
-                }
-        #should not happen, needed for other view
-        elif res == "plan_invalid":
-            #check if plan was created or changed
-            if req_data.get('id') == None:
-                data = {
-                    'success': False,
-                    'description': 'plan created, but does not exist',
-                    'data': {
-                        'plan_id': plan.id
-                    }
-                }
-            else:
-                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
-                data = {
-                    'success': False,
-                    'description': 'plan was changed, but could not be found',
-                    'data': {
-                        'plan_id': plan.id
-                    }
-                }
+            }
         else:
-            #check if plan was created or changed
-            if req_data.get('id') == None:
-                data = {
-                        'success': True,
-                        'description': 'plan created',
-                        'data': {
-                            'plan_id': plan.id
-                        }
+            users = User.objects.filter(plan=req_data['id'])
+            for user in users:
+                add_plan_to_user(user.username, plan.id)
+            TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
+            data = {
+                'success': True,
+                'description': 'plan was changed',
+                'data': {
+                    'plan_id': plan.id
                 }
-            else:
-                TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
-                data = {
-                    'success': True,
-                    'description': 'plan was changed',
-                    'data': {
-                        'plan_id': plan.id
-                    }
-                }
+            }
 
         return Response(data)
 
