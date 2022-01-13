@@ -68,10 +68,12 @@ def get_user_language(username):
 def get_users_data_for_upper(users):
     data = []
     for user in users:
+        #getting plan id
         if user.plan == None:
             plan_id = None
         else:
             plan_id = user.plan.id
+        #getting weekly progress
         done = GetDoneExercisesView.GetDone(GetDoneExercisesView, user)
         if done.get('success'):
             exs = done.get('data').get('exercises')
@@ -87,7 +89,7 @@ def get_users_data_for_upper(users):
             'id': user.id,
             'username': user.username,
             'plan': plan_id,
-            'done_exercises': 'perc_done'
+            'done_exercises': perc_done
         })
     return data
 
@@ -438,6 +440,7 @@ class GetUsersOfTrainerView(APIView):
 
         info = token['info']
 
+        #check if request is from trainer
         if not info['account_type'] == 'trainer':
             data = {
                 'success': False,
@@ -446,6 +449,7 @@ class GetUsersOfTrainerView(APIView):
             }
             return Response(data)
 
+        #get users of trainer
         trainer = Trainer.objects.get(username=info['username'])
         users = User.objects.filter(trainer=trainer)
         users_data = get_users_data_for_upper(users)
@@ -473,6 +477,7 @@ class GetUsersOfTrainerView(APIView):
 
         info = token['info']
 
+        #check if request is from admin
         if not info['account_type'] == 'admin':
             data = {
                 'success': False,
@@ -481,6 +486,7 @@ class GetUsersOfTrainerView(APIView):
             }
             return Response(data)
 
+        #check if trainer exists
         if not Trainer.objects.filter(id=req_data['id']).exists():
             data = {
                 'success': False,
@@ -489,6 +495,7 @@ class GetUsersOfTrainerView(APIView):
             }
             return Response(data)
 
+        #get users of requested trainer
         trainer = Trainer.objects.get(id=req_data['id'])
         users = User.objects.filter(trainer=trainer)
         users_data = get_users_data_for_upper(users)
@@ -518,6 +525,7 @@ class GetTrainersView(APIView):
 
         info = token['info']
 
+        #check if requested by admin
         if not info['account_type'] == 'admin':
             data = {
                 'success': False,
@@ -526,6 +534,7 @@ class GetTrainersView(APIView):
             }
             return Response(data)
 
+        #get all trainers
         trainers = Trainer.objects.all()
         trainers_data = get_trainers_data(trainers)
 
@@ -555,6 +564,7 @@ class DeleteTrainerView(APIView):
 
         info = token['info']
 
+        #check if requested by admin
         if not info['account_type'] == 'admin':
             data = {
                 'success': False,
@@ -563,6 +573,7 @@ class DeleteTrainerView(APIView):
             }
             return Response(data)
 
+        #check if trainer exists
         if not Trainer.objects.filter(id=req_data['id']).exists():
             data = {
                 'success': False,
@@ -571,6 +582,7 @@ class DeleteTrainerView(APIView):
             }
             return Response(data)
 
+        #delete trainer
         Trainer.objects.filter(id=req_data['id']).delete()
         data = {
             'success': True,
@@ -596,6 +608,7 @@ class DeleteUserView(APIView):
 
         info = token['info']
 
+        #check if requested by admin or trainer
         if not (info['account_type'] == 'admin' or info['account_type'] == 'trainer'):
             data = {
                 'success': False,
@@ -604,6 +617,7 @@ class DeleteUserView(APIView):
             }
             return Response(data)
 
+        #check if user exists
         if not User.objects.filter(id=req_data['id']).exists():
             data = {
                 'success': False,
@@ -612,6 +626,7 @@ class DeleteUserView(APIView):
             }
             return Response(data)
 
+        #check if trainer is allowed to delete this user
         if info['account_type'] == 'trainer':
             trainer = Trainer.objects.get(username=info['username'])
             if not User.objects.filter(id=req_data['id'], trainer=trainer).exists():
@@ -622,6 +637,7 @@ class DeleteUserView(APIView):
                 }
                 return Response(data)
 
+        #delete user
         User.objects.filter(id=req_data['id']).delete()
         data = {
             'success': True,
