@@ -72,7 +72,7 @@ def get_users_data_for_upper(users):
             plan_id = None
         else:
             plan_id = user.plan.id
-        done = GetDoneExercisesView.GetDone(GetDoneExercisesView, user)
+        '''done = GetDoneExercisesView.GetDone(GetDoneExercisesView, user)
         if done.get('success'):
             exs = done.get('data').get('exercises')
             nr_of_done = 0
@@ -82,12 +82,12 @@ def get_users_data_for_upper(users):
             all = len(exs)
             perc_done = math.ceil((nr_of_done/all)*1000)/100
         else:
-            perc_done = 'could not be calculated'
+            perc_done = 'could not be calculated' '''
         data.append({
             'id': user.id,
             'username': user.username,
             'plan': plan_id,
-            'done_exercises': perc_done
+            'done_exercises': 'perc_done'
         })
     return data
 
