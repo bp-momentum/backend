@@ -2,7 +2,7 @@ from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
 
 from .Helperclasses.jwttoken import JwToken
-from .Views.userviews import DeleteTrainerView, GetUsersOfTrainerView, GetTrainersView, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
 from .models import *
 
 class UserTestCase(TestCase):
@@ -156,7 +156,7 @@ class getUsersAndTrainersTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('trainers'), get_users_data_for_upper(Trainer.objects.all()))
+        self.assertEquals(response.data.get('data').get('trainers'), get_trainers_data(Trainer.objects.all()))
         id = self.trainers[1].id
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
         response = DeleteTrainerView.post(DeleteTrainerView, request)
