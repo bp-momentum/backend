@@ -517,3 +517,44 @@ class GetTrainersView(APIView):
             }
         }
         return Response(data)
+
+
+class DeleteTrainerView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not info['account_type'] == 'admin':
+            data = {
+                'success': False,
+                'description': 'Only admins can delete trainers',
+                'data': {}
+            }
+            return Response(data)
+
+        if not Trainer.objects.filter(id=req_data['id']).exists():
+            data = {
+                'success': False,
+                'description': 'Trainer not found',
+                'data': {}
+            }
+            return Response(data)
+
+        Trainer.objects.filter(id=req_data['id']).delete()
+        data = {
+            'success': True,
+            'description': 'Trainer was deleted',
+            'data': {}
+        }
+        return Response(data)
