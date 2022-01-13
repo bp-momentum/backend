@@ -411,12 +411,57 @@ class ChangeUsernameView(APIView):
 
         user.username = req_data['username']
         user.save()
-        #creating the session_token
+        #creating tokens
         session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
         refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
         data = {
             'success': True,
-            'description': 'User was created',
+            'description': 'Usernamed changed',
+            'data': {
+                "session_token": session_token,
+                "refresh_token": refresh_token
+            }
+        }
+        return Response(data)
+
+
+class ChangePasswordView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        user = User.objects.get(info['username'])
+
+        response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
+        if not response.data.get('success'):
+            return response
+
+        if not check_password(user.username, req_data['password']) == info['account_type']:
+            data = {
+                'success': False,
+                'description': 'incorrect password',
+                'data': {}
+            }
+            return Response(data)
+
+        user.password = str(hashlib.sha3_256(req_data["new_password"].encode('utf8')).hexdigest())
+        user.save()
+        #creating tokens
+        session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
+        refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
+        data = {
+            'success': True,
+            'description': 'Password changed',
             'data': {
                 "session_token": session_token,
                 "refresh_token": refresh_token
