@@ -32,10 +32,11 @@ urlpatterns = [
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
     path('api/changelanguage', ChangeLanguageView.as_view(), name='changeLanguage'),
     path('api/getlanguage', GetLanguageView.as_view(), name='getLanguage'),
-    path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser'),
+    path('api/deleteaccount', DeleteAccountView.as_view(), name='deleteAccount'),
     path('api/gettrainersuser', GetUsersOfTrainerView.as_view(), name='getUsersOfTrainer'),
     path('api/gettrainers', GetTrainersView.as_view(), name='getTrainers'),
     path('api/deletetrainer', DeleteTrainerView.as_view(), name='deleteTrainer'),
+    path('api/deleteuser', DeleteUserView.as_view(), name='deleteUser'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
