@@ -612,14 +612,15 @@ class DeleteUserView(APIView):
             }
             return Response(data)
 
-        trainer = Trainer.objects.get(username=info['username'])
-        if info['account_type'] == 'trainer' and (not User.objects.filter(id=req_data['id'], trainer=trainer).exists()):
-            data = {
-                'success': False,
-                'description': 'Trainers can only delete user assigned to them',
-                'data': {}
-            }
-            return Response(data)
+        if info['account_type'] == 'trainer':
+            trainer = Trainer.objects.get(username=info['username'])
+            if not User.objects.filter(id=req_data['id'], trainer=trainer).exists():
+                data = {
+                    'success': False,
+                    'description': 'Trainers can only delete user assigned to them',
+                    'data': {}
+                }
+                return Response(data)
 
         User.objects.filter(id=req_data['id']).delete()
         data = {
