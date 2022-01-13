@@ -578,3 +578,53 @@ class DeleteTrainerView(APIView):
             'data': {}
         }
         return Response(data)
+
+
+class DeleteUserView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not (info['account_type'] == 'admin' or info['account_type'] == 'trainer'):
+            data = {
+                'success': False,
+                'description': 'Only admins and trainers can delete user',
+                'data': {}
+            }
+            return Response(data)
+
+        if not User.objects.filter(id=req_data['id']).exists():
+            data = {
+                'success': False,
+                'description': 'User not found',
+                'data': {}
+            }
+            return Response(data)
+
+        trainer = Trainer.objects.get(username=info['username'])
+        if info['account_type'] == 'trainer' and (not User.objects.filter(id=req_data['id'], trainer=trainer).exists()):
+            data = {
+                'success': False,
+                'description': 'Trainers can only delete user assigned to them',
+                'data': {}
+            }
+            return Response(data)
+
+        User.objects.filter(id=req_data['id']).delete()
+        data = {
+            'success': True,
+            'description': 'User was deleted',
+            'data': {}
+        }
+        return Response(data)

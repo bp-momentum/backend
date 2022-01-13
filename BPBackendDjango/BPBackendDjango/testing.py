@@ -2,7 +2,7 @@ from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
 
 from .Helperclasses.jwttoken import JwToken
-from .Views.userviews import DeleteTrainerView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
 from .models import *
 
 class UserTestCase(TestCase):
@@ -141,10 +141,12 @@ class getUsersAndTrainersTestCase(TestCase):
         User.objects.create(first_name="vorname", last_name="nachname", username="user8", email_address="user8@users.com", trainer=self.trainers[1],password="pswd22")
         User.objects.create(first_name="vorname", last_name="nachname", username="user9", email_address="user9@users.com", trainer=self.trainers[1],password="pswd22")
         User.objects.create(first_name="vorname", last_name="nachname", username="user10", email_address="user10@users.com", trainer=self.trainers[1],password="pswd22")
+        self.users = list(User.objects.all())
 
     def test_methods(self):
         token1 = JwToken.create_session_token(self.admin.username, 'admin')
         token2 = JwToken.create_session_token(self.trainers[0].username, 'trainer')
+        token3 = JwToken.create_session_token(self.trainers[1].username, 'trainer')
         request = ViewSupport.setup_request({'Session-Token': token2}, {})
         response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
@@ -157,6 +159,20 @@ class getUsersAndTrainersTestCase(TestCase):
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('trainers'), get_trainers_data(Trainer.objects.all()))
+        id = self.users[9].id
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(User.objects.filter(id=id).exists())
+        id = self.users[8].id
+        request = ViewSupport.setup_request({'Session-Token': token2}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(User.objects.filter(id=id).exists())
+        request = ViewSupport.setup_request({'Session-Token': token3}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(User.objects.filter(id=id).exists())
         id = self.trainers[1].id
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
         response = DeleteTrainerView.post(DeleteTrainerView, request)
