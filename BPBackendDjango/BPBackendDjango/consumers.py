@@ -39,7 +39,7 @@ class ChatConsumer(WebsocketConsumer):
             f.close()
 
     def authenticate(self, session_token):
-        token = JwToken.check_session_token(session_token)
+        token = JwToken.check_session_token(session_token['Session-Token'])
         if not token['valid']:
             self.send(text_data=json.dumps({
                 'message_type': 'authenticate',
