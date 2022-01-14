@@ -22,9 +22,9 @@ class SetConsumer(WebsocketConsumer):
         self.authenticated = False
 
     def save_video(self, data):
-        if not os.path.exists(os.path.dirname(os.path.join(INTERN_SETTINGS['video_dir'], self.username))):
+        if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username)):
             try:
-                os.makedirs(os.path.dirname(os.path.join(INTERN_SETTINGS['video_dir'], self.username)))
+                os.mkdir(os.path.join(INTERN_SETTINGS['video_dir'], self.username))
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
