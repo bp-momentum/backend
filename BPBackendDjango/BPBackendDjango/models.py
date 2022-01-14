@@ -46,6 +46,7 @@ class User(models.Model):
     language = models.CharField(max_length=20, default="english")
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
     token_date = models.BigIntegerField(default=0)
+    avatar = models.IntegerField(max_length=5, default=0)
 
 
 class DoneExercises(models.Model):
