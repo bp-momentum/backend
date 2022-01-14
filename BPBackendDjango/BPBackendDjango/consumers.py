@@ -7,7 +7,7 @@ import threading
 from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
-from settings import INTERN_SETTINGS
+from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
 
