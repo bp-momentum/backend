@@ -61,6 +61,13 @@ def get_user_language(username):
         return None
     return user.language
 
+def get_profile_data(user):
+    return {
+        'username': user.username,
+        'avatar': user.avatar,
+        'motivation': 'not implemented yet'
+    }
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -502,5 +509,28 @@ class ChangeAvatarView(APIView):
             'success': True,
             'description': 'Avatar changed',
             'data': {}
+        }
+        return Response(data)
+
+
+class GetProfile(APIView):
+
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        user = User.objects.get(info['username'])
+        data = {
+            'success': True,
+            'description': 'Returning profile data',
+            'data': get_profile_data(user)
         }
         return Response(data)
