@@ -32,7 +32,8 @@ INTERN_SETTINGS = {
         "user": "admin",
         "password": "",
         "host": "localhost",
-    }
+    },
+    "video_dir": "/home/github/bachelor-praktikum/api/videos/"
 }
 try:
     with open(SETTINGS_JSON) as json_file:
