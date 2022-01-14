@@ -74,7 +74,7 @@ def add_xp(username, xp):
         return False
     user = User.objects.get(username=username)
     user.xp = user.xp + xp
-    user.save()
+    user.save(force_update=True)
     return True
 
 def calc_level(xp):
