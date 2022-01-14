@@ -71,7 +71,7 @@ def get_users_data_for_upper(users):
         #getting plan id
         if user.plan == None:
             plan_id = None
-            perc_done = 'could not be calculated'
+            perc_done = None
         else:
             plan_id = user.plan.id
             #getting weekly progress
@@ -83,9 +83,9 @@ def get_users_data_for_upper(users):
                     if ex.get('done'):
                         nr_of_done += 1
                 all = len(exs)
-                perc_done = math.ceil((nr_of_done/all)*1000)/100
+                perc_done = math.ceil((nr_of_done/all)*10000)/10000
             else:
-                perc_done = 'could not be calculated'
+                perc_done = None
         data.append({
             'id': user.id,
             'username': user.username,
