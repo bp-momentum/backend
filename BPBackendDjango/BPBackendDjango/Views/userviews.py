@@ -468,3 +468,39 @@ class ChangePasswordView(APIView):
             }
         }
         return Response(data)
+
+
+class ChangeAvatarView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        user = User.objects.get(info['username'])
+
+        a = int(req_data['avatar'])
+        #checking if number is small enough to fit in data base
+        if a >= 100000:
+            data = {
+                'success': False,
+                'description': 'invalid value',
+                'data': {}
+            }
+            return Response(data)
+        user.avatar = a
+        user.save()
+        data = {
+            'success': True,
+            'description': 'Avatar changed',
+            'data': {}
+        }
+        return Response(data)

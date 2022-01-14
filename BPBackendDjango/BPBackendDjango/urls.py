@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/getlanguage', GetLanguageView.as_view(), name='getLanguage'),
     path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser'),
     path('api/changeusername', ChangeUsernameView.as_view(), name='changeUsername'),
+    path('api/changeavatar', ChangeAvatarView.as_view(), name='changeAvatar'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
