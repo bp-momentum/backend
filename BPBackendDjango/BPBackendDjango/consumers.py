@@ -11,7 +11,7 @@ from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
 
-class ChatConsumer(WebsocketConsumer):
+class SetConsumer(WebsocketConsumer):
     def __init__(self):
         super().__init__()
         self.filename = None
