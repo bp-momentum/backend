@@ -46,7 +46,6 @@ urlpatterns = [
     path('api/getlistofplans', GetAllPlansView.as_view(), name='getListOfPlans'),
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
-    path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
     #other
     path('api/ai', AIView.as_view(), name='callAI'),
