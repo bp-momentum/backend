@@ -4,6 +4,7 @@ from django.db.models.deletion import CASCADE
 class Location(models.Model):
     street = models.CharField(max_length=128)
     postal_code = models.CharField(max_length=12)
+    country = models.CharField(max_length=64)
     city = models.CharField(max_length=128)
     house_nr = models.CharField(max_length=12)
     address_addition = models.CharField(max_length=128, default='')

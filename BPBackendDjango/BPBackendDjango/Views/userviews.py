@@ -68,6 +68,16 @@ def get_profile_data(user):
         'motivation': 'not implemented yet'
     }
 
+def get_trainer_contact(trainer):
+    loc = trainer.location
+    location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
+    return {
+        'name': str(trainer.academia + trainer.first_name + ' ' + trainer.last_name),
+        'address': str(location),
+        'telephone': trainer.telephone,
+        'email': trainer.email_adress
+    }
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -532,5 +542,29 @@ class GetProfile(APIView):
             'success': True,
             'description': 'Returning profile data',
             'data': get_profile_data(user)
+        }
+        return Response(data)
+
+
+class GetTrainerContactView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        user = User.objects.get(info['username'])
+        trainer = user.trainer
+        data = {
+            'success': True,
+            'description': 'Returning contact data of trainer',
+            'data': get_trainer_contact(trainer)
         }
         return Response(data)
