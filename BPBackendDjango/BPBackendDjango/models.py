@@ -1,4 +1,13 @@
 from django.db import models
+from django.db.models.deletion import CASCADE
+
+class Location(models.Model):
+    street = models.CharField(max_length=128)
+    postal_code = models.CharField(max_length=12)
+    city = models.CharField(max_length=128)
+    house_nr = models.CharField(max_length=12)
+    address_addition = models.CharField(max_length=128, default='')
+
 
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
@@ -9,6 +18,9 @@ class Trainer(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="english")
     token_date = models.BigIntegerField(default=0)
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
+    academia = models.CharField(max_length=128, default='')
+    telephone = models.CharField(max_length=32, default='')
 
 class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
