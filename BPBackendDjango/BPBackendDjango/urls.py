@@ -21,6 +21,7 @@ from .Views.leaderboardviews import ListLeaderboardView
 from .Views.userviews import *
 from .Views.interfaceviews import *
 from .Views.planviews import *
+from .Views.achievementviews import *
 
 urlpatterns = [
     #user
@@ -54,4 +55,6 @@ urlpatterns = [
     path('api/ai', AIView.as_view(), name='callAI'),
     #leaderboard
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
+    #achievements
+    path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements')
 ]

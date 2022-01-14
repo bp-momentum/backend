@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.deletion import CASCADE
 
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
@@ -46,6 +47,8 @@ class User(models.Model):
     language = models.CharField(max_length=20, default="english")
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
     token_date = models.BigIntegerField(default=0)
+    last_login = models.CharField(max_length=10, null=True)
+    streak = models.IntegerField(default=0)
 
 
 class DoneExercises(models.Model):
@@ -69,6 +72,18 @@ class Friends(models.Model):
     friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
     friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
 
+
+class Achievement(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(default="")
+    hidden = models.BooleanField(default=False)
+    
+
+class UserAchievedAchievement(models.Model):
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    level = models.IntegerField(default=1)
+    #date = models.BigIntegerField(default=0) #not useful at the moment
 
 class Leaderboard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)

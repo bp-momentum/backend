@@ -1,9 +1,9 @@
 from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
-
-from .Helperclasses.jwttoken import JwToken
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
 from .models import *
+from .Helperclasses.jwttoken import JwToken
+from .Views.achievementviews import GetAchievementsView
 
 class UserTestCase(TestCase):
     trainer_id = 1
@@ -178,3 +178,28 @@ class getUsersAndTrainersTestCase(TestCase):
         response = DeleteTrainerView.post(DeleteTrainerView, request)
         self.assertTrue(response.data.get('success'))
         self.assertFalse(Trainer.objects.filter(id=id).exists())
+
+
+class AchievementTestCase(TestCase):
+
+    trainer = None
+    user1 = None
+    user2 = None
+
+    def setUp(self) -> None:
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer = trainer
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
+        user1 = User.objects.get(first_name='Erik')
+        user2 = User.objects.get(first_name='Jannis')
+        self.user1 = user1
+        self.user2 = user2
+
+    def test_get_achievements_empty(self):
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {})
+        response = GetAchievementsView.get(GetAchievementsView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('achievements'), [])
+        self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 0)
