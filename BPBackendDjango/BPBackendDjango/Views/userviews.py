@@ -71,20 +71,21 @@ def get_users_data_for_upper(users):
         #getting plan id
         if user.plan == None:
             plan_id = None
+            perc_done = 'could not be calculated'
         else:
             plan_id = user.plan.id
-        #getting weekly progress
-        done = GetDoneExercisesView.GetDone(GetDoneExercisesView, user)
-        if done.get('success'):
-            exs = done.get('data').get('exercises')
-            nr_of_done = 0
-            for ex in exs:
-                if ex.get('done'):
-                    nr_of_done += 1
-            all = len(exs)
-            perc_done = math.ceil((nr_of_done/all)*1000)/100
-        else:
-            perc_done = 'could not be calculated'
+            #getting weekly progress
+            done = GetDoneExercisesView.GetDone(GetDoneExercisesView, user)
+            if done.get('success'):
+                exs = done.get('data').get('exercises')
+                nr_of_done = 0
+                for ex in exs:
+                    if ex.get('done'):
+                        nr_of_done += 1
+                all = len(exs)
+                perc_done = math.ceil((nr_of_done/all)*1000)/100
+            else:
+                perc_done = 'could not be calculated'
         data.append({
             'id': user.id,
             'username': user.username,
