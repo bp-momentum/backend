@@ -51,6 +51,12 @@ class ChatConsumer(WebsocketConsumer):
         self.authenticated = True
         info = token['info']
         self.username = info['username']
+        self.send(text_data=json.dumps({
+            'message_type': 'authenticate',
+            'success': True,
+            'description': "User is now authenticated",
+            'data': {}
+        }))
 
     def start_set(self, data):
         if not self.doing_set:
