@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/gettrainers', GetTrainersView.as_view(), name='getTrainers'),
     path('api/deletetrainer', DeleteTrainerView.as_view(), name='deleteTrainer'),
     path('api/deleteuser', DeleteUserView.as_view(), name='deleteUser'),
+    path('api/getuserlevel', GetUserLevelView.as_view(), name='GetUserLevel'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),

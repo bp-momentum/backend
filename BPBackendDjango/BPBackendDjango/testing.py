@@ -1,6 +1,7 @@
 from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
 from .Views.achievementviews import GetAchievementsView
@@ -203,3 +204,29 @@ class AchievementTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('achievements'), [])
         self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 0)
+
+
+class LevelTestCase(TestCase):
+
+    def setUp(self):
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer = trainer
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
+        user1 = User.objects.get(first_name='Erik')
+        user2 = User.objects.get(first_name='Jannis')
+        user2.xp = 400
+        user2.save()
+        self.user1 = user1
+        self.user2 = user2
+
+    def test_level(self):
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {'username': self.user1.username})
+        response = GetUserLevelView.post(GetUserLevelView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('level'), 0)
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {'username': self.user2.username})
+        response = GetUserLevelView.post(GetUserLevelView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('level'), 1)
