@@ -13,10 +13,15 @@ import random
 import hashlib
 import time
 import math
+import datetime
 
 from ..serializers import *
 from ..models import *
 from BPBackendDjango.settings import *
+
+MAX_LEVEL = 200
+MULT_PER_LVL = 1.25
+FIRST_LVL = 300
 
 #creating random password
 from ..settings import EMAIL_HOST_USER
@@ -64,6 +69,21 @@ def get_user_language(username):
         return None
     return user.language
 
+def add_xp(username, xp):
+    if not User.objects.filter(username=username).exists():
+        return False
+    user = User.objects.get(username=username)
+    user.xp = user.xp + xp
+    user.save(force_update=True)
+    return True
+
+def calc_level(xp):
+    for i in range(MAX_LEVEL):
+        nxt_lvl = FIRST_LVL * MULT_PER_LVL ** (i + 1)
+        if xp < nxt_lvl:
+            return i, str(xp)+'/'+str(nxt_lvl)
+    return MAX_LEVEL, 'max level reached'
+
 #only method needs to be changed to get different information about users
 def get_users_data_for_upper(users):
     data = []
@@ -103,6 +123,66 @@ def get_trainers_data(trainers):
             'username': trainer.username
         })
     return data
+
+
+def streak(user):
+    now = datetime.datetime.now()
+    year = now.year
+    month = now.month
+    day = now.day
+    today = get_string_of_date(day, month, year)
+    if day == 1:
+        if month == 1:
+            month = 12
+            year = year - 1
+            day = 31
+        else:
+            month = month - 1
+            day = get_lastday_of_month(month)
+    yesterday = get_string_of_date(day, month, year)
+    if not User.objects.filter(username=user).exists():
+        return
+    u = User.objects.get(username=user)
+    last_login = u.last_login
+    if last_login == today:
+        return
+    elif last_login == yesterday:
+        old = u.streak
+        u.streak = old + 1
+        u.last_login = today
+        u.save()
+    else:
+        u.streak = 1
+        u.last_login = today
+        u.save()
+
+def get_lastday_of_month(m, y):
+    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
+        return 31
+    elif m == 4 or m == 6 or m == 9 or m == 11:
+        return 30
+    elif m == 2:
+        if y % 400 == 0:
+            return 29
+        elif y % 100 == 0:
+            return 28
+        elif y % 4 == 0:
+            return 29
+        else:
+            return 28
+    else:
+        return -1
+
+def get_string_of_date(d, m, y):
+    if d < 10:
+        day = '0'+str(d)
+    else:
+        day = str(d)
+    if m < 10:
+        month = '0'+str(m)
+    else:
+        month = str(m)
+    return str(y)+'-'+str(month)+'-'+str(day)
 
 
 class RegisterView(APIView):
@@ -160,13 +240,15 @@ class RegisterView(APIView):
                 session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
                 refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
                 data = {
-                'success': True,
-                'description': 'User was created',
-                'data': {
-                    "session_token": session_token,
-                    "refresh_token": refresh_token
-                }
-                }
+                    'success': True,
+                    'description': 'User was created',
+                    'data': {
+                        "session_token": session_token,
+                        "refresh_token": refresh_token
+                        }
+                    }
+
+                streak(req_data['username'])
 
                 return Response(data)
             else:
@@ -250,6 +332,8 @@ class LoginView(APIView):
                 }
             }
 
+        streak(req_data['username'])
+
         return Response(data)
         
 
@@ -305,6 +389,8 @@ class AuthView(APIView):
                 'refresh-token': refresh_token
                 }
             }
+
+        streak(info['info']['username'])
 
         return Response(data)
 
@@ -646,3 +732,38 @@ class DeleteUserView(APIView):
             'data': {}
         }
         return Response(data)
+           
+class GetUserLevelView(APIView):
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not User.objects.filter(username=req_data['username']).exists():
+            data = {
+                'success': False,
+                'description': 'User not found',
+                'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=req_data['username'])
+        res = calc_level(user.xp)
+        data = {
+                'success': True,
+                'description': 'returning level and progress of next level',
+                'data': {
+                    'level': res[0],
+                    'progress': res[1]
+                }
+            }
+        return Response(data) 
