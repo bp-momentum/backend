@@ -946,6 +946,15 @@ class GetTrainerContactView(APIView):
             return Response(data)
 
         info = token['info']
+
+        #check if request by user
+        if not info['account_type'] == 'user':
+            data = {
+                'success': False,
+                'description': 'Only users can request their trainers contact',
+                'data': {}
+            }
+            return Response(data)
         user = User.objects.get(info['username'])
         trainer = user.trainer
         data = {
@@ -954,3 +963,5 @@ class GetTrainerContactView(APIView):
             'data': get_trainer_contact(trainer)
         }
         return Response(data)
+
+
