@@ -965,3 +965,40 @@ class GetTrainerContactView(APIView):
         return Response(data)
 
 
+class SetTrainerLocationView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = request.data
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+        info = token['info']
+
+        #check if requested by trainer
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'Not a trainer',
+                'data': {}
+            }
+            return Response(data)
+            
+        trainer = Trainer.objects.get(username=info['username'])
+        if not Location.objects.filter(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add']).exists():
+            loc = Location.objects.create(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
+        else:
+            loc = Location.objects.get(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
+        trainer.location = loc
+        trainer.save()
+        data = {
+            'success': True,
+            'description': 'Location updated',
+            'data': {}
+        }
+        return Response(data)
