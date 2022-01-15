@@ -1004,7 +1004,7 @@ class SetTrainerLocationView(APIView):
         return Response(data)
 
 
-class ChangeTelephoneView(APIView):
+class ChangeTrainerTelephoneView(APIView):
 
     def post(self, request, *args, **kwargs):
         req_data = request.data
@@ -1034,6 +1034,41 @@ class ChangeTelephoneView(APIView):
         data = {
             'success': True,
             'description': 'Telephone number updated',
+            'data': {}
+        }
+        return Response(data)
+
+
+class ChangeTrainerAcademiaView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = request.data
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+        info = token['info']
+
+        #check if requested by trainer
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'Not a trainer',
+                'data': {}
+            }
+            return Response(data)
+            
+        trainer = Trainer.objects.get(username=info['username'])
+        trainer.academia = req_data['academia']
+        trainer.save()
+        data = {
+            'success': True,
+            'description': 'Location updated',
             'data': {}
         }
         return Response(data)

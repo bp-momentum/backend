@@ -44,6 +44,9 @@ urlpatterns = [
     path('api/changeavatar', ChangeAvatarView.as_view(), name='changeAvatar'),
     path('api/getprofile', GetProfileView.as_view(), name='getProfile'),
     path('api/gettrainercontact', GetTrainerContactView.as_view(), name='getTrainerContact'),
+    path('api/changelocation', SetTrainerLocationView.as_view(), name='setTrainerLocation'),
+    path('api/changetelephone', ChangeTrainerTelephoneView.as_view(), name='setTrainerTelephoneNumber'),
+    path('api/changeacademia', ChangeTrainerAcademiaView.as_view(), name='setTrainerAcademia'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
