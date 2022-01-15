@@ -22,6 +22,7 @@ from .Views.userviews import *
 from .Views.interfaceviews import *
 from .Views.planviews import *
 from .Views.friendviews import *
+from .Views.achievementviews import *
 
 urlpatterns = [
     #user
@@ -33,7 +34,12 @@ urlpatterns = [
     path('api/logoutdevices', LogoutAllDevicesView.as_view(), name='logoutAllDevices'),
     path('api/changelanguage', ChangeLanguageView.as_view(), name='changeLanguage'),
     path('api/getlanguage', GetLanguageView.as_view(), name='getLanguage'),
-    path('api/deleteuser', DeleteAccountView.as_view(), name='deleteUser'),
+    path('api/deleteaccount', DeleteAccountView.as_view(), name='deleteAccount'),
+    path('api/gettrainersuser', GetUsersOfTrainerView.as_view(), name='getUsersOfTrainer'),
+    path('api/gettrainers', GetTrainersView.as_view(), name='getTrainers'),
+    path('api/deletetrainer', DeleteTrainerView.as_view(), name='deleteTrainer'),
+    path('api/deleteuser', DeleteUserView.as_view(), name='deleteUser'),
+    path('api/getuserlevel', GetUserLevelView.as_view(), name='GetUserLevel'),
     path('api/searchuser', SearchUserView.as_view(), name='searchUser'),
     path('api/getlistofusers', GetListOfUsers.as_view(), name='getListOfUsers'),
     #exercises
@@ -53,6 +59,8 @@ urlpatterns = [
     path('api/ai', AIView.as_view(), name='callAI'),
     #leaderboard
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
+    #achievements
+    path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
     path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),

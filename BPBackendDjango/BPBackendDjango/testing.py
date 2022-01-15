@@ -3,7 +3,11 @@ from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
 from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import GetUserLevelView
 from .models import *
+from .Helperclasses.jwttoken import JwToken
+from .Views.achievementviews import GetAchievementsView
 
 class UserTestCase(TestCase):
     trainer_id = 1
@@ -117,6 +121,118 @@ class PlanTestCase(TestCase):
         self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
 
+
+class getUsersAndTrainersTestCase(TestCase):
+
+    admin = None
+    trainers = []
+    users = []
+
+    def setUp(self) -> None:
+        Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", password="Password1234")
+        self.admin = Admin.objects.get(username="DerAdmin")
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainers.append(Trainer.objects.get(first_name="Erik"))
+        Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerAndereTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainers.append(Trainer.objects.get(first_name="Jannis"))
+        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user6", email_address="user6@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user7", email_address="user7@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user8", email_address="user8@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user9", email_address="user9@users.com", trainer=self.trainers[1],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user10", email_address="user10@users.com", trainer=self.trainers[1],password="pswd22")
+        self.users = list(User.objects.all())
+
+    def test_methods(self):
+        token1 = JwToken.create_session_token(self.admin.username, 'admin')
+        token2 = JwToken.create_session_token(self.trainers[0].username, 'trainer')
+        token3 = JwToken.create_session_token(self.trainers[1].username, 'trainer')
+        request = ViewSupport.setup_request({'Session-Token': token2}, {})
+        response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[0])))
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'id': self.trainers[1].id})
+        response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[1])))
+        request = ViewSupport.setup_request({'Session-Token': token1}, {})
+        response = GetTrainersView.get(GetTrainersView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('trainers'), get_trainers_data(Trainer.objects.all()))
+        id = self.users[9].id
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(User.objects.filter(id=id).exists())
+        id = self.users[8].id
+        request = ViewSupport.setup_request({'Session-Token': token2}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(User.objects.filter(id=id).exists())
+        request = ViewSupport.setup_request({'Session-Token': token3}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(User.objects.filter(id=id).exists())
+        id = self.trainers[1].id
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
+        response = DeleteTrainerView.post(DeleteTrainerView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(Trainer.objects.filter(id=id).exists())
+
+
+class AchievementTestCase(TestCase):
+
+    trainer = None
+    user1 = None
+    user2 = None
+
+    def setUp(self) -> None:
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer = trainer
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
+        user1 = User.objects.get(first_name='Erik')
+        user2 = User.objects.get(first_name='Jannis')
+        self.user1 = user1
+        self.user2 = user2
+
+    def test_get_achievements_empty(self):
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {})
+        response = GetAchievementsView.get(GetAchievementsView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('achievements'), [])
+        self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 0)
+
+
+class LevelTestCase(TestCase):
+
+    def setUp(self):
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer = trainer
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
+        user1 = User.objects.get(first_name='Erik')
+        user2 = User.objects.get(first_name='Jannis')
+        user2.xp = 400
+        user2.save()
+        self.user1 = user1
+        self.user2 = user2
+
+    def test_level(self):
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {'username': self.user1.username})
+        response = GetUserLevelView.post(GetUserLevelView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('level'), 0)
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {'username': self.user2.username})
+        response = GetUserLevelView.post(GetUserLevelView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('level'), 1)
 
 class FriendViewTestCase(TestCase):
 

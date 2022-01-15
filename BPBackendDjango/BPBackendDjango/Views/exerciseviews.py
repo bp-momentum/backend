@@ -9,6 +9,8 @@ from ..Helperclasses.ai import DummyAI
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
+MAX_POINTS = 100
+
 def user_needs_ex(username, id):
     #TODO user needs exercise
     return True

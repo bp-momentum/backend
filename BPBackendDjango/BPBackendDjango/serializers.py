@@ -57,6 +57,12 @@ class CreateExerciseInPlan(serializers.ModelSerializer):
         )
 
 
+class AchieveAchievement(serializers.ModelSerializer):
+    class Meta:
+        model = UserAchievedAchievement
+        fields = (
+            'achievement', 'user'
+        )
 class CreateFriends(serializers.ModelSerializer):
     class Meta:
         model = Friends
