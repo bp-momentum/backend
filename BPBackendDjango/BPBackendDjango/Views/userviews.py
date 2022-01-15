@@ -184,7 +184,6 @@ def get_string_of_date(d, m, y):
         month = str(m)
     return str(y)+'-'+str(month)+'-'+str(day)
 
-
 def get_profile_data(user):
     return {
         'username': user.username,
@@ -785,6 +784,7 @@ class GetUserLevelView(APIView):
             }
         return Response(data) 
 
+
 class ChangeUsernameView(APIView):
 
     def post(self, request, *args, **kwargs):
@@ -909,7 +909,7 @@ class ChangeAvatarView(APIView):
         return Response(data)
 
 
-class GetProfile(APIView):
+class GetProfileView(APIView):
 
     def get(self, request, *args, **kwargs):
         token = JwToken.check_session_token(request.headers['Session-Token'])

@@ -40,7 +40,10 @@ urlpatterns = [
     path('api/deleteuser', DeleteUserView.as_view(), name='deleteUser'),
     path('api/getuserlevel', GetUserLevelView.as_view(), name='GetUserLevel'),
     path('api/changeusername', ChangeUsernameView.as_view(), name='changeUsername'),
+    path('api/changepassword', ChangePasswordView.as_view(), name='changePassword'),
     path('api/changeavatar', ChangeAvatarView.as_view(), name='changeAvatar'),
+    path('api/getprofile', GetProfileView.as_view(), name='getProfile'),
+    path('api/gettrainercontact', GetTrainerContactView.as_view(), name='getTrainerContact'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
