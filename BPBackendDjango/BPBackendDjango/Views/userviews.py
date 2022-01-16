@@ -819,7 +819,7 @@ class ChangeUsernameView(APIView):
             return Response(data)
 
         user.username = req_data['username']
-        user.save()
+        user.save(force_update=True)
         #creating tokens
         session_token = JwToken.create_session_token(req_data['username'], info["account_type"])
         refresh_token = JwToken.create_refresh_token(req_data['username'], info["account_type"], True)
@@ -869,7 +869,7 @@ class ChangePasswordView(APIView):
             return Response(data)
 
         user.password = str(hashlib.sha3_256(req_data["new_password"].encode('utf8')).hexdigest())
-        user.save()
+        user.save(force_update=True)
         #creating tokens
         session_token = JwToken.create_session_token(info['username'], info["account_type"])
         refresh_token = JwToken.create_refresh_token(info['username'], info["account_type"], True)
@@ -911,7 +911,7 @@ class ChangeAvatarView(APIView):
             }
             return Response(data)
         user.avatar = a
-        user.save()
+        user.save(force_update=True)
         data = {
             'success': True,
             'description': 'Avatar changed',
@@ -1006,7 +1006,7 @@ class SetTrainerLocationView(APIView):
         else:
             loc = Location.objects.get(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
         trainer.location = loc
-        trainer.save()
+        trainer.save(force_update=True)
         data = {
             'success': True,
             'description': 'Location updated',
@@ -1041,7 +1041,7 @@ class ChangeTrainerTelephoneView(APIView):
             
         trainer = Trainer.objects.get(username=info['username'])
         trainer.telephone = req_data['telephone']
-        trainer.save()
+        trainer.save(force_update=True)
         data = {
             'success': True,
             'description': 'Telephone number updated',
@@ -1076,7 +1076,7 @@ class ChangeTrainerAcademiaView(APIView):
             
         trainer = Trainer.objects.get(username=info['username'])
         trainer.academia = req_data['academia']
-        trainer.save()
+        trainer.save(force_update=True)
         data = {
             'success': True,
             'description': 'Location updated',
