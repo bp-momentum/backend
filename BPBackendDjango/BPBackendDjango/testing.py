@@ -1,7 +1,7 @@
 from urllib import request
 from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
-from .Views.userviews import ChangeAvatarView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
@@ -294,7 +294,7 @@ class ProfileTestCase(TestCase):
 
     def test_change_motivation(self):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
-        response = ChangeAvatarView.post(ChangeAvatarView, request)
+        response = ChangeMotovationView.post(ChangeMotovationView, request)
         self.assertTrue(response.data.get('success'))
         user2 = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.motivation, 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn')
