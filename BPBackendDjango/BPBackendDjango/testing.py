@@ -1,10 +1,12 @@
+from urllib import request
 from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
 from .Views.achievementviews import GetAchievementsView
+import hashlib
 
 class UserTestCase(TestCase):
     trainer_id = 1
@@ -230,3 +232,28 @@ class LevelTestCase(TestCase):
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('level'), 1)
+
+
+class ProfileTestCase(TestCase):
+
+    def setUp(self) -> None:
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer = trainer
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
+        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
+        self.user1 = User.objects.get(first_name='Erik')
+        self.user2 = User.objects.get(first_name='Jannis')
+        self.token1 = JwToken.create_session_token(self.trainer.username, 'trainer')
+        self.token2 = JwToken.create_session_token(self.user1.username, 'user')
+        self.token3 = JwToken.create_session_token(self.user2.username, 'user')
+
+    def test_change_username(self):
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'username': 'neuerName'})
+        response = ChangeUsernameView(ChangeUsernameView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEqual(self.trainer.username, 'neuerName')
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'coolerName'})
+        response = ChangeUsernameView(ChangeUsernameView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEqual(self.user1.username, 'coolerName')
