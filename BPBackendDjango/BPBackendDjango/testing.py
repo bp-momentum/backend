@@ -299,6 +299,8 @@ class ProfileTestCase(TestCase):
         user2 = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.username, response.data.get('data').get('username'))
         self.assertEqual(user2.avatar, response.data.get('data').get('avatar'))
+        self.assertEqual(user2.first_login, response.data.get('data').get('first_login'))
+        self.assertEqual(user2.motivation, response.data.get('data').get('motivation'))
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'telephone': '015712251102'})
         response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
         self.assertTrue(response.data.get('success'))
