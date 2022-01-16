@@ -943,7 +943,15 @@ class GetProfileView(APIView):
             return Response(data)
 
         info = token['info']
-        user = User.objects.get(info['username'])
+        if not info['account_type'] == 'user':
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
         data = {
             'success': True,
             'description': 'Returning profile data',
@@ -975,7 +983,7 @@ class GetTrainerContactView(APIView):
                 'data': {}
             }
             return Response(data)
-        user = User.objects.get(info['username'])
+        user = User.objects.get(username=info['username'])
         trainer = user.trainer
         data = {
             'success': True,
