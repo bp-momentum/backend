@@ -801,7 +801,13 @@ class ChangeUsernameView(APIView):
 
         info = token['info']
 
-        user = User.objects.get(username=info['username'])
+        if info['account_type'] == 'user':
+            user = User.objects.get(info['username'])
+        elif info['account_type'] == 'trainer':
+            user = Trainer.objects.get(info['username'])
+        elif info['account_type'] == 'admin':
+            user = Admin.objects.get(info['username'])
+
         if (User.objects.filter(username=req_data['username']).exists() or
                 Trainer.objects.filter(username=req_data['username']).exists() or 
                 Admin.objects.filter(username=req_data['username']).exists()):
@@ -815,8 +821,8 @@ class ChangeUsernameView(APIView):
         user.username = req_data['username']
         user.save()
         #creating tokens
-        session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
-        refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
+        session_token = JwToken.create_session_token(req_data['username'], info["account_type"])
+        refresh_token = JwToken.create_refresh_token(req_data['username'], info["account_type"], True)
         data = {
             'success': True,
             'description': 'Usernamed changed',
@@ -843,7 +849,12 @@ class ChangePasswordView(APIView):
             return Response(data)
 
         info = token['info']
-        user = User.objects.get(info['username'])
+        if info['account_type'] == 'user':
+            user = User.objects.get(info['username'])
+        elif info['account_type'] == 'trainer':
+            user = Trainer.objects.get(info['username'])
+        elif info['account_type'] == 'admin':
+            user = Admin.objects.get(info['username'])
 
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         if not response.data.get('success'):
@@ -860,8 +871,8 @@ class ChangePasswordView(APIView):
         user.password = str(hashlib.sha3_256(req_data["new_password"].encode('utf8')).hexdigest())
         user.save()
         #creating tokens
-        session_token = JwToken.create_session_token(req_data['username'], token["info"]["create_account_type"])
-        refresh_token = JwToken.create_refresh_token(req_data['username'], token["info"]["create_account_type"], True)
+        session_token = JwToken.create_session_token(info['username'], info["account_type"])
+        refresh_token = JwToken.create_refresh_token(info['username'], info["account_type"], True)
         data = {
             'success': True,
             'description': 'Password changed',
