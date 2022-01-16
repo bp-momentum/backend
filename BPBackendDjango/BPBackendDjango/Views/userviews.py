@@ -183,6 +183,7 @@ def get_string_of_date(d, m, y):
         month = str(m)
     return str(y)+'-'+str(month)+'-'+str(day)
 
+#just this method has to be changed to get more information for profile
 def get_profile_data(user):
     return {
         'username': user.username,
@@ -191,9 +192,15 @@ def get_profile_data(user):
         'motivation': user.motivation
     }
 
+#just this method has to be changed to get more contact information for trainers
 def get_trainer_contact(trainer):
     loc = trainer.location
-    location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
+    #check if trainer has location
+    if loc == None:
+        location = None
+    else:
+        #cocatinate location
+        location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
     return {
         'name': str(trainer.academia + trainer.first_name + ' ' + trainer.last_name),
         'address': str(location),
@@ -804,6 +811,7 @@ class ChangeUsernameView(APIView):
 
         info = token['info']
 
+        #get correct user
         if info['account_type'] == 'user':
             user = User.objects.get(username=info['username'])
         elif info['account_type'] == 'trainer':
@@ -811,6 +819,7 @@ class ChangeUsernameView(APIView):
         elif info['account_type'] == 'admin':
             user = Admin.objects.get(username=info['username'])
 
+        #check if username is not already uesd
         if (User.objects.filter(username=req_data['username']).exists() or
                 Trainer.objects.filter(username=req_data['username']).exists() or 
                 Admin.objects.filter(username=req_data['username']).exists()):
@@ -821,6 +830,7 @@ class ChangeUsernameView(APIView):
             }
             return Response(data)
 
+        #change username
         user.username = req_data['username']
         user.save(force_update=True)
         #creating tokens
@@ -852,6 +862,7 @@ class ChangePasswordView(APIView):
             return Response(data)
 
         info = token['info']
+        #get correct user
         if info['account_type'] == 'user':
             user = User.objects.get(username=info['username'])
         elif info['account_type'] == 'trainer':
@@ -859,10 +870,12 @@ class ChangePasswordView(APIView):
         elif info['account_type'] == 'admin':
             user = Admin.objects.get(username=info['username'])
 
+        #logout on all devices
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         if not response.data.get('success'):
             return response
 
+        #check password
         if not check_password(user.username, req_data['password']) == info['account_type']:
             data = {
                 'success': False,
@@ -871,6 +884,7 @@ class ChangePasswordView(APIView):
             }
             return Response(data)
 
+        #change password
         user.password = str(hashlib.sha3_256(req_data["new_password"].encode('utf8')).hexdigest())
         user.save(force_update=True)
         #creating tokens
@@ -903,6 +917,7 @@ class ChangeAvatarView(APIView):
 
         info = token['info']
 
+        #check if it is a user
         if not info['account_type'] == 'user':
             data = {
                 'success': False,
@@ -922,6 +937,7 @@ class ChangeAvatarView(APIView):
                 'data': {}
             }
             return Response(data)
+        #chaneg avatar
         user.avatar = a
         user.save(force_update=True)
         data = {
@@ -946,6 +962,7 @@ class GetProfileView(APIView):
             return Response(data)
 
         info = token['info']
+        #check if it is a user
         if not info['account_type'] == 'user':
             data = {
                     'success': False,
@@ -955,6 +972,7 @@ class GetProfileView(APIView):
             return Response(data)
 
         user = User.objects.get(username=info['username'])
+        #get profile data
         data = {
             'success': True,
             'description': 'Returning profile data',
@@ -987,7 +1005,9 @@ class GetTrainerContactView(APIView):
             }
             return Response(data)
         user = User.objects.get(username=info['username'])
+        #get trainer of user
         trainer = user.trainer
+        #get contact data of the trainer
         data = {
             'success': True,
             'description': 'Returning contact data of trainer',
@@ -1021,10 +1041,12 @@ class SetTrainerLocationView(APIView):
             return Response(data)
 
         trainer = Trainer.objects.get(username=info['username'])
+        #create or get location
         if not Location.objects.filter(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add']).exists():
             loc = Location.objects.create(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
         else:
             loc = Location.objects.get(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
+        #change location
         trainer.location = loc
         trainer.save(force_update=True)
         data = {
@@ -1060,6 +1082,7 @@ class ChangeTrainerTelephoneView(APIView):
             return Response(data)
             
         trainer = Trainer.objects.get(username=info['username'])
+        #change telephone number
         trainer.telephone = req_data['telephone']
         trainer.save(force_update=True)
         data = {
@@ -1095,6 +1118,7 @@ class ChangeTrainerAcademiaView(APIView):
             return Response(data)
             
         trainer = Trainer.objects.get(username=info['username'])
+        #change academia
         trainer.academia = req_data['academia']
         trainer.save(force_update=True)
         data = {
@@ -1121,6 +1145,7 @@ class ChangeMotovationView(APIView):
 
         info = token['info']
 
+        #check if request by user
         if not info['account_type'] == 'user':
             data = {
                 'success': False,
@@ -1131,6 +1156,7 @@ class ChangeMotovationView(APIView):
 
         user = User.objects.get(username=info['username'])
 
+        #change motivation
         user.motivation = req_data['motivation']
         user.save(force_update=True)
         data = {
