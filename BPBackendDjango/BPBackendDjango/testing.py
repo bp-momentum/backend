@@ -1,7 +1,7 @@
 from urllib import request
 from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
-from .Views.userviews import ChangePasswordView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import ChangeAvatarView, ChangePasswordView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
@@ -279,3 +279,15 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         user1 = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.password, str(hashlib.sha3_256('neue1234'.encode('utf8')).hexdigest()))
+
+    def test_change_avatar(self):
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'avatar': 1})
+        response = ChangeAvatarView.post(ChangeAvatarView, request)
+        self.assertTrue(response.data.get('success'))
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        self.assertEqual(trainer.avatar, 1)
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'avatar': 2})
+        response = ChangeAvatarView.post(ChangeAvatarView, request)
+        self.assertTrue(response.data.get('success'))
+        user1 = User.objects.get(id=self.user1_id)
+        self.assertEqual(user1.avatar, 2)
