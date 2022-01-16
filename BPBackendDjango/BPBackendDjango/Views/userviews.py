@@ -199,7 +199,7 @@ def get_trainer_contact(trainer):
         'name': str(trainer.academia + trainer.first_name + ' ' + trainer.last_name),
         'address': str(location),
         'telephone': trainer.telephone,
-        'email': trainer.email_adress
+        'email': trainer.email_address
     }
 
 class RegisterView(APIView):
