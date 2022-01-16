@@ -907,8 +907,8 @@ class ChangeAvatarView(APIView):
                 'data': {}
             }
             return Response(data)
-            
-        user = User.objects.get(info['username'])
+
+        user = User.objects.get(username=info['username'])
 
         a = int(req_data['avatar'])
         #checking if number is small enough to fit in data base
