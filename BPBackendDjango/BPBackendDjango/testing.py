@@ -278,4 +278,4 @@ class ProfileTestCase(TestCase):
         response = ChangePasswordView.post(ChangePasswordView, request)
         self.assertTrue(response.data.get('success'))
         user1 = User.objects.get(id=self.user1_id)
-        self.assertEqual(user1.username, str(hashlib.sha3_256('neue1234'.encode('utf8')).hexdigest()))
+        self.assertEqual(user1.password, str(hashlib.sha3_256('neue1234'.encode('utf8')).hexdigest()))
