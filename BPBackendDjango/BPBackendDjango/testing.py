@@ -1,7 +1,7 @@
 from urllib import request
 from django.test import TestCase
 from .Helperclasses.fortests import ViewSupport
-from .Views.userviews import ChangeAvatarView, ChangePasswordView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import ChangeAvatarView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
@@ -291,3 +291,42 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         user1 = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.avatar, 2)
+
+    def test_profile_data(self):
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = GetProfileView.get(GetProfileView, request)
+        self.assertTrue(response.data.get('success'))
+        user2 = User.objects.get(id=self.user2_id)
+        self.assertEqual(user2.username, response.data.get('data').get('username'))
+        self.assertEqual(user2.avatar, response.data.get('data').get('avatar'))
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'telephone': '015712251102'})
+        response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
+        self.assertTrue(response.data.get('success'))
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        self.assertEqual(trainer.telephone, '015712251102')
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'academia': 'dr. nat '})
+        response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
+        self.assertTrue(response.data.get('success'))
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        self.assertEqual(trainer.academia, 'dr. nat ')
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {
+            'street': 'Straße',
+            'house_nr': '4',
+            'postal_code': '64287',
+            'city': 'Darmstadt',
+            'country': 'Deutschland',
+            'address_add': ''
+            })
+        response = SetTrainerLocationView.post(SetTrainerLocationView, request)
+        self.assertTrue(response.data.get('success'))
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        loc = Location.objects.get()
+        self.assertEqual(trainer.location, loc)
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetTrainerContactView.get(GetTrainerContactView, request)
+        self.assertTrue(response.data.get('success'))
+        user1 = User.objects.get(id=self.user1_id)
+        self.assertEqual(response.data.get('data').get('name'), 'dr. nat Erik Prescher')
+        self.assertEqual(response.data.get('data').get('location'), 'Straße 4, 64287 Darmstadt, Deutschland')
+        self.assertEqual(user1.telephone, response.data.get('data').get('telephone'))
+        self.assertEqual(user1.email_address, response.data.get('data').get('email'))
