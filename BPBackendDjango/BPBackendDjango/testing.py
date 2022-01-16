@@ -250,10 +250,10 @@ class ProfileTestCase(TestCase):
 
     def test_change_username(self):
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'username': 'neuerName'})
-        response = ChangeUsernameView(ChangeUsernameView, request)
+        response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEqual(self.trainer.username, 'neuerName')
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'coolerName'})
-        response = ChangeUsernameView(ChangeUsernameView, request)
+        response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEqual(self.user1.username, 'coolerName')
