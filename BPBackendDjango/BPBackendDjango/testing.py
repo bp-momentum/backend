@@ -327,6 +327,6 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         user1 = User.objects.get(id=self.user1_id)
         self.assertEqual(response.data.get('data').get('name'), 'dr. nat Erik Prescher')
-        self.assertEqual(response.data.get('data').get('location'), 'Straße 4, 64287 Darmstadt, Deutschland')
+        self.assertEqual(response.data.get('data').get('address'), 'Straße 4, 64287 Darmstadt, Deutschland')
         self.assertEqual(user1.telephone, response.data.get('data').get('telephone'))
         self.assertEqual(user1.email_address, response.data.get('data').get('email'))
