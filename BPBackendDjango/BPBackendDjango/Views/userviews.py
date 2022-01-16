@@ -899,6 +899,15 @@ class ChangeAvatarView(APIView):
             return Response(data)
 
         info = token['info']
+
+        if not info['account_type'] == 'user':
+            data = {
+                'success': False,
+                'description': 'Only users can change their avatar',
+                'data': {}
+            }
+            return Response(data)
+            
         user = User.objects.get(info['username'])
 
         a = int(req_data['avatar'])
