@@ -188,6 +188,7 @@ def get_profile_data(user):
     return {
         'username': user.username,
         'avatar': user.avatar,
+        'since': 'not implemented yet',
         'motivation': 'not implemented yet'
     }
 
@@ -1096,7 +1097,7 @@ class ChangeTrainerAcademiaView(APIView):
         trainer.save(force_update=True)
         data = {
             'success': True,
-            'description': 'Location updated',
+            'description': 'Academia updated',
             'data': {}
         }
         return Response(data)
