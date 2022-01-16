@@ -13,7 +13,7 @@ class Location(models.Model):
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
     password = models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
@@ -55,7 +55,7 @@ class ExerciseInPlan(models.Model):
 class User(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
@@ -83,7 +83,7 @@ class DoneExercises(models.Model):
 class Admin(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
     password = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="english")
