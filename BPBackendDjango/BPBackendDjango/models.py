@@ -23,6 +23,10 @@ class Trainer(models.Model):
     academia = models.CharField(max_length=128, default='')
     telephone = models.CharField(max_length=32, default='')
 
+    def set_username(self, username):
+        self.username = username
+        self.save(update_fields=['username'], force_update=True)
+
 class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
@@ -64,6 +68,10 @@ class User(models.Model):
     xp = models.BigIntegerField(default=0)
     avatar = models.IntegerField(max_length=5, default=0)
 
+    def set_username(self, username):
+        self.username = username
+        self.save(update_fields=['username'], force_update=True)
+
 
 class DoneExercises(models.Model):
     exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.CASCADE)
@@ -80,6 +88,10 @@ class Admin(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="english")
     token_date = models.BigIntegerField(default=0)
+
+    def set_username(self, username):
+        self.username = username
+        self.save(update_fields=['username'], force_update=True)
 
 
 class Friends(models.Model):
