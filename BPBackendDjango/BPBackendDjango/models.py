@@ -61,9 +61,11 @@ class User(models.Model):
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
     token_date = models.BigIntegerField(default=0)
     last_login = models.CharField(max_length=10, null=True)
+    first_login = models.CharField(max_length=10, editable=False)
     streak = models.IntegerField(default=0)
     xp = models.BigIntegerField(default=0)
     avatar = models.IntegerField(max_length=5, default=0)
+    motivation = models.TextField(max_length=1000, default='')
 
 
 class DoneExercises(models.Model):
