@@ -124,7 +124,6 @@ def get_trainers_data(trainers):
         })
     return data
 
-
 def streak(user):
     now = datetime.datetime.now()
     year = now.year
@@ -188,8 +187,8 @@ def get_profile_data(user):
     return {
         'username': user.username,
         'avatar': user.avatar,
-        'since': 'not implemented yet',
-        'motivation': 'not implemented yet'
+        'first_login': user.first_login,
+        'motivation': user.motivation
     }
 
 def get_trainer_contact(trainer):
@@ -223,6 +222,9 @@ class RegisterView(APIView):
         if token["info"]["create_account_type"] == "user":
             trainer_id = Trainer.objects.get(username=token["info"]["initiator"]).id
             req_data["trainer"] = trainer_id
+            today = datetime.datetime.now()
+            first_login = get_string_of_date(today.day, today.month, today.year)
+            req_data['first_login'] = first_login
             serializer = CreateUserSerializer(data=req_data)
         
         elif token["info"]["create_account_type"] == "trainer":
@@ -1098,6 +1100,42 @@ class ChangeTrainerAcademiaView(APIView):
         data = {
             'success': True,
             'description': 'Academia updated',
+            'data': {}
+        }
+        return Response(data)
+
+
+class ChangeMotovationView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not info['account_type'] == 'user':
+            data = {
+                'success': False,
+                'description': 'Only users can change their motivation',
+                'data': {}
+            }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+
+        user.motivation = req_data['motivation']
+        user.save(force_update=True)
+        data = {
+            'success': True,
+            'description': 'Motivation changed',
             'data': {}
         }
         return Response(data)
