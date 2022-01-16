@@ -292,6 +292,13 @@ class ProfileTestCase(TestCase):
         user1 = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.avatar, 2)
 
+    def test_change_motivation(self):
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
+        response = ChangeAvatarView.post(ChangeAvatarView, request)
+        self.assertTrue(response.data.get('success'))
+        user2 = User.objects.get(id=self.user2_id)
+        self.assertEqual(user2.motivation, 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn')
+
     def test_profile_data(self):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetProfileView.get(GetProfileView, request)
