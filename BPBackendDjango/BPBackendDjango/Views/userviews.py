@@ -802,11 +802,11 @@ class ChangeUsernameView(APIView):
         info = token['info']
 
         if info['account_type'] == 'user':
-            user = User.objects.get(info['username'])
+            user = User.objects.get(username=info['username'])
         elif info['account_type'] == 'trainer':
-            user = Trainer.objects.get(info['username'])
+            user = Trainer.objects.get(username=info['username'])
         elif info['account_type'] == 'admin':
-            user = Admin.objects.get(info['username'])
+            user = Admin.objects.get(username=info['username'])
 
         if (User.objects.filter(username=req_data['username']).exists() or
                 Trainer.objects.filter(username=req_data['username']).exists() or 
@@ -850,11 +850,11 @@ class ChangePasswordView(APIView):
 
         info = token['info']
         if info['account_type'] == 'user':
-            user = User.objects.get(info['username'])
+            user = User.objects.get(username=info['username'])
         elif info['account_type'] == 'trainer':
-            user = Trainer.objects.get(info['username'])
+            user = Trainer.objects.get(username=info['username'])
         elif info['account_type'] == 'admin':
-            user = Admin.objects.get(info['username'])
+            user = Admin.objects.get(username=info['username'])
 
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         if not response.data.get('success'):
