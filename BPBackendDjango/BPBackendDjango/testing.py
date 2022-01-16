@@ -239,21 +239,25 @@ class ProfileTestCase(TestCase):
     def setUp(self) -> None:
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
         trainer = Trainer.objects.get(first_name="Erik")
-        self.trainer = trainer
+        self.trainer_id = trainer.id
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
         User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
-        self.user1 = User.objects.get(first_name='Erik')
-        self.user2 = User.objects.get(first_name='Jannis')
-        self.token1 = JwToken.create_session_token(self.trainer.username, 'trainer')
-        self.token2 = JwToken.create_session_token(self.user1.username, 'user')
-        self.token3 = JwToken.create_session_token(self.user2.username, 'user')
+        user1 = User.objects.get(first_name='Erik')
+        user2 = User.objects.get(first_name='Jannis')
+        self.user1_id = user1.id
+        self.user2_id = user2.id
+        self.token1 = JwToken.create_session_token(trainer.username, 'trainer')
+        self.token2 = JwToken.create_session_token(user1.username, 'user')
+        self.token3 = JwToken.create_session_token(user2.username, 'user')
 
     def test_change_username(self):
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'username': 'neuerName'})
         response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEqual(self.trainer.username, 'neuerName')
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        self.assertEqual(trainer.username, 'neuerName')
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'coolerName'})
         response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEqual(self.user1.username, 'coolerName')
+        user1 = User.objects.get(id=self.user1_id)
+        self.assertEqual(user1.username, 'coolerName')
