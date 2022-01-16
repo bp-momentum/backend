@@ -23,9 +23,6 @@ class Trainer(models.Model):
     academia = models.CharField(max_length=128, default='')
     telephone = models.CharField(max_length=32, default='')
 
-    def set_username(self, username):
-        self.username = username
-        self.save(force_update=True)
 
 class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)

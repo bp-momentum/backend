@@ -818,7 +818,8 @@ class ChangeUsernameView(APIView):
             }
             return Response(data)
 
-        user.set_username(username=req_data['username'])
+        user.username = req_data['username']
+        user.save(force_update=True)
         #creating tokens
         session_token = JwToken.create_session_token(req_data['username'], info["account_type"])
         refresh_token = JwToken.create_refresh_token(req_data['username'], info["account_type"], True)
