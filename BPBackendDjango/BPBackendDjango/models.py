@@ -26,6 +26,7 @@ class Trainer(models.Model):
     def set_username(self, username):
         self.username = username
         self.save(update_fields=['username'], force_update=True)
+        print('test')
 
 class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
