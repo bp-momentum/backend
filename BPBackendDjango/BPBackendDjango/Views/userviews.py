@@ -110,7 +110,8 @@ def get_users_data_for_upper(users):
             'id': user.id,
             'username': user.username,
             'plan': plan_id,
-            'done_exercises': perc_done
+            'done_exercises': perc_done,
+            'last_login': user.last_login
         })
     return data
 
@@ -120,7 +121,8 @@ def get_trainers_data(trainers):
     for trainer in trainers:
         data.append({
             'id': trainer.id,
-            'username': trainer.username
+            'username': trainer.username,
+            'last_login': trainer.last_login
         })
     return data
 
@@ -141,7 +143,14 @@ def streak(user):
             day = get_lastday_of_month(month)
     yesterday = get_string_of_date(day, month, year)
     if not User.objects.filter(username=user).exists():
-        return
+        #if its trainer only set last login
+        if not Trainer.objects.filter(username=user).exists():
+            return
+        else:
+            t = Trainer.objects.get(username=user)
+            t.last_login = today
+            t.save(force_update=True)
+            return
     u = User.objects.get(username=user)
     last_login = u.last_login
     if last_login == today:

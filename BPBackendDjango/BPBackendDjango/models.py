@@ -10,6 +10,7 @@ class Trainer(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="english")
     token_date = models.BigIntegerField(default=0)
+    last_login = models.CharField(max_length=10, null=True)
 
 class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
