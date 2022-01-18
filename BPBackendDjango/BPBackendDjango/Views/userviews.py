@@ -1,3 +1,4 @@
+import email
 from django.db.models.query_utils import refs_expression
 from django.shortcuts import render
 from rest_framework.views import APIView
@@ -126,6 +127,15 @@ def get_trainers_data(trainers):
         })
     return data
 
+def get_invited_data(open_tokens):
+    data = []
+    for ot in open_tokens:
+        data.append({
+            'id': ot.id,
+            'first_name': ot.first_name,
+            'last_name': ot.last_name,
+            'valid': ot.valid
+        })
 
 def streak(user):
     now = datetime.datetime.now()
@@ -200,7 +210,7 @@ class RegisterView(APIView):
         req_data['password'] = str(hashlib.sha3_256(req_data["password"].encode('utf8')).hexdigest())
         token = JwToken.check_new_user_token(request.data['new_user_token'])
         #check if token is valid
-        if not token["valid"]:
+        if (not token["valid"]) or (not OpenToken.objects.filter(token=req_data['new_usertoken'], valid=True).exists()):
             data = {
                 'success': False,
                 'description': 'Token is not valid',
@@ -257,6 +267,7 @@ class RegisterView(APIView):
                         }
                     }
 
+                OpenToken.objects.filter(token=req_data['new_usertoken'], valid=True).delete()
                 streak(req_data['username'])
 
                 return Response(data)
@@ -290,6 +301,8 @@ class CreateUserView(APIView):
                 }
 
             return Response(data)
+        #create data base entry
+        OpenToken.objects.create(token=new_user_token, email=req_data['email_address'], first_name=req_data['first_name'], last_name=req_data['last_name'], creator=info['username'])
         #create and send mail
         html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
@@ -776,3 +789,64 @@ class GetUserLevelView(APIView):
                 }
             }
         return Response(data) 
+
+
+class GetInvitedView(APIView):
+    def get(self, request, *args, **kwargs):
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        open_tokens = OpenToken.objects.filter(creator=info['username'])
+        invites = get_invited_data(open_tokens)
+        data = {
+            'success': True,
+            'description': 'Returning created invites',
+            'data': {
+                'invited': invites
+            }
+        }
+        return Response(data)
+
+
+class InvalidateInviteView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not OpenToken.objects.filter(id=req_data['id'], creator=info['username']):
+            data = {
+                'success': False,
+                'description': 'Invalid invite or not allowed to invalidate',
+                'data': {}
+            }
+            return Response(data)
+
+        ot = OpenToken.objects.get(id=req_data['id'], creator=info['username'])
+        ot.valid = False
+        ot.save(force_update=True)
+        data = {
+            'success': True,
+            'description': 'Token invalidated',
+            'data': {}
+        }
+        return Response(data)

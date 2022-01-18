@@ -95,3 +95,10 @@ class Leaderboard(models.Model):
         indexes = [models.Index(fields=["-score"])]
 
 
+class OpenToken(models.Model):
+    token = models.CharField(max_length=255)
+    email = models.CharField(max_length=255)
+    valid = models.BooleanField(default=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    creator = models.CharField(max_length=50)

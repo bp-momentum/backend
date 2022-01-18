@@ -39,6 +39,8 @@ urlpatterns = [
     path('api/deletetrainer', DeleteTrainerView.as_view(), name='deleteTrainer'),
     path('api/deleteuser', DeleteUserView.as_view(), name='deleteUser'),
     path('api/getuserlevel', GetUserLevelView.as_view(), name='GetUserLevel'),
+    path('api/getinvited', GetInvitedView.as_view(), name='getInvited'),
+    path('api/invalidateinvite', InvalidateInviteView.as_view, name='invalidateInvite'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
