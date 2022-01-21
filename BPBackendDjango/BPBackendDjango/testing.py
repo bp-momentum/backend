@@ -1,5 +1,7 @@
 from urllib import request
 from django.test import TestCase
+
+from BPBackendDjango.BPBackendDjango.Views.exerciseviews import GetDoneExercisesOfMonthView
 from .Helperclasses.fortests import ViewSupport
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
@@ -7,6 +9,8 @@ from .models import *
 from .Helperclasses.jwttoken import JwToken
 from .Views.achievementviews import GetAchievementsView
 import hashlib
+import time
+import datetime
 
 class UserTestCase(TestCase):
     trainer_id = 1
@@ -339,3 +343,25 @@ class ProfileTestCase(TestCase):
         self.assertEqual(response.data.get('data').get('address'), 'Straße 4, 64287 Darmstadt, Deutschland')
         self.assertEqual(trainer.telephone, response.data.get('data').get('telephone'))
         self.assertEqual(trainer.email_address, response.data.get('data').get('email'))
+
+    def test_done_exercises_of_month(self):
+        ex = Exercise.objects.create(title='Kniebeuge')
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        plan = TrainingSchedule.objects.create(trainer=trainer)
+        exip = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan)
+        user = User.objects.get(id=self.user1_id)
+        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=time.time())
+        now = datetime.datetime.now()
+        result = [{
+            "exercise_plan_id": dex.exercise.id,
+            "id": dex.exercise.exercise.id,
+            "date": dex.date,
+            "points": dex.points
+        }]
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {
+            'year': now.year,
+            'month': now.month
+        })
+        response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('done'), result)
