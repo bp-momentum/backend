@@ -5,8 +5,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 import json
 
-from .userviews import get_lastday_of_month
-
 from ..Helperclasses.ai import DummyAI
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
@@ -35,7 +33,23 @@ def get_correct_description(username, description):
         return "description not available in "+lang
     return res
 
-
+def get_lastday_of_month(m, y):
+    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
+        return 31
+    elif m == 4 or m == 6 or m == 9 or m == 11:
+        return 30
+    elif m == 2:
+        if y % 400 == 0:
+            return 29
+        elif y % 100 == 0:
+            return 28
+        elif y % 4 == 0:
+            return 29
+        else:
+            return 28
+    else:
+        return -1
+        
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
