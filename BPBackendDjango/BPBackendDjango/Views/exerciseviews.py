@@ -49,7 +49,7 @@ def get_lastday_of_month(m, y):
             return 28
     else:
         return -1
-        
+
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -310,7 +310,7 @@ class GetDoneExercisesOfMonthView(APIView):
         month_offset = 0
         for i in range(month-1):
             month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
-        next_month_offset = month_offset + get_lastday_of_month(month) * SECS_PER_DAY
+        next_month_offset = month_offset + get_lastday_of_month(month, year) * SECS_PER_DAY
         offset_gt = year_offset + month_offset - 3600
         offset_lt = year_offset + next_month_offset - 3600
         done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt)
