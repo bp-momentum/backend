@@ -350,7 +350,7 @@ class ProfileTestCase(TestCase):
         plan = TrainingSchedule.objects.create(trainer=trainer)
         exip = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan)
         user = User.objects.get(id=self.user1_id)
-        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=time.time())
+        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
         now = datetime.datetime.now()
         result = [{
             "exercise_plan_id": dex.exercise.id,
