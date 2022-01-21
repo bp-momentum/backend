@@ -54,6 +54,7 @@ urlpatterns = [
     path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList'),
     path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise'),
     path('api/getdoneexercises', GetDoneExercisesView.as_view(), name='getdoneExercise'),
+    path('api/getdoneexercisesinmonth', GetDoneExercisesOfMonthView.as_view(), name='getDoneExercisesInMonth'),
     #plans
     path('api/createplan', CreatePlanView.as_view(), name='createPlan'),
     path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),

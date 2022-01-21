@@ -5,11 +5,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 import json
 
+from .userviews import get_lastday_of_month
+
 from ..Helperclasses.ai import DummyAI
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 
 MAX_POINTS = 100
+SECS_PER_YEAR = 31556952
+SECS_PER_DAY = 86400
 
 def user_needs_ex(username, id):
     #TODO user needs exercise
@@ -285,11 +289,56 @@ class GetDoneExercisesView(APIView):
         return Response(data)
 
 
+class GetDoneExercisesOfMonthView(APIView):
 
+    def get_done_exercises_of_month(month, year, user):
+        year_offset = (year-1970)*SECS_PER_YEAR
+        month_offset = 0
+        for i in range(month-1):
+            month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
+        next_month_offset = month_offset + get_lastday_of_month(month) * SECS_PER_DAY
+        offset_gt = year_offset + month_offset - 3600
+        offset_lt = year_offset + next_month_offset - 3600
+        done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt)
+        # list of all exercises to done
+        all = ExerciseInPlan.objects.filter(plan=user.plan)
+        out = []
+        for d in done:
+            out.append({
+                "exercise_plan_id": d.exercise.id,
+                "id": d.exercise.exercise.id,
+                "date": d.date,
+                "points": d.points
+            })
+        return out
 
-
-
-
-
-
-
+    def post(self, request, *args, **kwargs):
+        req_data = dict(request.data)
+        #check session token
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+        info = token['info']
+        if info['account_type'] == 'user':
+            user = User.objects.get(username=info['username'])
+        else:
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+            }
+            return Response(data)
+        done = self.get_done_exercises_of_month(month=int(req_data['month']), year=int(req_data['year']), user=user)
+        data = {
+            'success': True,
+            'description': 'Returning exercises done in this month',
+            'data': {
+                'done': done
+            }
+        }
+        return Response(data)
