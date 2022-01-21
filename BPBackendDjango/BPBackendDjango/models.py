@@ -96,7 +96,7 @@ class Leaderboard(models.Model):
 
 
 class OpenToken(models.Model):
-    token = models.CharField(max_length=255)
+    token = models.CharField(max_length=512)
     email = models.CharField(max_length=255)
     valid = models.BooleanField(default=True)
     first_name = models.CharField(max_length=100)
