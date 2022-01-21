@@ -754,6 +754,7 @@ class DeleteUserView(APIView):
             'data': {}
         }
         return Response(data)
+
            
 class GetUserLevelView(APIView):
     def post(self, request, *args, **kwargs):
