@@ -1,7 +1,7 @@
 from urllib import request
 from django.test import TestCase
 
-from BPBackendDjango.BPBackendDjango.Views.exerciseviews import GetDoneExercisesOfMonthView
+from .Views.exerciseviews import GetDoneExercisesOfMonthView
 from .Helperclasses.fortests import ViewSupport
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
