@@ -11,9 +11,9 @@ def add_plan_to_user(username, plan):
     if not User.objects.filter(username=username).exists():
         return "user_invalid"
     #checks if plan exists
-    if not TrainingSchedule.objects.filter(id=int(plan)).exists():
-        if plan != None:
-            return "plan_invalid"
+    if plan != None:
+        if not TrainingSchedule.objects.filter(id=int(plan)).exists():
+                return "plan_invalid"
     #assign plan to user
     user = User.objects.get(username=username)
     if plan == None:
