@@ -12,11 +12,15 @@ def add_plan_to_user(username, plan):
     if not User.objects.filter(username=username).exists():
         return "user_invalid"
     #checks if plan exists
-    if not TrainingSchedule.objects.filter(id=plan).exists():
-        return "plan_invalid"
+    if plan != None:
+        if not TrainingSchedule.objects.filter(id=int(plan)).exists():
+                return "plan_invalid"
     #assign plan to user
     user = User.objects.get(username=username)
-    ts = TrainingSchedule.objects.get(id=plan)
+    if plan == None:
+        ts = None
+    else:
+        ts = TrainingSchedule.objects.get(id=int(plan))
     user.plan = ts
     user.save(force_update=True)
     return "success"
@@ -239,7 +243,7 @@ class AddPlanToUserView(APIView):
                 }
             return Response(data)
 
-        res = add_plan_to_user(username=req_data['user'], plan=int(req_data['plan']))
+        res = add_plan_to_user(username=req_data['user'], plan=req_data['plan'])
 
         #checks whether assigning was successful
         if res == "user_invalid":
