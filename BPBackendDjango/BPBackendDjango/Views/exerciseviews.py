@@ -50,6 +50,27 @@ def get_lastday_of_month(m, y):
     else:
         return -1
 
+def get_done_exercises_of_month(month, year, user):
+        year_offset = (year-1970)*SECS_PER_YEAR
+        month_offset = 0
+        for i in range(month-1):
+            month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
+        next_month_offset = month_offset + get_lastday_of_month(month, year) * SECS_PER_DAY
+        offset_gt = year_offset + month_offset - 3600
+        offset_lt = year_offset + next_month_offset - 3600
+        done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt)
+        # list of all exercises to done
+        all = ExerciseInPlan.objects.filter(plan=user.plan)
+        out = []
+        for d in done:
+            out.append({
+                "exercise_plan_id": d.exercise.id,
+                "id": d.exercise.exercise.id,
+                "date": d.date,
+                "points": d.points
+            })
+        return out
+
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
@@ -305,27 +326,6 @@ class GetDoneExercisesView(APIView):
 
 class GetDoneExercisesOfMonthView(APIView):
 
-    def get_done_exercises_of_month(self, month, year, user):
-        year_offset = (year-1970)*SECS_PER_YEAR
-        month_offset = 0
-        for i in range(month-1):
-            month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
-        next_month_offset = month_offset + get_lastday_of_month(month, year) * SECS_PER_DAY
-        offset_gt = year_offset + month_offset - 3600
-        offset_lt = year_offset + next_month_offset - 3600
-        done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt)
-        # list of all exercises to done
-        all = ExerciseInPlan.objects.filter(plan=user.plan)
-        out = []
-        for d in done:
-            out.append({
-                "exercise_plan_id": d.exercise.id,
-                "id": d.exercise.exercise.id,
-                "date": d.date,
-                "points": d.points
-            })
-        return out
-
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
         #check session token
@@ -347,7 +347,7 @@ class GetDoneExercisesOfMonthView(APIView):
                 'data': {}
             }
             return Response(data)
-        done = self.get_done_exercises_of_month(self, month=int(req_data['month']), year=int(req_data['year']), user=user)
+        done = get_done_exercises_of_month(int(req_data['month']), int(req_data['year']), user)
         data = {
             'success': True,
             'description': 'Returning exercises done in this month',
