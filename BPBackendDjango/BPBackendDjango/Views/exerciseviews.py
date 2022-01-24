@@ -305,7 +305,7 @@ class GetDoneExercisesView(APIView):
 
 class GetDoneExercisesOfMonthView(APIView):
 
-    def get_done_exercises_of_month(month, year, user):
+    def get_done_exercises_of_month(self, month, year, user):
         year_offset = (year-1970)*SECS_PER_YEAR
         month_offset = 0
         for i in range(month-1):
