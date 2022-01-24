@@ -347,7 +347,7 @@ class GetDoneExercisesOfMonthView(APIView):
                 'data': {}
             }
             return Response(data)
-        done = self.get_done_exercises_of_month(month=int(req_data['month']), year=int(req_data['year']), user=user)
+        done = self.get_done_exercises_of_month(self, month=int(req_data['month']), year=int(req_data['year']), user=user)
         data = {
             'success': True,
             'description': 'Returning exercises done in this month',
