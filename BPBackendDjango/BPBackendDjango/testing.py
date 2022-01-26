@@ -369,8 +369,8 @@ class TestExerciseView(TestCase):
     admin_token = None
 
     def setUp(self):
-        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
-        Exercise.objects.create(title='Liegestütze', description="Mache Liegestütze", activated=False)
+        Exercise.objects.create(title='Kniebeuge', description='{"german": "Gehe in die Knie, achte...", "english": "Do squats..."}')
+        Exercise.objects.create(title='Liegestütze', description='{"german": "Mache Liegestütze...", "english": "Do pushups..."}', activated=False)
         self.ex_id = Exercise.objects.get(title='Kniebeuge').id
 
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
@@ -391,7 +391,7 @@ class TestExerciseView(TestCase):
         self.assertTrue(response.data.get('success'))
         data = response.data.get('data')
         self.assertEquals(data.get('title'), 'Kniebeuge')
-        self.assertEquals(data.get('description'), "Gehe in die Knie, achte...")
+        self.assertEquals(data.get('description'), "Do squats...")
         self.assertEquals(data.get('video'), None)
         self.assertEquals(data.get('activated'), True)
         #invalid exercise
