@@ -23,6 +23,10 @@ INTERN_SETTINGS = {
     "email_smtp_server": "",
     "admin_username": "admin",
     "admin_password": "admin",
+    "trainer_username": "trainer",
+    "trainer_password": "trainer",
+    "user_username": "user",
+    "user_password": "user",
     "database": {
         "name": "bpws",
         "user": "admin",
@@ -75,6 +79,7 @@ CORS_ALLOWED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,7 +87,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'BPBackendDjango',
-    'corsheaders'
+    'corsheaders',
+    'ordered_model'
 ]
 
 MIDDLEWARE = [
@@ -115,7 +121,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'BPBackendDjango.wsgi.application'
-
+ASGI_APPLICATION = 'BPBackendDjango.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
