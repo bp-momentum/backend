@@ -335,11 +335,11 @@ class TestUserViews(TestCase):
 
     def test_auth(self):
         #correct
+        if self.user_refresh_token == None:
+            self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
         request = ViewSupport.setup_request({}, {
                 'refresh_token': self.user_refresh_token
             })
-        if self.user_refresh_token == None:
-            self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
         response = AuthView.post(AuthView, request)
         self.assertTrue(response.data.get('success'))
         #incorrect
@@ -356,8 +356,11 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertFalse(JwToken.check_refresh_token(self.user_refresh_token).get('valid')) #TODO failing
-
+        request = ViewSupport.setup_request({}, {
+                'refresh_token': self.user_refresh_token
+            })
+        response = AuthView.post(AuthView, request)
+        self.assertFalse(response.data.get('success'))
 
 #TODO edge cases/every case
 class TestExerciseView(TestCase):
