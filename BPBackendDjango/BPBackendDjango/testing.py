@@ -344,7 +344,7 @@ class TestUserViews(TestCase):
         self.assertTrue(response.data.get('success'))
         #incorrect
         request = ViewSupport.setup_request({}, {
-                'refresh_token': JwToken.create_refresh_token('DerTrainer', 'trainer', False)
+                'refresh_token': 'justsomeinvalidstuff'
             })
         response = AuthView.post(AuthView, request)
         self.assertFalse(response.data.get('success'))
