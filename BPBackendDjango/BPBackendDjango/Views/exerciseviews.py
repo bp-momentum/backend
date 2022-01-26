@@ -54,7 +54,8 @@ def get_done_exercises_of_month(month, year, user):
         year_offset = (year-1970)*SECS_PER_YEAR
         month_offset = 0
         for i in range(month-1):
-            month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
+            if i != 0:
+                month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
         next_month_offset = month_offset + get_lastday_of_month(month, year) * SECS_PER_DAY
         offset_gt = year_offset + month_offset - 3600
         offset_lt = year_offset + next_month_offset - 3600
@@ -70,6 +71,11 @@ def get_done_exercises_of_month(month, year, user):
                 "points": d.points
             })
         return out
+
+def valid_month(month):
+    if (month < 1) or (month > 12):
+        return False
+    return True
 
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
@@ -344,6 +350,13 @@ class GetDoneExercisesOfMonthView(APIView):
             data = {
                 'success': False,
                 'description': 'Not a user',
+                'data': {}
+            }
+            return Response(data)
+        if not valid_month(month=req_data['month']):
+            data = {
+                'success': False,
+                'description': 'invalid month',
                 'data': {}
             }
             return Response(data)
