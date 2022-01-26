@@ -509,6 +509,7 @@ class TestPlanView(TestCase):
         })
         response = AddPlanToUserView.post(AddPlanToUserView, request)
         self.assertTrue(response.data.get('success'))
+        user = User.objects.get(username='jbadV')
         self.assertEquals(user.plan.id, self.ts_id)
         #invalid user
         request = ViewSupport.setup_request({'Session-Token':  self.trainer_token}, {
