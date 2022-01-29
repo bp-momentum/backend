@@ -136,6 +136,7 @@ def get_invited_data(open_tokens):
             'last_name': ot.last_name,
             'valid': ot.valid
         })
+    return data
 
 def streak(user):
     now = datetime.datetime.now()
