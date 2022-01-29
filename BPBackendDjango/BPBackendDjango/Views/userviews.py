@@ -836,7 +836,7 @@ class InvalidateInviteView(APIView):
 
         info = token['info']
 
-        if not OpenToken.objects.filter(id=req_data['id'], creator=info['username']):
+        if not OpenToken.objects.filter(id=req_data['id'], creator=info['username']).exists():
             data = {
                 'success': False,
                 'description': 'Invalid invite or not allowed to invalidate',
