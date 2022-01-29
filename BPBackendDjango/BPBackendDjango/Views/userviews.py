@@ -134,6 +134,7 @@ def get_invited_data(open_tokens):
             'id': ot.id,
             'first_name': ot.first_name,
             'last_name': ot.last_name,
+            'email': ot.email,
             'valid': ot.valid
         })
     return data
