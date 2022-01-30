@@ -282,7 +282,7 @@ class CreateUserView(APIView):
 
             return Response(data)
         #create and send mail
-        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": info["account_type"], "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
+        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         addon = " "
         try:
@@ -292,14 +292,14 @@ class CreateUserView(APIView):
                      [req_data['email_address']], html_message=html_message)
 
         except:
-            addon = " not "
+            addon = " not"
         data = {
                 'success': True,
                 'description': 'email with invite was' + addon + ' sent',
                 'data': {
                     "new_user_token": new_user_token
                 }
-                }
+            }
 
         return Response(data)
 
