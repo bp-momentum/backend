@@ -254,11 +254,9 @@ class HandlingInvitesTestCase(TestCase):
     def test_invalidate(self):
         request = ViewSupport.setup_request({'Session-Token': self.token}, {'id': self.ot1.id})
         response = InvalidateInviteView.post(InvalidateInviteView, request)
-        ot = OpenToken.objects.get(id=self.ot1.id)
         self.assertTrue(response.data.get('success'))
-        self.assertFalse(ot.valid)
+        self.assertFalse(OpenToken.objects.filter(id=self.ot1.id).exists())
         request = ViewSupport.setup_request({'Session-Token': self.token}, {'id': self.ot2.id})
         response = InvalidateInviteView.post(InvalidateInviteView, request)
-        ot = OpenToken.objects.get(id=self.ot2.id)
         self.assertFalse(response.data.get('success'))
-        self.assertTrue(ot.valid)
+        self.assertTrue(OpenToken.objects.filter(id=self.ot2.id).exists())
