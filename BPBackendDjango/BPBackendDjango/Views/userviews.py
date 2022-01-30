@@ -134,8 +134,7 @@ def get_invited_data(open_tokens):
             'id': ot.id,
             'first_name': ot.first_name,
             'last_name': ot.last_name,
-            'email': ot.email,
-            'valid': ot.valid
+            'email': ot.email
         })
     return data
 
@@ -212,7 +211,7 @@ class RegisterView(APIView):
         req_data['password'] = str(hashlib.sha3_256(req_data["password"].encode('utf8')).hexdigest())
         token = JwToken.check_new_user_token(request.data['new_user_token'])
         #check if token is valid
-        if (not token["valid"]) or (not OpenToken.objects.filter(token=req_data['new_usertoken'], valid=True).exists()):
+        if (not token["valid"]) or (not OpenToken.objects.filter(token=req_data['new_usertoken']).exists()):
             data = {
                 'success': False,
                 'description': 'Token is not valid',
@@ -269,7 +268,7 @@ class RegisterView(APIView):
                         }
                     }
 
-                OpenToken.objects.filter(token=req_data['new_usertoken'], valid=True).delete()
+                OpenToken.objects.filter(token=req_data['new_usertoken']).delete()
                 streak(req_data['username'])
 
                 return Response(data)
@@ -844,9 +843,7 @@ class InvalidateInviteView(APIView):
             }
             return Response(data)
 
-        ot = OpenToken.objects.get(id=req_data['id'], creator=info['username'])
-        ot.valid = False
-        ot.save(force_update=True)
+        OpenToken.objects.filter(id=req_data['id'], creator=info['username']).delete()
         data = {
             'success': True,
             'description': 'Token invalidated',
