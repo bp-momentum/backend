@@ -1,7 +1,7 @@
 from urllib import request
 from django.test import TestCase
 
-from .Views.exerciseviews import GetDoneExercisesOfMonthView
+from .Views.exerciseviews import GetDoneExercisesOfMonthView, get_done_exercises_of_month
 from .Helperclasses.fortests import ViewSupport
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
@@ -352,12 +352,13 @@ class ProfileTestCase(TestCase):
         user = User.objects.get(id=self.user1_id)
         dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
         now = datetime.datetime.now()
-        result = [{
+        result = get_done_exercises_of_month(now.month, now.year, user)
+        '''[{
             "exercise_plan_id": dex.exercise.id,
             "id": dex.exercise.exercise.id,
             "date": dex.date,
             "points": dex.points
-        }]
+        }]'''
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
             'year': now.year,
             'month': now.month
