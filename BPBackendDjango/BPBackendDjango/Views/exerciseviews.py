@@ -54,10 +54,11 @@ def get_done_exercises_of_month(month, year, user):
         year_offset = (year-1970)*SECS_PER_YEAR
         month_offset = 0
         for i in range(month-1):
-            month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
+            if i != 0:
+                month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
         next_month_offset = month_offset + get_lastday_of_month(month, year) * SECS_PER_DAY
-        offset_gt = year_offset + month_offset - 3600
-        offset_lt = year_offset + next_month_offset - 3600
+        offset_gt = year_offset + month_offset
+        offset_lt = year_offset + next_month_offset
         done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt)
         # list of all exercises to done
         all = ExerciseInPlan.objects.filter(plan=user.plan)
