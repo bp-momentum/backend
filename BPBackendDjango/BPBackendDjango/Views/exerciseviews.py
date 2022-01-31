@@ -48,7 +48,7 @@ def get_lastday_of_month(m, y):
         else:
             return 28
     else:
-        return -1
+        return 0
 
 def get_done_exercises_of_month(month, year, user):
         year_offset = (year-1970)*SECS_PER_YEAR
