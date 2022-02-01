@@ -138,7 +138,7 @@ def streak(user):
             day = 31
         else:
             month = month - 1
-            day = get_lastday_of_month(month)
+            day = get_lastday_of_month(month, year)
     yesterday = get_string_of_date(day, month, year)
     if not User.objects.filter(username=user).exists():
         return
