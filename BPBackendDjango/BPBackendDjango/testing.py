@@ -1,5 +1,7 @@
 from django.http import request
 from django.test import TestCase
+
+from BPBackendDjango.BPBackendDjango.Views.leaderboardviews import ListLeaderboardView
 from .Helperclasses.fortests import ViewSupport
 from rest_framework import response
 from django.test.utils import setup_test_environment
@@ -353,7 +355,7 @@ class LevelTestCase(TestCase):
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertFalse(response.data.get('success'))
 
-#TODO register + create
+
 class TestUserViews(TestCase):
 
     trainer_id = 1
@@ -866,3 +868,65 @@ class TestPlanView(TestCase):
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertFalse(response.data.get('success'))
         self.assertTrue(TrainingSchedule.objects.filter(id=ts.id).exists())
+
+
+class TestLeaderboardView(TestCase):
+
+    trainer_id = None
+    trainer_token = None
+    user_token = None
+    users = []
+
+    def setUp(self) -> None:
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer_id = trainer.id
+        self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
+        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=self.trainers[0],password="pswd22")
+        self.users = User.objects.all()
+        score = 100
+        for user in self.users:
+            Leaderboard.objects.create(user=user, score=score)
+            if score == 300:
+                self.user_token = JwToken.create_session_token(user.username, 'user')
+            score+=100
+
+    def test_get(self):
+        #as trainer
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'count': 3})
+        response = ListLeaderboardView.post(ListLeaderboardView, request)
+        self.assertTrue(response.data.get('success'))
+        leaderboard = []
+        entry = User.objects.get(score=500)
+        leaderboard.append({"rank": 1, "username": entry.user.username, "score": entry.score})
+        entry = User.objects.get(score=400)
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score})
+        entry = User.objects.get(score=300)
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score})
+        self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
+        #as user
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'count': 3})
+        response = ListLeaderboardView.post(ListLeaderboardView, request)
+        self.assertTrue(response.data.get('success'))
+        leaderboard = []
+        entry = User.objects.get(score=400)
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score})
+        entry = User.objects.get(score=300)
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score})
+        entry = User.objects.get(score=200)
+        leaderboard.append({"rank": 4, "username": entry.user.username, "score": entry.score})
+        self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'count': 3})
+        response = ListLeaderboardView.post(ListLeaderboardView, request)
+        self.assertFalse(response.data.get('success'))
+
+#TODO
+class TestDoneExercise(TestCase):
+
+    def setUp(self) -> None:
+        return super().setUp()
