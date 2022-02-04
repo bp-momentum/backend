@@ -1,7 +1,7 @@
 from django.http import request
 from django.test import TestCase
 
-from BPBackendDjango.BPBackendDjango.Views.leaderboardviews import ListLeaderboardView
+from .Views.leaderboardviews import ListLeaderboardView
 from .Helperclasses.fortests import ViewSupport
 from rest_framework import response
 from django.test.utils import setup_test_environment
