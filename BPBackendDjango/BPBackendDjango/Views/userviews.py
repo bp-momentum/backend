@@ -266,7 +266,17 @@ class RegisterView(APIView):
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
         req_data = dict(request.data)
-        info = JwToken.check_session_token(request.headers["Session-Token"])["info"]
+        token = JwToken.check_session_token(request.headers["Session-Token"])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+
+        info = token["info"]
         
         #check account type and create new-user-token
         if info["account_type"] == "admin":
