@@ -303,6 +303,10 @@ class AchievementTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('achievements'), [])
         self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 0)
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetAchievementsView.get(GetAchievementsView, request)
+        self.assertFalse(response.data.get('success'))
 
 
 class LevelTestCase(TestCase):
