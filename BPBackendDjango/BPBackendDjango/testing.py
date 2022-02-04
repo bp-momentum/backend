@@ -786,3 +786,14 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': -1})
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertFalse(response.data.get('success'))
+        ts = TrainingSchedule.objects.create(name='delete_plan', trainer=Trainer.objects.get(id=self.trainer_id))
+        #user not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'id': ts.id})
+        response = DeletePlanView.post(DeletePlanView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(TrainingSchedule.objects.filter(id=ts.id).exists())
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'id': ts.id})
+        response = DeletePlanView.post(DeletePlanView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(TrainingSchedule.objects.filter(id=ts.id).exists())
