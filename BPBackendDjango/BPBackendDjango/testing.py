@@ -362,6 +362,8 @@ class TestUserViews(TestCase):
     user_token = None
     user_refresh_token = None
     admin_token = None
+    new_user_token = None
+    new_trainer_token = None
 
     def setUp(self):
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
