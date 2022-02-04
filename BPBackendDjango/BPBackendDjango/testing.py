@@ -930,5 +930,30 @@ class TestLeaderboardView(TestCase):
 #TODO
 class TestDoneExercise(TestCase):
 
+    trainer_id = 1
+    ex_id = 1
+    trainer_token = None
+    user_token = None
+    admin_token = None
+
     def setUp(self) -> None:
-        return super().setUp()
+        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.ex_id = Exercise.objects.create(title='Kniebeuge', description='{"german": "Gehe in die Knie, achte...", "english": "Do squats..."}')
+        ts = TrainingSchedule.objects.create(trainer=trainer)
+        ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex_id, plan=ts)
+        self.trainer_id = trainer.id
+        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
+        user = User.objects.get(first_name="Erik")
+        admin = Admin.objects.get(first_name="Erik")
+        self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
+        self.user_token = JwToken.create_session_token(user.username, 'user')
+        self.admin_token = JwToken.create_session_token(admin.username, 'admin')
+
+    def test_do_exercise(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_get_done(self):
+        #TODO
+        self.assertTrue(True)
