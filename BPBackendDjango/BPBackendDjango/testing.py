@@ -901,11 +901,11 @@ class TestLeaderboardView(TestCase):
         response = ListLeaderboardView.post(ListLeaderboardView, request)
         self.assertTrue(response.data.get('success'))
         leaderboard = []
-        entry = User.objects.get(score=500)
+        entry = Leaderboard.objects.get(score=500)
         leaderboard.append({"rank": 1, "username": entry.user.username, "score": entry.score})
-        entry = User.objects.get(score=400)
+        entry = Leaderboard.objects.get(score=400)
         leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score})
-        entry = User.objects.get(score=300)
+        entry = Leaderboard.objects.get(score=300)
         leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score})
         self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
         #as user
@@ -913,11 +913,11 @@ class TestLeaderboardView(TestCase):
         response = ListLeaderboardView.post(ListLeaderboardView, request)
         self.assertTrue(response.data.get('success'))
         leaderboard = []
-        entry = User.objects.get(score=400)
+        entry = Leaderboard.objects.get(score=400)
         leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score})
-        entry = User.objects.get(score=300)
+        entry = Leaderboard.objects.get(score=300)
         leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score})
-        entry = User.objects.get(score=200)
+        entry = Leaderboard.objects.get(score=200)
         leaderboard.append({"rank": 4, "username": entry.user.username, "score": entry.score})
         self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
         #invalid token
