@@ -391,6 +391,7 @@ class TestUserViews(TestCase):
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
         user = User.objects.get(first_name="Erik")
         self.user_id = user.id
+        self.user_token = JwToken.create_session_token(user.username, 'user')
 
     def test_login(self):
         #correct
@@ -420,8 +421,46 @@ class TestUserViews(TestCase):
         self.assertFalse(response.data.get('success'))
     
     def test_register(self):
-        #TODO
-        self.assertTrue(True)
+        #register user
+        if self.new_user_token == None:
+            trainer = Trainer.objects.get(id=self.trainer_id)
+            self.new_user_token = JwToken.create_new_user_token(trainer.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'user')
+        request = ViewSupport.setup_request({}, {
+            'username': 'jbad',
+            'password': '1234567890',
+            'new_user_token': self.new_user_token
+        })
+        response = RegisterView.post(RegisterView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(User.objects.filter(username='jbad').exists())
+        #not again possible
+        request = ViewSupport.setup_request({}, {
+            'username': 'jbad',
+            'password': '1234567890',
+            'new_user_token': self.new_user_token
+        })
+        response = RegisterView.post(RegisterView, request)
+        self.assertFalse(response.data.get('success'))
+        #register trainer
+        if self.new_user_token == None:
+            trainer = Trainer.objects.get(id=self.trainer_id)
+            self.new_user_token = JwToken.create_new_user_token(trainer.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'user')
+        request = ViewSupport.setup_request({}, {
+            'username': 'Notjbad',
+            'password': '1234567890',
+            'new_user_token': self.new_trainer_token
+        })
+        response = RegisterView.post(RegisterView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(Trainer.objects.filter(username='Notjbad').exists())
+        #invalid token
+        request = ViewSupport.setup_request({}, {
+            'username': 'againjbad',
+            'password': '1234567890',
+            'new_user_token': 'invalid'
+        })
+        response = RegisterView.post(RegisterView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_createUser(self):
         #create user
