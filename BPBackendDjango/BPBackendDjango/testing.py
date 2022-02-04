@@ -573,6 +573,40 @@ class TestPlanView(TestCase):
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data').get('plan_id'))).exists())
+        #user not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {
+            'name': 'test_plan',
+            'exercise': [{
+                "date": 'monday',
+                "sets": 4,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }, {
+                "date": 'wednesday',
+                "sets": 3,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }]
+        })
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
+            'name': 'test_plan',
+            'exercise': [{
+                "date": 'monday',
+                "sets": 4,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }, {
+                "date": 'wednesday',
+                "sets": 3,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }]
+        })
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_create_change(self):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
@@ -593,8 +627,43 @@ class TestPlanView(TestCase):
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data').get('plan_id'))).exists())
-        self.assertFalse(TrainingSchedule.objects.filter(id=self.ts_id).exists())
         self.ts_id = int(response.data.get('data').get('plan_id'))
+        #user not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {
+            'name': 'test_plan',
+            'exercise': [{
+                "date": 'monday',
+                "sets": 4,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }, {
+                "date": 'wednesday',
+                "sets": 3,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }],
+            'id': self.ts_id
+        })
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
+            'name': 'test_plan',
+            'exercise': [{
+                "date": 'monday',
+                "sets": 4,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }, {
+                "date": 'wednesday',
+                "sets": 3,
+                "repeats_per_set": 10,
+                "id": self.ex_id
+            }],
+            'id': self.ts_id
+        })
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_add_user(self):
         TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
