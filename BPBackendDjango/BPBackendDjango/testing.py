@@ -360,6 +360,7 @@ class TestUserViews(TestCase):
 
     trainer_id = 1
     user_id = 1
+    admin_id = 1
     trainer_token = None
     user_token = None
     user_refresh_token = None
@@ -376,6 +377,7 @@ class TestUserViews(TestCase):
         user = User.objects.get(first_name="Erik")
         self.user_id = user.id
         admin = Admin.objects.get(first_name="Erik")
+        self.admin_id = admin.id
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
@@ -446,9 +448,9 @@ class TestUserViews(TestCase):
         response = RegisterView.post(RegisterView, request)
         self.assertFalse(response.data.get('success'))
         #register trainer
-        if self.new_user_token == None:
-            trainer = Trainer.objects.get(id=self.trainer_id)
-            self.new_user_token = JwToken.create_new_user_token(trainer.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'user')
+        if self.new_trainer_token == None:
+            admin = Admin.objects.get(id=self.admin_id)
+            self.new_trainer_token = JwToken.create_new_user_token(admin.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'trainer')
         request = ViewSupport.setup_request({}, {
             'username': 'Notjbad',
             'password': '1234567890',
