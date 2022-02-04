@@ -353,7 +353,7 @@ class LevelTestCase(TestCase):
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertFalse(response.data.get('success'))
 
-#TODO edge cases
+#TODO register + create
 class TestUserViews(TestCase):
 
     trainer_id = 1
@@ -411,7 +411,7 @@ class TestUserViews(TestCase):
             })
         response = LoginView.post(LoginView, request)
         self.assertFalse(response.data.get('success'))
-        #invalid username
+        #invalid pasword
         request = ViewSupport.setup_request({}, {
                 'username': "DeadlyFarts",
                 'password': "wrong" 
@@ -454,6 +454,10 @@ class TestUserViews(TestCase):
                 'refresh_token': self.user_refresh_token
             })
         response = AuthView.post(AuthView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertFalse(response.data.get('success'))
 
 #TODO edge cases/every case
