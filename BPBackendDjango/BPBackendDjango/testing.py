@@ -573,27 +573,6 @@ class TestPlanView(TestCase):
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data').get('plan_id'))).exists())
-        '''#with user
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
-            'name': 'test_plan',
-            'exercise': [{
-                "date": 'monday',
-                "sets": 4,
-                "repeats_per_set": 10,
-                "id": self.ex_id
-            }, {
-                "date": 'wednesday',
-                "sets": 3,
-                "repeats_per_set": 10,
-                "id": self.ex_id
-            }],
-            'user': 'DeadlyFarts'
-        })
-        response = CreatePlanView.post(CreatePlanView, request)
-        self.assertTrue(response.data.get('success'))
-        self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data').get('plan_id'))).exists())
-        user = User.objects.get(first_name="Erik")
-        self.assertEquals(user.plan.id, int(response.data.get('data').get('plan_id')))'''
 
     def test_create_change(self):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
