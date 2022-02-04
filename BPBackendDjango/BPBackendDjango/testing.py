@@ -882,11 +882,11 @@ class TestLeaderboardView(TestCase):
         trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_id = trainer.id
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
-        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=self.trainers[0],password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=self.trainers[0],password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=self.trainers[0],password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=self.trainers[0],password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=self.trainers[0],password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=trainer, password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=trainer,password="pswd22")
         self.users = User.objects.all()
         score = 100
         for user in self.users:
