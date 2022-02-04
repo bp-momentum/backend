@@ -340,7 +340,7 @@ class LevelTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('level'), 1)
         #trainer getting user's level
-        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'user')}, {'username': self.user2.username})
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'trainer')}, {'username': self.user2.username})
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('level'), 1)
@@ -349,7 +349,7 @@ class LevelTestCase(TestCase):
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertFalse(response.data.get('success'))
         #trainers have no level
-        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'user')}, {'username': self.trainer.username})
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'trainer')}, {'username': self.trainer.username})
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertFalse(response.data.get('success'))
 
