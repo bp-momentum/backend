@@ -460,7 +460,7 @@ class TestUserViews(TestCase):
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertFalse(response.data.get('success'))
 
-#TODO edge cases/every case
+
 class TestExerciseView(TestCase):
 
     trainer_id = 1
@@ -499,12 +499,33 @@ class TestExerciseView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{'id': 2543})
         response = GetExerciseView.post(GetExerciseView, request)
         self.assertFalse(response.data.get('success'))
+        #admin not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.admin_token},{'id': self.ex_id})
+        response = GetExerciseView.post(GetExerciseView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'},{'id': self.ex_id})
+        response = GetExerciseView.post(GetExerciseView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_get_list(self):
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
         response = GetExerciseListView.get(GetExerciseListView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(len(response.data.get('data').get('exercises')) == len(Exercise.objects.all()))
+        #user not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
+        response = GetExerciseListView.get(GetExerciseListView, request)
+        self.assertFalse(response.data.get('success'))
+        #admin not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {})
+        response = GetExerciseListView.get(GetExerciseListView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetExerciseListView.get(GetExerciseListView, request)
+        self.assertFalse(response.data.get('success'))
 
 
 class TestPlanView(TestCase):
