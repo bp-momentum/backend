@@ -307,6 +307,10 @@ class AchievementTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertFalse(response.data.get('success'))
+        #trainer not allowed to
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'trainer')}, {})
+        response = GetAchievementsView.get(GetAchievementsView, request)
+        self.assertFalse(response.data.get('success'))
 
 
 class LevelTestCase(TestCase):
