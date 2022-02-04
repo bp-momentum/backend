@@ -424,8 +424,40 @@ class TestUserViews(TestCase):
         self.assertTrue(True)
 
     def test_createUser(self):
-        #TODO
-        self.assertTrue(True)
+        #create user
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
+            'first_name': 'Jannis',
+            'last_name': 'Bauer',
+            'email_address': 'bptestmail52@gmail.com'
+        })
+        response = CreateUserView.post(CreateUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.new_user_token = response.data.get('data').get('new_user_token')
+        #create trainer
+        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {
+            'first_name': 'Jannis',
+            'last_name': 'Bauer',
+            'email_address': 'bptestmail52@gmail.com'
+        })
+        response = CreateUserView.post(CreateUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.new_trainer_token = response.data.get('data').get('new_user_token')
+        #user not allowed to
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {
+            'first_name': 'Jannis',
+            'last_name': 'Bauer',
+            'email_address': 'bptestmail52@gmail.com'
+        })
+        response = CreateUserView.post(CreateUserView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
+            'first_name': 'Jannis',
+            'last_name': 'Bauer',
+            'email_address': 'bptestmail52@gmail.com'
+        })
+        response = CreateUserView.post(CreateUserView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_auth(self):
         #correct
