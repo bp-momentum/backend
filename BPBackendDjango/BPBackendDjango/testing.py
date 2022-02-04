@@ -325,14 +325,29 @@ class LevelTestCase(TestCase):
         self.user2 = user2
 
     def test_level(self):
+        #user getting own level
         request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {'username': self.user1.username})
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('level'), 0)
+        #user getting level of another user
         request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {'username': self.user2.username})
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('level'), 1)
+        #trainer getting user's level
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'user')}, {'username': self.user2.username})
+        response = GetUserLevelView.post(GetUserLevelView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('level'), 1)
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'ìnvalid'}, {'username': self.user2.username})
+        response = GetUserLevelView.post(GetUserLevelView, request)
+        self.assertFalse(response.data.get('success'))
+        #trainers have no level
+        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'user')}, {'username': self.trainer.username})
+        response = GetUserLevelView.post(GetUserLevelView, request)
+        self.assertFalse(response.data.get('success'))
 
 #TODO edge cases
 class TestUserViews(TestCase):
