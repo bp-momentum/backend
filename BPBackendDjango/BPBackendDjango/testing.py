@@ -181,37 +181,103 @@ class getUsersAndTrainersTestCase(TestCase):
         token1 = JwToken.create_session_token(self.admin.username, 'admin')
         token2 = JwToken.create_session_token(self.trainers[0].username, 'trainer')
         token3 = JwToken.create_session_token(self.trainers[1].username, 'trainer')
+        token4 = JwToken.create_session_token(self.users[0].username, 'user')
+        #trainer getting his user
         request = ViewSupport.setup_request({'Session-Token': token2}, {})
         response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[0])))
+        #admin getting user of specific trainer
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': self.trainers[1].id})
         response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[1])))
+        #admin getting trainers
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('trainers'), get_trainers_data(Trainer.objects.all()))
+        #trainer deleting user
         id = self.users[9].id
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
         response = DeleteUserView.post(DeleteUserView, request)
         self.assertTrue(response.data.get('success'))
         self.assertFalse(User.objects.filter(id=id).exists())
+        #trainer not allowed to delete user
         id = self.users[8].id
         request = ViewSupport.setup_request({'Session-Token': token2}, {'id': id})
         response = DeleteUserView.post(DeleteUserView, request)
         self.assertFalse(response.data.get('success'))
         self.assertTrue(User.objects.filter(id=id).exists())
+        #same user now deleted by his trainer
         request = ViewSupport.setup_request({'Session-Token': token3}, {'id': id})
         response = DeleteUserView.post(DeleteUserView, request)
         self.assertTrue(response.data.get('success'))
         self.assertFalse(User.objects.filter(id=id).exists())
+        #admin deleting trainer
         id = self.trainers[1].id
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
         response = DeleteTrainerView.post(DeleteTrainerView, request)
         self.assertTrue(response.data.get('success'))
         self.assertFalse(Trainer.objects.filter(id=id).exists())
+        #invalid request
+        #user not allowed to get users of trainer
+        request = ViewSupport.setup_request({'Session-Token': token4}, {})
+        response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid trainer
+        request = ViewSupport.setup_request({'Session-Token': token4}, {})
+        response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        #admin can not get users of himself
+        request = ViewSupport.setup_request({'Session-Token': token1}, {})
+        response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        #trainer not allowed to get other trainers users
+        request = ViewSupport.setup_request({'Session-Token': token2}, {'id': self.trainers[1].id})
+        response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        #user not allowed to get trainers users
+        request = ViewSupport.setup_request({'Session-Token': token4}, {'id': self.trainers[1].id})
+        response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        #trainer not allowed to get trainers
+        request = ViewSupport.setup_request({'Session-Token': token2}, {})
+        response = GetTrainersView.get(GetTrainersView, request)
+        self.assertFalse(response.data.get('success'))
+        #user not allowed to get trainers
+        request = ViewSupport.setup_request({'Session-Token': token4}, {})
+        response = GetTrainersView.get(GetTrainersView, request)
+        self.assertFalse(response.data.get('success'))
+        #user not allowed to delte other users
+        id = self.users[4].id
+        request = ViewSupport.setup_request({'Session-Token': token4}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(User.objects.filter(id=id).exists())
+        #invalid user
+        id = self.users[7].id
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
+        response = DeleteUserView.post(DeleteUserView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid trainer
+        id = self.trainers[1].id
+        request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
+        response = DeleteTrainerView.post(DeleteTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertFalse(Trainer.objects.filter(id=id).exists())
+        #user can not delete trainer
+        id = self.trainers[0].id
+        request = ViewSupport.setup_request({'Session-Token': token4}, {'id': id})
+        response = DeleteTrainerView.post(DeleteTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(Trainer.objects.filter(id=id).exists())
+        #trainer can not delete itself (via this view)
+        id = self.trainers[0].id
+        request = ViewSupport.setup_request({'Session-Token': token2}, {'id': id})
+        response = DeleteTrainerView.post(DeleteTrainerView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(Trainer.objects.filter(id=id).exists())
 
 
 class AchievementTestCase(TestCase):
