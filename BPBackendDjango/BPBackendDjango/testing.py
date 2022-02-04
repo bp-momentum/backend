@@ -769,10 +769,6 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'username': user.username})
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertFalse(response.data.get('success'))
-        #trainer without user id
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
-        response = GetPlanOfUser.post(GetPlanOfUser, request)
-        self.assertFalse(response.data.get('success'))
 
     def test_delete(self):
         #valid
