@@ -377,10 +377,15 @@ class TestUserViews(TestCase):
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
 
     def test_delete_account(self):
+        #valid token
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = DeleteAccountView.post(self=APIView, request=request) 
         self.assertTrue(response.data.get('success'))
         self.assertFalse(User.objects.filter(id=self.user_id).exists())
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = DeleteAccountView.post(self=APIView, request=request) 
+        self.assertFalse(response.data.get('success'))
         #setup user again
         trainer = Trainer.objects.get(id=self.trainer_id)
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
