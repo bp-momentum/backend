@@ -702,10 +702,19 @@ class TestPlanView(TestCase):
         self.assertEquals(user.plan, None)
 
     def test_get_list(self):
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
         response = GetAllPlansView.get(GetAllPlansView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('plans')), len(TrainingSchedule.objects.filter(trainer=self.trainer_id)))
+        #user not allowed to
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
+        response = GetAllPlansView.get(GetAllPlansView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetAllPlansView.get(GetAllPlansView, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_get(self):
         #valid
@@ -717,6 +726,14 @@ class TestPlanView(TestCase):
         self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=self.ts_id)))
         #invalid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'plan': -1})
+        response = ShowPlanView.post(ShowPlanView, request)
+        self.assertFalse(response.data.get('success'))
+        #user not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'plan': self.ts_id})
+        response = ShowPlanView.post(ShowPlanView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'plan': self.ts_id})
         response = ShowPlanView.post(ShowPlanView, request)
         self.assertFalse(response.data.get('success'))
 
@@ -744,6 +761,18 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'username': 'user.username'})
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertFalse(response.data.get('success'))
+        #invalid token as user
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token as trainer
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'username': user.username})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertFalse(response.data.get('success'))
+        #trainer without user id
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertFalse(response.data.get('success'))
 
     def test_delete(self):
         #valid
@@ -753,7 +782,7 @@ class TestPlanView(TestCase):
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertTrue(response.data.get('success'))
         self.assertFalse(TrainingSchedule.objects.filter(id=ts.id).exists())
-        #TODO invalid
+        #invalid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': -1})
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertFalse(response.data.get('success'))
