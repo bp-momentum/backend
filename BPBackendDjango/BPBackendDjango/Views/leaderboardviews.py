@@ -5,10 +5,20 @@ from rest_framework.response import Response
 
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
+from ..Helperclasses.handlers import ErrorHandler
 
 
 class ListLeaderboardView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['count'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         if not token['valid']:
@@ -17,7 +27,7 @@ class ListLeaderboardView(APIView):
                 'description': 'Token is not valid',
                 'data': {}
             }
-            Response(data)
+            return Response(data)
 
         info = token['info']
 

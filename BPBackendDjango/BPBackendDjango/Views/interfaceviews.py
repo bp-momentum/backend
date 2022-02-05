@@ -5,9 +5,19 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from ..Helperclasses.jwttoken import JwToken
+from ..Helperclasses.handlers import ErrorHandler
 
 class AIView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['exercise', 'video'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_new_user_token(request.headers["Session-Token"])
         #check if token is valid

@@ -4,6 +4,7 @@ import json
 
 from ..Helperclasses.jwttoken import JwToken
 from ..serializers import AchieveAchievement
+from ..Helperclasses.handlers import ErrorHandler
 from ..models import *
 from .exerciseviews import MAX_POINTS
 
@@ -63,6 +64,15 @@ def get_correct_description(username, description):
 
 class GetAchievementsView(APIView):
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
