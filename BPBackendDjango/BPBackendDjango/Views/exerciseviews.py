@@ -380,6 +380,15 @@ class GetDoneExercisesView(APIView):
 class GetDoneExercisesOfMonthView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['month', 'year'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         #check session token
         token = JwToken.check_session_token(request.headers['Session-Token'])

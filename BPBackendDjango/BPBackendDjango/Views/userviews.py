@@ -936,6 +936,15 @@ class GetUserLevelView(APIView):
 class ChangeUsernameView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['username'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -988,6 +997,15 @@ class ChangeUsernameView(APIView):
 class ChangePasswordView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['password', 'new_password'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -1042,6 +1060,15 @@ class ChangePasswordView(APIView):
 class ChangeAvatarView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['avatar'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -1089,6 +1116,15 @@ class ChangeAvatarView(APIView):
 class GetProfileView(APIView):
 
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -1122,6 +1158,15 @@ class GetProfileView(APIView):
 class GetTrainerContactView(APIView):
 
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -1157,6 +1202,15 @@ class GetTrainerContactView(APIView):
 class SetTrainerLocationView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['street', 'postal_code', 'country', 'city', 'house_nr', 'address_add'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = request.data
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -1198,6 +1252,15 @@ class SetTrainerLocationView(APIView):
 class ChangeTrainerTelephoneView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['telephone'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = request.data
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -1234,6 +1297,15 @@ class ChangeTrainerTelephoneView(APIView):
 class ChangeTrainerAcademiaView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['academia'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = request.data
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -1270,6 +1342,15 @@ class ChangeTrainerAcademiaView(APIView):
 class ChangeMotovationView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['motivation'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
