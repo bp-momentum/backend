@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..Helperclasses.jwttoken import JwToken
+from ..Helperclasses.handlers import ErrorHandler
 
 from ..models import Friends
 from ..models import User
@@ -46,6 +47,15 @@ def get_pending_requests(user):
 class GetMyFriendsView(APIView):
 
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -82,6 +92,15 @@ class GetMyFriendsView(APIView):
 class GetPendingRequestView(APIView):
 
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -118,6 +137,15 @@ class GetPendingRequestView(APIView):
 class GetRequestView(APIView):
 
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -154,6 +182,15 @@ class GetRequestView(APIView):
 class AddFriendView(APIView):
 
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['username'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -196,7 +233,9 @@ class AddFriendView(APIView):
             data = {
                     'success': False,
                     'description': 'invalid data',
-                    'data': {}
+                    'data': {
+                        'error': serializer.error_messages
+                    }
                 }
             return Response(data)
 
@@ -211,6 +250,15 @@ class AddFriendView(APIView):
 
 class AcceptRequestView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['id'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -257,6 +305,15 @@ class AcceptRequestView(APIView):
 
 class DeclineRequestView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['id'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -301,6 +358,15 @@ class DeclineRequestView(APIView):
 
 class DeleteFriendView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['id'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
