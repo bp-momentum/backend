@@ -469,6 +469,8 @@ class TestUserViews(TestCase):
         self.assertFalse(response.data.get('success'))
 
     def test_createUser(self):
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         #create user
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
             'first_name': 'Jannis',
@@ -632,6 +634,8 @@ class TestPlanView(TestCase):
         self.user_token = JwToken.create_session_token(user.username, 'user')
 
     def test_create_new(self):
+        trainer = Trainer.objects.get(first_name="Erik")
+        self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         #without user
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
             'name': 'test_plan',
