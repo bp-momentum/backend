@@ -1,16 +1,29 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
 
+class Location(models.Model):
+    street = models.CharField(max_length=128)
+    postal_code = models.CharField(max_length=12)
+    country = models.CharField(max_length=64)
+    city = models.CharField(max_length=128)
+    house_nr = models.CharField(max_length=12)
+    address_addition = models.CharField(max_length=128, default='')
+
+
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
     password = models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="en")
     token_date = models.BigIntegerField(default=0)
     last_login = models.CharField(max_length=10, null=True)
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
+    academia = models.CharField(max_length=128, default='')
+    telephone = models.CharField(max_length=32, default='')
+
 
 class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
@@ -40,7 +53,7 @@ class ExerciseInPlan(models.Model):
 class User(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
@@ -49,8 +62,11 @@ class User(models.Model):
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
     token_date = models.BigIntegerField(default=0)
     last_login = models.CharField(max_length=10, null=True)
+    first_login = models.CharField(max_length=10, default="01-01-1970", editable=False)
     streak = models.IntegerField(default=0)
     xp = models.BigIntegerField(default=0)
+    avatar = models.IntegerField(max_length=5, default=0)
+    motivation = models.TextField(max_length=1000, default='')
 
 
 class DoneExercises(models.Model):
@@ -63,7 +79,7 @@ class DoneExercises(models.Model):
 class Admin(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
     password = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="en")

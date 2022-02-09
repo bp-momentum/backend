@@ -11,6 +11,8 @@ from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
 MAX_POINTS = 100
+SECS_PER_YEAR = 31556952
+SECS_PER_DAY = 86400
 
 def user_needs_ex(username, id):
     #TODO user needs exercise
@@ -32,6 +34,48 @@ def get_correct_description(username, description):
         return "description not available in "+lang
     return res
 
+def get_lastday_of_month(m, y):
+    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
+        return 31
+    elif m == 4 or m == 6 or m == 9 or m == 11:
+        return 30
+    elif m == 2:
+        if y % 400 == 0:
+            return 29
+        elif y % 100 == 0:
+            return 28
+        elif y % 4 == 0:
+            return 29
+        else:
+            return 28
+    else:
+        return 0
+
+def get_done_exercises_of_month(month, year, user):
+        year_offset = (year-1970)*SECS_PER_YEAR
+        month_offset = 0
+        for i in range(month-1):
+            month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
+        next_month_offset = month_offset + get_lastday_of_month(month, year) * SECS_PER_DAY
+        offset_gt = year_offset + month_offset
+        offset_lt = year_offset + next_month_offset
+        done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt)
+        # list of all exercises to done
+        all = ExerciseInPlan.objects.filter(plan=user.plan)
+        out = []
+        for d in done:
+            out.append({
+                "exercise_plan_id": d.exercise.id,
+                "id": d.exercise.exercise.id,
+                "date": d.date,
+                "points": d.points
+            })
+        return out
+
+def valid_month(month):
+    if (month < 1) or (month > 12):
+        return False
+    return True
 
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
@@ -333,11 +377,51 @@ class GetDoneExercisesView(APIView):
         return Response(data)
 
 
+class GetDoneExercisesOfMonthView(APIView):
 
-
-
-
-
-
-
-
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['month', 'year'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        #check session token
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+            }
+            return Response(data)
+        info = token['info']
+        if info['account_type'] == 'user':
+            user = User.objects.get(username=info['username'])
+        else:
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+            }
+            return Response(data)
+        if not valid_month(month=req_data['month']):
+            data = {
+                'success': False,
+                'description': 'invalid month',
+                'data': {}
+            }
+            return Response(data)
+        done = get_done_exercises_of_month(int(req_data['month']), int(req_data['year']), user)
+        data = {
+            'success': True,
+            'description': 'Returning exercises done in this month',
+            'data': {
+                'done': done
+            }
+        }
+        return Response(data)

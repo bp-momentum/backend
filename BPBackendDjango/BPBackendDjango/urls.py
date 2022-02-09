@@ -42,6 +42,15 @@ urlpatterns = [
     path('api/getuserlevel', GetUserLevelView.as_view(), name='GetUserLevel'),
     path('api/getinvited', GetInvitedView.as_view(), name='getInvited'),
     path('api/invalidateinvite', InvalidateInviteView.as_view(), name='invalidateInvite'),
+    path('api/changeusername', ChangeUsernameView.as_view(), name='changeUsername'),
+    path('api/changepassword', ChangePasswordView.as_view(), name='changePassword'),
+    path('api/changeavatar', ChangeAvatarView.as_view(), name='changeAvatar'),
+    path('api/changemotivation', ChangeMotovationView.as_view(), name='changeMotivation'),
+    path('api/getprofile', GetProfileView.as_view(), name='getProfile'),
+    path('api/gettrainercontact', GetTrainerContactView.as_view(), name='getTrainerContact'),
+    path('api/changelocation', SetTrainerLocationView.as_view(), name='setTrainerLocation'),
+    path('api/changetelephone', ChangeTrainerTelephoneView.as_view(), name='setTrainerTelephoneNumber'),
+    path('api/changeacademia', ChangeTrainerAcademiaView.as_view(), name='setTrainerAcademia'),
     path('api/searchuser', SearchUserView.as_view(), name='searchUser'),
     path('api/getlistofusers', GetListOfUsers.as_view(), name='getListOfUsers'),
     #exercises
@@ -50,6 +59,7 @@ urlpatterns = [
     path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList'),
     path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise'),
     path('api/getdoneexercises', GetDoneExercisesView.as_view(), name='getdoneExercise'),
+    path('api/getdoneexercisesinmonth', GetDoneExercisesOfMonthView.as_view(), name='getDoneExercisesInMonth'),
     #plans
     path('api/createplan', CreatePlanView.as_view(), name='createPlan'),
     path('api/addplantouser', AddPlanToUserView.as_view(), name='addExistingPlanToUser'),
