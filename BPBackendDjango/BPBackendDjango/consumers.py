@@ -39,6 +39,8 @@ class SetConsumer(WebsocketConsumer):
         self.done_exercise_entry = None
         self.completed = False
 
+        self.exinplan = None
+
     def save_video(self, data):
         if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username)):
             try:
@@ -114,7 +116,11 @@ class SetConsumer(WebsocketConsumer):
                 'message_type': 'end_set',
                 'success': False,
                 'description': "Currently no set is started",
-                'data': {}
+                'data': {
+                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
+                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
+                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
+                }
             }))
 
     def ai_evaluation(self, data):
@@ -122,7 +128,11 @@ class SetConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({
                 'success': False,
                 'description': "The set must be started to send the video Stream",
-                'data': {}
+                'data': {
+                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
+                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
+                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
+                }
             }))
         self.save_video(data)
         AIInterface.call_ai(self.exercise, data, self.username)
@@ -130,9 +140,9 @@ class SetConsumer(WebsocketConsumer):
     def initiate(self, data):
         self.exercise = data["exercise"]
 
-        ex = ExerciseInPlan.objects.get(id=self.exercise)
-        self.sets = ex.sets
-        self.executions_per_set = ex.repeats_per_set
+        self.exinplan = ExerciseInPlan.objects.get(id=self.exercise)
+        self.sets = self.exinplan.sets
+        self.executions_per_set = self.exinplan.repeats_per_set
         self.done_exercise_entry = DoneExercises.objects.filter(date__gt=time.time() - 86400, exercise=self.exercise, user=self.user.id)
 
         if self.done_exercise_entry.exists():
@@ -222,7 +232,7 @@ class SetConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({
                 'message_type': 'exercise_complete',
                 'success': True,
-                'description': "The set is now ended",
+                'description': "The exercise is now ended",
                 'data': {}
             }))
 
@@ -248,16 +258,14 @@ class SetConsumer(WebsocketConsumer):
             pass
         self.doing_set = False
 
-        points = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set))
+        points = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
         if self.done_exercise_entry is None:
-            DoneExercises.objects.create(exercise=self.exercise, user=self.user, points=points, date=time.time(),
+            DoneExercises.objects.create(exercise=self.exinplan, user=self.user, points=points, date=time.time(),
                                          executions_done=self.executions_done, current_set=self.current_set,
                                          current_set_execution=self.current_set_execution, speed=self.speed,
                                          intensity=self.intensity, cleanliness=self.cleanliness,
                                          completed=self.completed)
         else:
-            self.done_exercise_entry.executions_per_set = self.executions_per_set
-            self.done_exercise_entry.sets = self.sets
 
             self.done_exercise_entry.executions_done = self.executions_done
             self.done_exercise_entry.current_set = self.current_set
