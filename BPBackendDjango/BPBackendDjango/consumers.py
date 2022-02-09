@@ -127,9 +127,9 @@ class SetConsumer(WebsocketConsumer):
         AIInterface.call_ai(self.exercise, data, self.username)
 
     def initiate(self, data):
-        self.exercise = data['exercise']
+        self.exercise = data["exercise"]
 
-        self.done_exercise_entry = DoneExercises.objects.get(date__gt=time.time() - 68400, exercise=self.exercise, user=self.username)
+        self.done_exercise_entry = DoneExercises.objects.get(date__gt=time.time() - 68400, exercise=self.exercise, user=self.user.id)
 
         if self.done_exercise_entry.exists():
             self.executions_per_set = self.done_exercise_entry.executions_per_set
