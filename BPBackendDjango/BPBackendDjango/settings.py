@@ -88,7 +88,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'BPBackendDjango',
     'corsheaders',
-    'ordered_model'
+    'ordered_model',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [

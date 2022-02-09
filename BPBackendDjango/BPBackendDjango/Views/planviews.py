@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from ..models import *
 from ..serializers import *
 from ..Helperclasses.jwttoken import JwToken
+from ..Helperclasses.handlers import ErrorHandler
 
 def add_plan_to_user(username, plan):
     #checks if user exists
@@ -74,6 +75,15 @@ def getListOfExercises(id):
 
 class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['name', 'exercise'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -216,6 +226,15 @@ class CreatePlanView(APIView):
 
 class AddPlanToUserView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['user', 'plan'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         req_data = request.data
         token = JwToken.check_session_token(request.headers['Session-Token'])
@@ -264,6 +283,15 @@ class AddPlanToUserView(APIView):
     
 class ShowPlanView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['plan'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
@@ -311,6 +339,15 @@ class ShowPlanView(APIView):
 
 class GetAllPlansView(APIView):
     def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -353,6 +390,15 @@ class GetAllPlansView(APIView):
 
 class GetPlanOfUser(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -390,6 +436,15 @@ class GetPlanOfUser(APIView):
 
         #trainers can request plan of users
         elif info['account_type'] == 'trainer':
+            #checking if it contains all arguments
+            check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['username'], request.data)
+            if not check.get('valid'):
+                data = {
+                    'success': False,
+                    'description': 'Missing arguments',
+                    'data': check.get('missing')
+                }
+                return Response(data)
             req_data = dict(request.data)
             #check if user exists
             if not User.objects.filter(username=req_data['username']).exists():
@@ -433,6 +488,15 @@ class GetPlanOfUser(APIView):
 
 class DeletePlanView(APIView):
     def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['id'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
         req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
