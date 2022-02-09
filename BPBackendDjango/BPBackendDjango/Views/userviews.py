@@ -1,3 +1,4 @@
+import email
 from django.db.models.query_utils import refs_expression
 from django.shortcuts import render
 from rest_framework.views import APIView
@@ -111,7 +112,8 @@ def get_users_data_for_upper(users):
             'id': user.id,
             'username': user.username,
             'plan': plan_id,
-            'done_exercises': perc_done
+            'done_exercises': perc_done,
+            'last_login': user.last_login
         })
     return data
 
@@ -121,10 +123,21 @@ def get_trainers_data(trainers):
     for trainer in trainers:
         data.append({
             'id': trainer.id,
-            'username': trainer.username
+            'username': trainer.username,
+            'last_login': trainer.last_login
         })
     return data
 
+def get_invited_data(open_tokens):
+    data = []
+    for ot in open_tokens:
+        data.append({
+            'id': ot.id,
+            'first_name': ot.first_name,
+            'last_name': ot.last_name,
+            'email': ot.email
+        })
+    return data
 
 def streak(user):
     now = datetime.datetime.now()
@@ -142,7 +155,14 @@ def streak(user):
             day = get_lastday_of_month(month, year)
     yesterday = get_string_of_date(day, month, year)
     if not User.objects.filter(username=user).exists():
-        return
+        #if its trainer only set last login
+        if not Trainer.objects.filter(username=user).exists():
+            return
+        else:
+            t = Trainer.objects.get(username=user)
+            t.last_login = today
+            t.save(force_update=True)
+            return
     u = User.objects.get(username=user)
     last_login = u.last_login
     if last_login == today:
@@ -210,7 +230,7 @@ class RegisterView(APIView):
         req_data['password'] = str(hashlib.sha3_256(req_data["password"].encode('utf8')).hexdigest())
         token = JwToken.check_new_user_token(request.data['new_user_token'])
         #check if token is valid
-        if not token["valid"]:
+        if (not token["valid"]) or (not OpenToken.objects.filter(token=req_data['new_user_token']).exists()):
             data = {
                 'success': False,
                 'description': 'Token is not valid',
@@ -267,6 +287,7 @@ class RegisterView(APIView):
                         }
                     }
 
+                OpenToken.objects.filter(token=req_data['new_user_token']).delete()
                 streak(req_data['username'])
 
                 return Response(data)
@@ -320,6 +341,8 @@ class CreateUserView(APIView):
                 }
 
             return Response(data)
+        #create data base entry
+        OpenToken.objects.create(token=new_user_token, email=req_data['email_address'], first_name=req_data['first_name'], last_name=req_data['last_name'], creator=info['username'])
         #create and send mail
         html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
@@ -872,6 +895,7 @@ class DeleteUserView(APIView):
             'data': {}
         }
         return Response(data)
+
            
 class GetUserLevelView(APIView):
     def post(self, request, *args, **kwargs):
@@ -916,6 +940,83 @@ class GetUserLevelView(APIView):
                 }
             }
         return Response(data) 
+
+
+class GetInvitedView(APIView):
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        open_tokens = OpenToken.objects.filter(creator=info['username'])
+        invites = get_invited_data(open_tokens)
+        data = {
+            'success': True,
+            'description': 'Returning created invites',
+            'data': {
+                'invited': invites
+            }
+        }
+        return Response(data)
+
+
+class InvalidateInviteView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['id'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        if not OpenToken.objects.filter(id=req_data['id'], creator=info['username']).exists():
+            data = {
+                'success': False,
+                'description': 'Invalid invite or not allowed to invalidate',
+                'data': {}
+            }
+            return Response(data)
+
+        OpenToken.objects.filter(id=req_data['id'], creator=info['username']).delete()
+        data = {
+            'success': True,
+            'description': 'Token invalidated',
+            'data': {}
+        }
+        return Response(data)
            
 class SearchUserView(APIView):
     def post(self, request, *args, **kwargs):
