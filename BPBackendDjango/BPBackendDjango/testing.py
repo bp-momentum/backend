@@ -463,6 +463,7 @@ class TestUserViews(TestCase):
         if self.new_user_token == None:
             trainer = Trainer.objects.get(id=self.trainer_id)
             self.new_user_token = JwToken.create_new_user_token(trainer.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'user')
+            OpenToken.objects.create(token=self.new_user_token, email='bptestmail52@gmail.com', first_name='Jannis', last_name='Bauer', creator=trainer.username)
         request = ViewSupport.setup_request({}, {
             'username': 'jbad',
             'password': '1234567890',
@@ -483,6 +484,7 @@ class TestUserViews(TestCase):
         if self.new_trainer_token == None:
             admin = Admin.objects.get(id=self.admin_id)
             self.new_trainer_token = JwToken.create_new_user_token(admin.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'trainer')
+            OpenToken.objects.create(token=self.new_trainer_token, email='bptestmail52@gmail.com', first_name='Jannis', last_name='Bauer', creator=trainer.username)
         request = ViewSupport.setup_request({}, {
             'username': 'Notjbad',
             'password': '1234567890',
