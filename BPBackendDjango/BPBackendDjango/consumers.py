@@ -7,6 +7,8 @@ import threading
 from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
+
+from .models import DoneExercises
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
@@ -18,8 +20,20 @@ class SetConsumer(WebsocketConsumer):
         self.doing_set = False
         self.f_stop = None
         self.username = ""
-        self.exercise = 0
+
         self.authenticated = False
+
+        self.executions_per_set = 0
+        self.sets = 0
+
+        self.exercise = 0
+        self.executions_done = 0
+        self.current_set = 0
+        self.current_set_execution = 0
+
+        self.speed = 0
+        self.intensity = 0
+        self.cleanliness = 0
 
     def save_video(self, data):
         if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username)):
@@ -106,6 +120,48 @@ class SetConsumer(WebsocketConsumer):
         self.save_video(data)
         AIInterface.call_ai(self.exercise, data, self.username)
 
+    def initiate(self, data):
+        self.exercise = data['exercise']
+
+        exercise = DoneExercises.objects.get(date__gt=time.time() - 68400, exercise=self.exercise, user=self.username)
+
+        if exercise.exists():
+            self.executions_per_set = exercise.executions_per_set
+            self.sets = exercise.exercise.sets
+
+            self.executions_done = exercise.executions_done
+            self.current_set = exercise.current_set
+            self.current_set_execution = exercise.current_set_execution
+
+            self.speed = exercise.speed
+            self.intensity = exercise.intensity
+            self.cleanliness = exercise.cleanliness
+        else:
+            self.executions_per_set = 0
+            self.sets = 0
+
+            self.exercise = 0
+            self.executions_done = 0
+            self.current_set = 0
+            self.current_set_execution = 0
+
+            self.speed = 0
+            self.intensity = 0
+            self.cleanliness = 0
+
+        self.send(text_data=json.dumps({
+            'message_type': 'init',
+            'success': True,
+            'description': "This is the current state",
+            'data': {
+                'current_set': self.current_set,
+                'current_execution': self.current_set_execution,
+                'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
+                'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
+                'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
+            }
+        }))
+
     def send_stats(self, ex_id):
         # calculating points
         if not self.doing_set:
@@ -114,15 +170,46 @@ class SetConsumer(WebsocketConsumer):
         intensity = b['intensity']
         speed = b['speed']
         cleanliness = b['cleanliness']
+
+        self.intensity += intensity
+        self.speed += speed
+        self.cleanliness += cleanliness
+
+        self.executions_done += 1
+        self.current_set_execution += 1
+
         self.send(text_data=json.dumps({
             'success': True,
             'description': "This is the accuracy",
             'data': {
                 'intensity': intensity,
                 'speed': speed,
-                'cleanliness': cleanliness
+                'cleanliness': cleanliness,
+                'x': 30,
+                'y': 100,
             }
         }))
+
+        if self.current_set_execution == self.executions_per_set:
+            self.f_stop.set()
+            self.doing_set = False
+            self.current_set_execution = 0
+            self.current_set += 1
+
+            self.send(text_data=json.dumps({
+                'message_type': 'end_set',
+                'success': True,
+                'description': "The set is now ended",
+                'data': {}
+            }))
+
+        if self.current_set == self.sets + 1:
+            self.send(text_data=json.dumps({
+                'message_type': 'exercise_complete',
+                'success': True,
+                'description': "The set is now ended",
+                'data': {}
+            }))
 
     def f(self, f_stop):
         self.send_stats(1)
@@ -151,7 +238,6 @@ class SetConsumer(WebsocketConsumer):
         if bytes_data is not None:
             self.ai_evaluation(bytes_data)
 
-
         # check if request hast text_data
         if text_data is not None:
             text_data_json = json.loads(text_data)
@@ -172,5 +258,8 @@ class SetConsumer(WebsocketConsumer):
                 self.start_set(data)
 
             elif m_type == "end_set":
-                self.end_set(data)
+                pass
+                # self.end_set(data)
 
+            elif m_type == "init":
+                self.initiate(data)
