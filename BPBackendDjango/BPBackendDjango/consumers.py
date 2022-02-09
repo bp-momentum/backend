@@ -8,7 +8,7 @@ from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
 
-from .models import DoneExercises, User
+from .models import DoneExercises, User, ExerciseInPlan
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
@@ -80,16 +80,17 @@ class SetConsumer(WebsocketConsumer):
 
     def start_set(self, data):
         if not self.doing_set:
-            self.filename = str(time.time()) + ".webm"
-            self.f_stop = threading.Event()
-            self.doing_set = True
-            self.f(self.f_stop)
             self.send(text_data=json.dumps({
                 'message_type': 'start_set',
                 'success': True,
                 'description': "The set is now started",
                 'data': {}
             }))
+            self.filename = str(time.time()) + ".webm"
+            self.f_stop = threading.Event()
+            self.doing_set = True
+            self.f(self.f_stop)
+
         else:
             self.send(text_data=json.dumps({
                 'message_type': 'start_set',
@@ -129,7 +130,10 @@ class SetConsumer(WebsocketConsumer):
     def initiate(self, data):
         self.exercise = data["exercise"]
 
-        self.done_exercise_entry = DoneExercises.objects.get(date__gt=time.time() - 68400, exercise=self.exercise, user=self.user.id)
+        ex = ExerciseInPlan.objects.get(id=self.exercise)
+        self.sets = ex.sets
+        self.executions_per_set = ex.repeats_per_set
+        self.done_exercise_entry = DoneExercises.objects.filter(date__gt=time.time() - 86400, exercise=self.exercise, user=self.user.id)
 
         if self.done_exercise_entry.exists():
             self.executions_per_set = self.done_exercise_entry.executions_per_set
@@ -143,10 +147,9 @@ class SetConsumer(WebsocketConsumer):
             self.intensity = self.done_exercise_entry.intensity
             self.cleanliness = self.done_exercise_entry.cleanliness
             self.completed = self.done_exercise_entry.completed
+
         else:
             self.done_exercise_entry = None
-            self.executions_per_set = 0
-            self.sets = 0
 
             self.exercise = 0
             self.executions_done = 0
@@ -199,16 +202,9 @@ class SetConsumer(WebsocketConsumer):
             }
         }))
 
-        if self.current_set == self.sets + 1:
-            self.completed = True
-            self.send(text_data=json.dumps({
-                'message_type': 'exercise_complete',
-                'success': True,
-                'description': "The set is now ended",
-                'data': {}
-            }))
 
-        elif self.current_set_execution == self.executions_per_set:
+
+        if self.current_set_execution == self.executions_per_set:
             self.f_stop.set()
             self.doing_set = False
             self.current_set_execution = 0
@@ -216,6 +212,15 @@ class SetConsumer(WebsocketConsumer):
 
             self.send(text_data=json.dumps({
                 'message_type': 'end_set',
+                'success': True,
+                'description': "The set is now ended",
+                'data': {}
+            }))
+
+        if self.current_set == self.sets:
+            self.completed = True
+            self.send(text_data=json.dumps({
+                'message_type': 'exercise_complete',
                 'success': True,
                 'description': "The set is now ended",
                 'data': {}
@@ -243,7 +248,7 @@ class SetConsumer(WebsocketConsumer):
             pass
         self.doing_set = False
 
-        points = int((self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set))
+        points = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set))
         if self.done_exercise_entry is None:
             DoneExercises.objects.create(exercise=self.exercise, user=self.user, points=points, date=time.time(),
                                          executions_done=self.executions_done, current_set=self.current_set,
