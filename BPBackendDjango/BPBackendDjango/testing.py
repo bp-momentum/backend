@@ -349,7 +349,7 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         trainer = Trainer.objects.get(id=self.trainer_id)
         self.assertEqual(trainer.telephone, '015712251102')
-        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'academia': 'dr. nat '})
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'academia': 'dr. nat'})
         response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
         self.assertTrue(response.data.get('success'))
         trainer = Trainer.objects.get(id=self.trainer_id)
