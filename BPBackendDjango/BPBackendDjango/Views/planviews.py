@@ -76,7 +76,7 @@ def getListOfExercises(id):
 class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
-        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['name', 'id', 'exercise'], request.data)
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['name', 'exercise'], request.data)
         if not check.get('valid'):
             data = {
                 'success': False,
