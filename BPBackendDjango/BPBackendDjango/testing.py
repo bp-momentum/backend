@@ -4,6 +4,7 @@ from django.test import TestCase
 from .Views.exerciseviews import GetDoneExercisesOfMonthView, get_done_exercises_of_month
 from .Helperclasses.fortests import ViewSupport
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
@@ -236,6 +237,37 @@ class LevelTestCase(TestCase):
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('level'), 1)
+
+
+class HandlingInvitesTestCase(TestCase):
+
+    def setUp(self) -> None:
+        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainer = trainer
+        trainer2 = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerAndereTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainer2 = trainer2
+        token = JwToken.create_new_user_token(trainer.username, 'Jannis', 'Bauer', 'jannis@test.de', 'user')
+        self.ot1 = OpenToken.objects.create(token=token, email='jannis@test.de', first_name='Jannis', last_name='Bauer', creator=trainer.username)
+        token = JwToken.create_new_user_token(trainer2.username, 'Julian', 'Imhof', 'julian@test.de', 'user')
+        self.ot2 = OpenToken.objects.create(token=token, email='julian@test.de', first_name='Julian', last_name='Imhof', creator=trainer2.username)
+        self.token = JwToken.create_session_token('DerTrainer', 'trainer')
+
+    def test_get(self):
+        request = ViewSupport.setup_request({'Session-Token': self.token}, {})
+        response = GetInvitedView.get(GetInvitedView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('invited'), get_invited_data([self.ot1,]))
+
+    def test_invalidate(self):
+        request = ViewSupport.setup_request({'Session-Token': self.token}, {'id': self.ot1.id})
+        response = InvalidateInviteView.post(InvalidateInviteView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(OpenToken.objects.filter(id=self.ot1.id).exists())
+        request = ViewSupport.setup_request({'Session-Token': self.token}, {'id': self.ot2.id})
+        response = InvalidateInviteView.post(InvalidateInviteView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertTrue(OpenToken.objects.filter(id=self.ot2.id).exists())
+
 
 
 class ProfileTestCase(TestCase):

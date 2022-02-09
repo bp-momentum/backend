@@ -19,6 +19,7 @@ class Trainer(models.Model):
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="en")
     token_date = models.BigIntegerField(default=0)
+    last_login = models.CharField(max_length=10, null=True)
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
     academia = models.CharField(max_length=128, default='')
     telephone = models.CharField(max_length=32, default='')
@@ -110,3 +111,9 @@ class Leaderboard(models.Model):
         indexes = [models.Index(fields=["-score"])]
 
 
+class OpenToken(models.Model):
+    token = models.CharField(max_length=512)
+    email = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    creator = models.CharField(max_length=50)
