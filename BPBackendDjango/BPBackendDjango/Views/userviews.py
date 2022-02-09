@@ -223,8 +223,12 @@ def get_trainer_contact(trainer):
     else:
         #cocatinate location
         location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
+    if trainer.academia == '':
+        academia = ''
+    else:
+        academia = trainer.academia + ' '
     return {
-        'name': str(trainer.academia + trainer.first_name + ' ' + trainer.last_name),
+        'name': str(academia + trainer.first_name + ' ' + trainer.last_name),
         'address': str(location),
         'telephone': trainer.telephone,
         'email': trainer.email_address
@@ -1282,20 +1286,25 @@ class GetTrainerContactView(APIView):
         info = token['info']
 
         #check if request by user
-        if not info['account_type'] == 'user':
+        if not (info['account_type'] == 'user' or info['account_type'] == 'trainer'):
             data = {
                 'success': False,
-                'description': 'Only users can request their trainers contact',
+                'description': 'Only users can request their trainers contact and trainers their own one',
                 'data': {}
             }
             return Response(data)
-        user = User.objects.get(username=info['username'])
-        #get trainer of user
-        trainer = user.trainer
+        if info['account_type'] == 'user':
+            user = User.objects.get(username=info['username'])
+            #get trainer of user
+            trainer = user.trainer
+            description = 'Returning contact data of trainer'
+        elif info['account_type'] == 'trainer':
+            trainer = Trainer.objects.get(username=info['username'])
+            description = 'Returning your contact data'
         #get contact data of the trainer
         data = {
             'success': True,
-            'description': 'Returning contact data of trainer',
+            'description': description,
             'data': get_trainer_contact(trainer)
         }
         return Response(data)
