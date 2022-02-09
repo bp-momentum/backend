@@ -8,7 +8,7 @@ from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
 
-from .models import DoneExercises
+from .models import DoneExercises, User
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
@@ -20,6 +20,7 @@ class SetConsumer(WebsocketConsumer):
         self.doing_set = False
         self.f_stop = None
         self.username = ""
+        self.user = None
 
         self.authenticated = False
 
@@ -34,6 +35,9 @@ class SetConsumer(WebsocketConsumer):
         self.speed = 0
         self.intensity = 0
         self.cleanliness = 0
+
+        self.done_exercise_entry = None
+        self.completed = False
 
     def save_video(self, data):
         if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username)):
@@ -65,6 +69,8 @@ class SetConsumer(WebsocketConsumer):
         self.authenticated = True
         info = token['info']
         self.username = info['username']
+        self.user = User.objects.get(username=self.username)
+
         self.send(text_data=json.dumps({
             'message_type': 'authenticate',
             'success': True,
@@ -123,20 +129,22 @@ class SetConsumer(WebsocketConsumer):
     def initiate(self, data):
         self.exercise = data['exercise']
 
-        exercise = DoneExercises.objects.get(date__gt=time.time() - 68400, exercise=self.exercise, user=self.username)
+        self.done_exercise_entry = DoneExercises.objects.get(date__gt=time.time() - 68400, exercise=self.exercise, user=self.username)
 
-        if exercise.exists():
-            self.executions_per_set = exercise.executions_per_set
-            self.sets = exercise.exercise.sets
+        if self.done_exercise_entry.exists():
+            self.executions_per_set = self.done_exercise_entry.executions_per_set
+            self.sets = self.done_exercise_entry.exercise.sets
 
-            self.executions_done = exercise.executions_done
-            self.current_set = exercise.current_set
-            self.current_set_execution = exercise.current_set_execution
+            self.executions_done = self.done_exercise_entry.executions_done
+            self.current_set = self.done_exercise_entry.current_set
+            self.current_set_execution = self.done_exercise_entry.current_set_execution
 
-            self.speed = exercise.speed
-            self.intensity = exercise.intensity
-            self.cleanliness = exercise.cleanliness
+            self.speed = self.done_exercise_entry.speed
+            self.intensity = self.done_exercise_entry.intensity
+            self.cleanliness = self.done_exercise_entry.cleanliness
+            self.completed = self.done_exercise_entry.completed
         else:
+            self.done_exercise_entry = None
             self.executions_per_set = 0
             self.sets = 0
 
@@ -148,6 +156,7 @@ class SetConsumer(WebsocketConsumer):
             self.speed = 0
             self.intensity = 0
             self.cleanliness = 0
+
 
         self.send(text_data=json.dumps({
             'message_type': 'init',
@@ -190,7 +199,16 @@ class SetConsumer(WebsocketConsumer):
             }
         }))
 
-        if self.current_set_execution == self.executions_per_set:
+        if self.current_set == self.sets + 1:
+            self.completed = True
+            self.send(text_data=json.dumps({
+                'message_type': 'exercise_complete',
+                'success': True,
+                'description': "The set is now ended",
+                'data': {}
+            }))
+
+        elif self.current_set_execution == self.executions_per_set:
             self.f_stop.set()
             self.doing_set = False
             self.current_set_execution = 0
@@ -203,13 +221,7 @@ class SetConsumer(WebsocketConsumer):
                 'data': {}
             }))
 
-        if self.current_set == self.sets + 1:
-            self.send(text_data=json.dumps({
-                'message_type': 'exercise_complete',
-                'success': True,
-                'description': "The set is now ended",
-                'data': {}
-            }))
+
 
     def f(self, f_stop):
         self.send_stats(1)
@@ -231,6 +243,27 @@ class SetConsumer(WebsocketConsumer):
             pass
         self.doing_set = False
 
+        points = int((self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set))
+        if self.done_exercise_entry is None:
+            DoneExercises.objects.create(exercise=self.exercise, user=self.user, points=points, date=time.time(),
+                                         executions_done=self.executions_done, current_set=self.current_set,
+                                         current_set_execution=self.current_set_execution, speed=self.speed,
+                                         intensity=self.intensity, cleanliness=self.cleanliness,
+                                         completed=self.completed)
+        else:
+            self.done_exercise_entry.executions_per_set = self.executions_per_set
+            self.done_exercise_entry.sets = self.sets
+
+            self.done_exercise_entry.executions_done = self.executions_done
+            self.done_exercise_entry.current_set = self.current_set
+            self.done_exercise_entry.current_set_execution = self.current_set_execution
+
+            self.done_exercise_entry.speed = self.speed
+            self.done_exercise_entry.intensity = self.intensity
+            self.done_exercise_entry.cleanliness = self.cleanliness
+            self.done_exercise_entry.completed = self.completed
+            self.done_exercise_entry.save(force_update=True)
+
     # On Receive
     def receive(self, text_data=None, bytes_data=None):
 
@@ -251,6 +284,14 @@ class SetConsumer(WebsocketConsumer):
                     'message_type': 'authenticate',
                     'success': False,
                     'description': "You have to be authenticated",
+                    'data': {}
+                }))
+
+            elif self.completed:
+                self.send(text_data=json.dumps({
+                    'message_type': 'exercise_complete',
+                    'success': False,
+                    'description': "You already completed this Exercise",
                     'data': {}
                 }))
 
