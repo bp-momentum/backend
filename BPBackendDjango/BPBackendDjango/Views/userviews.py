@@ -297,7 +297,7 @@ class RegisterView(APIView):
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
-        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['first_name', 'last_name', 'email_addresse'], request.data)
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['first_name', 'last_name', 'email_address'], request.data)
         if not check.get('valid'):
             data = {
                 'success': False,
