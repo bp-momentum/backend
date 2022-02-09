@@ -169,7 +169,9 @@ class SetConsumer(WebsocketConsumer):
                 'current_execution': self.current_set_execution,
                 'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
                 'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
-                'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
+                'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done,
+                'completed': self.completed
+
             }
         }))
 
