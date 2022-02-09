@@ -116,11 +116,7 @@ class SetConsumer(WebsocketConsumer):
                 'message_type': 'end_set',
                 'success': False,
                 'description': "Currently no set is started",
-                'data': {
-                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
-                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
-                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
-                }
+                'data': {}
             }))
 
     def ai_evaluation(self, data):
@@ -128,11 +124,7 @@ class SetConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({
                 'success': False,
                 'description': "The set must be started to send the video Stream",
-                'data': {
-                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
-                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
-                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
-                }
+                'data': {}
             }))
         self.save_video(data)
         AIInterface.call_ai(self.exercise, data, self.username)
@@ -146,9 +138,6 @@ class SetConsumer(WebsocketConsumer):
         self.done_exercise_entry = DoneExercises.objects.filter(date__gt=time.time() - 86400, exercise=self.exercise, user=self.user.id)
 
         if self.done_exercise_entry.exists():
-            self.executions_per_set = self.done_exercise_entry.executions_per_set
-            self.sets = self.done_exercise_entry.exercise.sets
-
             self.executions_done = self.done_exercise_entry.executions_done
             self.current_set = self.done_exercise_entry.current_set
             self.current_set_execution = self.done_exercise_entry.current_set_execution
@@ -224,7 +213,11 @@ class SetConsumer(WebsocketConsumer):
                 'message_type': 'end_set',
                 'success': True,
                 'description': "The set is now ended",
-                'data': {}
+                'data': {
+                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
+                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
+                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
+                }
             }))
 
         if self.current_set == self.sets:
@@ -233,7 +226,10 @@ class SetConsumer(WebsocketConsumer):
                 'message_type': 'exercise_complete',
                 'success': True,
                 'description': "The exercise is now ended",
-                'data': {}
+                'data': {
+                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
+                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
+                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done}
             }))
 
 
