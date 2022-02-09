@@ -221,7 +221,7 @@ class RegisterView(APIView):
         req_data['password'] = str(hashlib.sha3_256(req_data["password"].encode('utf8')).hexdigest())
         token = JwToken.check_new_user_token(request.data['new_user_token'])
         #check if token is valid
-        if (not token["valid"]) or (not OpenToken.objects.filter(token=req_data['new_usertoken']).exists()):
+        if (not token["valid"]) or (not OpenToken.objects.filter(token=req_data['new_user_token']).exists()):
             data = {
                 'success': False,
                 'description': 'Token is not valid',
