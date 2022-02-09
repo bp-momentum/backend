@@ -278,7 +278,7 @@ class RegisterView(APIView):
                         }
                     }
 
-                OpenToken.objects.filter(token=req_data['new_usertoken']).delete()
+                OpenToken.objects.filter(token=req_data['new_user_token']).delete()
                 streak(req_data['username'])
 
                 return Response(data)
