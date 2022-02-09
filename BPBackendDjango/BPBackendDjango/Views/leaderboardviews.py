@@ -27,7 +27,7 @@ class ListLeaderboardView(APIView):
                 'description': 'Token is not valid',
                 'data': {}
             }
-            Response(data)
+            return Response(data)
 
         info = token['info']
 
