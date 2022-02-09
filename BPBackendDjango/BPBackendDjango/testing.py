@@ -549,8 +549,8 @@ class TestExerciseView(TestCase):
     admin_token = None
 
     def setUp(self):
-        Exercise.objects.create(title='Kniebeuge', description='{"german": "Gehe in die Knie, achte...", "english": "Do squats..."}')
-        Exercise.objects.create(title='Liegestütze', description='{"german": "Mache Liegestütze...", "english": "Do pushups..."}', activated=False)
+        Exercise.objects.create(title='Kniebeuge', description='{"de": "Gehe in die Knie, achte...", "en": "Do squats..."}')
+        Exercise.objects.create(title='Liegestütze', description='{"de": "Mache Liegestütze...", "en": "Do pushups..."}', activated=False)
         self.ex_id = Exercise.objects.get(title='Kniebeuge').id
 
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
