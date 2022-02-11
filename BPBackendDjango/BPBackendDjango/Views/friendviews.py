@@ -16,8 +16,8 @@ def get_friends(user):
     for f in sql:
         res.append({
             'id': f.id,
-            'friend1': f.friend1,
-            'friend2': f.friend2
+            'friend1': f.friend1.username,
+            'friend2': f.friend2.username
         })
     return res
 
@@ -27,8 +27,8 @@ def get_requests(user):
     for f in sql:
         res.append({
             'id': f.id,
-            'friend1': f.friend1,
-            'friend2': f.friend2
+            'friend1': f.friend1.username,
+            'friend2': f.friend2.username
         })
     return res
 
@@ -38,8 +38,8 @@ def get_pending_requests(user):
     for f in sql:
         res.append({
             'id': f.id,
-            'friend1': f.friend1,
-            'friend2': f.friend2
+            'friend1': f.friend1.username,
+            'friend2': f.friend2.username
         })
     return res
 
