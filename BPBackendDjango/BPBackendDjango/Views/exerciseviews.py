@@ -290,7 +290,7 @@ class GetDoneExercisesView(APIView):
                                 "repeats_per_set": a.repeats_per_set,
                                 "done": True
                                 })
-                    done_found  = True
+                    done_found = True
                     break
             if done_found:
                 continue
