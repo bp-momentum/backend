@@ -430,7 +430,7 @@ class DeleteFriendView(APIView):
                 'success': True,
                 'description': 'Removed friend',
                 'data': {
-                    'removed_friend': removed_friend
+                    'removed_friend': removed_friend.username
                 }
             }
         return Response(data)
