@@ -302,7 +302,7 @@ class AcceptRequestView(APIView):
         user = User.objects.get(username=info['username'])
 
         #check if request exists
-        if not Friends.objects.filter(id=int(req_data['id']), friend2=user.id, accepted=False).exists():
+        if not Friends.objects.filter(id=int(req_data['id']), friend2=user, accepted=False).exists():
             data = {
                     'success': False,
                     'description': 'Invalid request',
@@ -311,8 +311,10 @@ class AcceptRequestView(APIView):
             return Response(data)
 
         friend = Friends.objects.get(id=int(req_data['id']))
+        user1 = friend.friend1
         friend.accepted = True
-        friend.save()
+        friend.save(force_update=True)
+        Friends.objects.filter(friend1=user, friend2=user1, accepted=False).delete()
         data = {
                 'success': True,
                 'description': 'Request accepted',
