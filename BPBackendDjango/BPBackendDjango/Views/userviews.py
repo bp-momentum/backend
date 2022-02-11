@@ -1531,7 +1531,7 @@ class SearchUserView(APIView):
             return Response(data)
 
         info = token['info']
-        users = User.objects.filter(username__unaccent__icontains=req_data['search'])
+        users = User.objects.filter(username__icontains=req_data['search'])
         users_data = get_users_data(users)
 
         data = {
