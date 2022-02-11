@@ -43,6 +43,8 @@ def get_pending_requests(user):
         })
     return res
 
+def already_friends(user1, user2):
+    return Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
 
 class GetMyFriendsView(APIView):
 
@@ -213,6 +215,14 @@ class AddFriendView(APIView):
                 }
             return Response(data)
 
+        #check if self
+        if info['username'] == req_data['username']:
+            data = {
+                    'success': False,
+                    'description': 'Can not add yourself as a friend',
+                    'data': {}
+                }
+            return Response(data)
         #added must be user/exist
         if not User.objects.filter(username=req_data['username']).exists():
             data = {
@@ -222,8 +232,16 @@ class AddFriendView(APIView):
                 }
             return Response(data)
 
+        #check if already friends
         is_from = User.objects.get(username=info['username'])
         is_to = User.objects.get(username=req_data['username'])
+        if already_friends(is_from, is_to):
+            data = {
+                    'success': False,
+                    'description': 'Already friends',
+                    'data': {}
+                }
+            return Response(data)
         request_data = {
             'friend1': is_from.id,
             'friend2': is_to.id
