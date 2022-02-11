@@ -63,3 +63,10 @@ class AchieveAchievement(serializers.ModelSerializer):
         fields = (
             'achievement', 'user'
         )
+class CreateFriends(serializers.ModelSerializer):
+    class Meta:
+        model = Friends
+        fields = (
+            'friend1', 'friend2'
+        )
+

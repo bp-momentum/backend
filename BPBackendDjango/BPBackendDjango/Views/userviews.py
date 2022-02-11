@@ -234,6 +234,16 @@ def get_trainer_contact(trainer):
         'email': trainer.email_address
     }
 
+#only method needs to be changed to get different information about users
+def get_users_data(users):
+    data = []
+    for user in users:
+        data.append({
+            'id': user.id,
+            'username': user.username
+        })
+    return data
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
@@ -603,6 +613,8 @@ class ChangeLanguageView(APIView):
 
         return Response(data)
 
+        users = User.objects.all()
+        users_data = get_users_data(users)  
 
 class GetLanguageView(APIView):
     def get(self, request, *args, **kwargs):
@@ -1495,3 +1507,77 @@ class ChangeMotovationView(APIView):
             'data': {}
         }
         return Response(data)
+
+           
+class SearchUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['search'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        users = User.objects.filter(username__icontains=req_data['search']).exclude(username=info['username'])
+        users_data = get_users_data(users)
+
+        data = {
+                'success': True,
+                'description': 'returning list of matching users',
+                'data': {
+                    'users': users_data
+                }
+            }
+        return Response(data)
+
+
+class GetListOfUsers(APIView):
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        users = User.objects.exclude(username=info['username'])
+        users_data = get_users_data(users)  
+
+        data = {
+                'success': True,
+                'description': 'returning list of users',
+                'data': {
+                    'users': users_data
+                }
+            }
+        return Response(data)
+
+ 

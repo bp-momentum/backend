@@ -21,6 +21,7 @@ from .Views.leaderboardviews import ListLeaderboardView
 from .Views.userviews import *
 from .Views.interfaceviews import *
 from .Views.planviews import *
+from .Views.friendviews import *
 from .Views.achievementviews import *
 
 urlpatterns = [
@@ -50,6 +51,8 @@ urlpatterns = [
     path('api/changelocation', SetTrainerLocationView.as_view(), name='setTrainerLocation'),
     path('api/changetelephone', ChangeTrainerTelephoneView.as_view(), name='setTrainerTelephoneNumber'),
     path('api/changeacademia', ChangeTrainerAcademiaView.as_view(), name='setTrainerAcademia'),
+    path('api/searchuser', SearchUserView.as_view(), name='searchUser'),
+    path('api/getlistofusers', GetListOfUsers.as_view(), name='getListOfUsers'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
@@ -69,5 +72,13 @@ urlpatterns = [
     #leaderboard
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #achievements
-    path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements')
+    path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
+    #friends
+    path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
+    path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),
+    path('api/getFriendRequests', GetRequestView.as_view(), name='getFriendRequests'),
+    path('api/addFriend', AddFriendView.as_view(), name='addFriend'),
+    path('api/acceptfriendrequest', AcceptRequestView.as_view(), name='acceptFriendRequest'),
+    path('api/declinefriendrequest', DeclineRequestView.as_view(), name='declineFriendRequest'),
+    path('api/removefriend', DeleteFriendView.as_view(), name='removeFriend')
 ]
