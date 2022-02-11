@@ -1532,8 +1532,7 @@ class SearchUserView(APIView):
             return Response(data)
 
         info = token['info']
-        users = User.objects.filter(username__icontains=req_data['search'])
-        users.exclude(User.objects.filter(username=info['username']))
+        users = User.objects.filter(username__icontains=req_data['search']).exclude(username=info['username'])
         users_data = get_users_data(users)
 
         data = {
@@ -1569,8 +1568,7 @@ class GetListOfUsers(APIView):
 
         info = token['info']
 
-        users = User.objects.all()
-        users.exclude(User.objects.filter(username=info['username']))
+        users = User.objects.exclude(username=info['username'])
         users_data = get_users_data(users)  
 
         data = {
