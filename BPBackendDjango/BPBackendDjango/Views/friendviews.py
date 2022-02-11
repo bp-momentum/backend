@@ -44,7 +44,7 @@ def get_pending_requests(user):
     return res
 
 def already_friends(user1, user2):
-    return Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
+    return Friends.objects.filter(friend1=user1, friend2=user2).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
 
 class GetMyFriendsView(APIView):
 
