@@ -242,6 +242,7 @@ def get_users_data(users):
             'id': user.id,
             'username': user.username
         })
+    return data
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
