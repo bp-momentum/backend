@@ -8,6 +8,7 @@ from ..models import Friends
 from ..models import User
 from ..serializers import CreateFriends
 
+#get all friends
 def get_friends(user):
     sql = list(Friends.objects.filter(friend1=user, accepted=True))
     sql = sql + list(Friends.objects.filter(friend2=user, accepted=True))
@@ -21,6 +22,7 @@ def get_friends(user):
         })
     return res
 
+#get received requests
 def get_requests(user):
     sql = list(Friends.objects.filter(friend2=user, accepted=False))
     res = []
@@ -32,6 +34,7 @@ def get_requests(user):
         })
     return res
 
+#get sent requests
 def get_pending_requests(user):
     sql =  list(Friends.objects.filter(friend1=user, accepted=False))
     res = []
@@ -43,6 +46,7 @@ def get_pending_requests(user):
         })
     return res
 
+#checks if already friends or already requested
 def already_friends(user1, user2):
     return Friends.objects.filter(friend1=user1, friend2=user2).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
 
