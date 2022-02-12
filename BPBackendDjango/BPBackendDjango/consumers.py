@@ -23,6 +23,7 @@ class SetConsumer(WebsocketConsumer):
         self.user = None
 
         self.authenticated = False
+        self.initiated = False
 
         self.executions_per_set = 0
         self.sets = 0
@@ -131,6 +132,7 @@ class SetConsumer(WebsocketConsumer):
 
     def initiate(self, data):
         self.exercise = data["exercise"]
+        self.initiated = True
 
         self.exinplan = ExerciseInPlan.objects.get(id=self.exercise)
         self.sets = self.exinplan.sets
@@ -192,6 +194,7 @@ class SetConsumer(WebsocketConsumer):
         self.current_set_execution += 1
 
         self.send(text_data=json.dumps({
+            'message_type': "statistics",
             'success': True,
             'description': "This is the accuracy",
             'data': {
@@ -223,6 +226,9 @@ class SetConsumer(WebsocketConsumer):
             }))
 
         if self.current_set == self.sets:
+            self.f_stop.set()
+            self.doing_set = False
+
             self.completed = True
             self.send(text_data=json.dumps({
                 'message_type': 'exercise_complete',
@@ -297,6 +303,15 @@ class SetConsumer(WebsocketConsumer):
                     'description': "You have to be authenticated",
                     'data': {}
                 }))
+            elif m_type == "init":
+                self.initiate(data)
+            elif not self.initiated:
+                self.send(text_data=json.dumps({
+                    'message_type': 'init',
+                    'success': False,
+                    'description': "You have to first initialise",
+                    'data': {}
+                }))
 
             elif self.completed:
                 self.send(text_data=json.dumps({
@@ -313,5 +328,4 @@ class SetConsumer(WebsocketConsumer):
                 pass
                 # self.end_set(data)
 
-            elif m_type == "init":
-                self.initiate(data)
+
