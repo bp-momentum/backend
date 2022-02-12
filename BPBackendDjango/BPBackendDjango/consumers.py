@@ -208,7 +208,7 @@ class SetConsumer(WebsocketConsumer):
             }
         }))
 
-
+        type = 0
 
         if self.current_set_execution == self.executions_per_set:
             self.f_stop.set()
@@ -216,20 +216,13 @@ class SetConsumer(WebsocketConsumer):
             self.current_set_execution = 0
             self.current_set += 1
 
-            self.send(text_data=json.dumps({
-                'message_type': 'end_set',
-                'success': True,
-                'description': "The set is now ended",
-                'data': {
-                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
-                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
-                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
-                }
-            }))
+            type += 1
+
 
         if self.current_set == self.sets:
             self.f_stop.set()
             self.doing_set = False
+            type += 1
 
             self.completed = True
             self.send(text_data=json.dumps({
@@ -242,7 +235,17 @@ class SetConsumer(WebsocketConsumer):
                     'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done}
             }))
 
-
+        if type == 1:
+            self.send(text_data=json.dumps({
+                'message_type': 'end_set',
+                'success': True,
+                'description': "The set is now ended",
+                'data': {
+                    'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
+                    'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
+                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done
+                }
+            }))
 
     def f(self, f_stop):
         self.send_stats(1)
