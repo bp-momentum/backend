@@ -139,9 +139,9 @@ class SetConsumer(WebsocketConsumer):
         self.executions_per_set = self.exinplan.repeats_per_set
 
         query = DoneExercises.objects.filter(date__gt=time.time() - 86400, exercise=self.exercise, user=self.user.id)
-        self.done_exercise_entry = query[0]
 
         if query.exists():
+            self.done_exercise_entry = query[0]
             self.executions_done = self.done_exercise_entry.executions_done
             self.current_set = self.done_exercise_entry.current_set
             self.current_set_execution = self.done_exercise_entry.current_set_execution
@@ -223,6 +223,7 @@ class SetConsumer(WebsocketConsumer):
             self.f_stop.set()
             self.doing_set = False
             type += 1
+            self.current_set -= 1
 
             self.completed = True
             self.send(text_data=json.dumps({
@@ -250,7 +251,7 @@ class SetConsumer(WebsocketConsumer):
     def f(self, f_stop):
         self.send_stats(1)
         if not f_stop.is_set():
-            wait = random.randint(3, 8)
+            wait = random.randint(2, 4)
             threading.Timer(wait, self.f, [f_stop]).start()
 
     # On Connect
