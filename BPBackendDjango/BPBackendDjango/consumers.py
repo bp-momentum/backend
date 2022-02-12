@@ -137,9 +137,11 @@ class SetConsumer(WebsocketConsumer):
         self.exinplan = ExerciseInPlan.objects.get(id=self.exercise)
         self.sets = self.exinplan.sets
         self.executions_per_set = self.exinplan.repeats_per_set
-        self.done_exercise_entry = DoneExercises.objects.filter(date__gt=time.time() - 86400, exercise=self.exercise, user=self.user.id)
 
-        if self.done_exercise_entry.exists():
+        query = DoneExercises.objects.filter(date__gt=time.time() - 86400, exercise=self.exercise, user=self.user.id)
+        self.done_exercise_entry = query[0]
+
+        if query.exists():
             self.executions_done = self.done_exercise_entry.executions_done
             self.current_set = self.done_exercise_entry.current_set
             self.current_set_execution = self.done_exercise_entry.current_set_execution
