@@ -811,10 +811,17 @@ class TestUserViews(TestCase):
         response = DeleteAccountView.post(self=APIView, request=request) 
         self.assertTrue(response.data.get('success'))
         self.assertFalse(User.objects.filter(id=self.user_id).exists())
+        #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = DeleteAccountView.post(self=APIView, request=request) 
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = DeleteAccountView.post(self=APIView, request=request) 
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
         #setup user again
         trainer = Trainer.objects.get(id=self.trainer_id)
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
@@ -834,6 +841,7 @@ class TestUserViews(TestCase):
         self.user_refresh_token = response.data.get('data').get('refresh_token')
         self.assertTrue(JwToken.check_session_token(self.user_token))
         self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token))
+        #invalid
         #invalid username
         request = ViewSupport.setup_request({}, {
                 'username': "cooleKids",
@@ -848,6 +856,12 @@ class TestUserViews(TestCase):
             })
         response = LoginView.post(LoginView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = LoginView.post(LoginView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), [])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username', 'password'])
     
     def test_register(self):
         #register user
@@ -884,6 +898,7 @@ class TestUserViews(TestCase):
         response = RegisterView.post(RegisterView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(Trainer.objects.filter(username='Notjbad').exists())
+        #invalid
         #invalid token
         request = ViewSupport.setup_request({}, {
             'username': 'againjbad',
@@ -892,6 +907,12 @@ class TestUserViews(TestCase):
         })
         response = RegisterView.post(RegisterView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = RegisterView.post(RegisterView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), [])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username', 'password', 'new_user_token'])
 
     def test_createUser(self):
         trainer = Trainer.objects.get(first_name="Erik")
@@ -914,6 +935,7 @@ class TestUserViews(TestCase):
         response = CreateUserView.post(CreateUserView, request)
         self.assertTrue(response.data.get('success'))
         self.new_trainer_token = response.data.get('data').get('new_user_token')
+        #invalid
         #user not allowed to
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {
             'first_name': 'Jannis',
@@ -930,6 +952,12 @@ class TestUserViews(TestCase):
         })
         response = CreateUserView.post(CreateUserView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = CreateUserView.post(CreateUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['first_name', 'last_name', 'email_address'])
 
     def test_auth(self):
         #correct
@@ -940,14 +968,22 @@ class TestUserViews(TestCase):
             })
         response = AuthView.post(AuthView, request)
         self.assertTrue(response.data.get('success'))
+        #invalid
         #incorrect
         request = ViewSupport.setup_request({}, {
                 'refresh_token': 'justsomeinvalidstuff'
             })
         response = AuthView.post(AuthView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = AuthView.post(AuthView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), [])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['refresh_token'])
 
     def test_logoutAllDevices(self):
+        #valid
         if self.user_refresh_token == None:
             self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
         self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token).get('valid'))
@@ -959,10 +995,17 @@ class TestUserViews(TestCase):
             })
         response = AuthView.post(AuthView, request)
         self.assertFalse(response.data.get('success'))
+        #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
 
 
 class TestExerciseView(TestCase):
