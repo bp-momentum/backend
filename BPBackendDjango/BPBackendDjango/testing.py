@@ -476,18 +476,34 @@ class ProfileTestCase(TestCase):
         self.token3 = JwToken.create_session_token(user2.username, 'user')
 
     def test_change_username(self):
+        #valid
+        #triner
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'username': 'neuerName'})
         response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertTrue(response.data.get('success'))
         trainer = Trainer.objects.get(id=self.trainer_id)
         self.assertEqual(trainer.username, 'neuerName')
+        #user
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'coolerName'})
         response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertTrue(response.data.get('success'))
         user1 = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.username, 'coolerName')
+        #invalid
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'username': 'coolerName'})
+        response = ChangeUsernameView.post(ChangeUsernameView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ChangeUsernameView.post(ChangeUsernameView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username'])
 
     def test_change_password(self):
+        #valid
+        #trainer
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {
             'password': 'Passwort',
             'new_password': 'pswd_new'
@@ -496,6 +512,7 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         trainer = Trainer.objects.get(id=self.trainer_id)
         self.assertEqual(trainer.password, str(hashlib.sha3_256('pswd_new'.encode('utf8')).hexdigest()))
+        #user
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
             'password': 'passwd',
             'new_password': 'neue1234'
@@ -504,8 +521,32 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         user1 = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.password, str(hashlib.sha3_256('neue1234'.encode('utf8')).hexdigest()))
+        #invalid
+        #wrong password
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {
+            'password': 'wrong',
+            'new_password': 'neverReached'
+        })
+        response = ChangePasswordView.post(ChangePasswordView, request)
+        self.assertFalse(response.data.get('success'))
+        user2 = User.objects.get(id=self.user2_id)
+        self.assertEqual(user2.password, str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
+            'password': 'wrong',
+            'new_password': 'neverReached'
+        })
+        response = ChangePasswordView.post(ChangePasswordView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ChangePasswordView.post(ChangePasswordView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['password', 'new_password'])
 
     def test_change_avatar(self):
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'avatar': 1})
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertTrue(response.data.get('success'))
@@ -516,15 +557,48 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         user1 = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.avatar, 2)
+        #invalid
+        #trainer not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'avatar': 1})
+        response = ChangeAvatarView.post(ChangeAvatarView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'avatar': 1})
+        response = ChangeAvatarView.post(ChangeAvatarView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ChangeAvatarView.post(ChangeAvatarView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['avatar'])
 
     def test_change_motivation(self):
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
         response = ChangeMotovationView.post(ChangeMotovationView, request)
         self.assertTrue(response.data.get('success'))
         user2 = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.motivation, 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn')
+        #invalid
+        #trainer not able to use
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
+        response = ChangeMotovationView.post(ChangeMotovationView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
+        response = ChangeMotovationView.post(ChangeMotovationView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ChangeMotovationView.post(ChangeMotovationView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['motivation'])
 
     def test_profile_data(self):
+        #valid
+        #get profile
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetProfileView.get(GetProfileView, request)
         self.assertTrue(response.data.get('success'))
@@ -533,16 +607,19 @@ class ProfileTestCase(TestCase):
         self.assertEqual(user2.avatar, response.data.get('data').get('avatar'))
         self.assertEqual(user2.first_login, response.data.get('data').get('first_login'))
         self.assertEqual(user2.motivation, response.data.get('data').get('motivation'))
+        #change telephone number of trainer
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'telephone': '015712251102'})
         response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
         self.assertTrue(response.data.get('success'))
         trainer = Trainer.objects.get(id=self.trainer_id)
         self.assertEqual(trainer.telephone, '015712251102')
+        #change academia of trainer
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'academia': 'dr. nat'})
         response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
         self.assertTrue(response.data.get('success'))
         trainer = Trainer.objects.get(id=self.trainer_id)
         self.assertEqual(trainer.academia, 'dr. nat')
+        #change location of trainer
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {
             'street': 'Straße',
             'house_nr': '4',
@@ -556,6 +633,7 @@ class ProfileTestCase(TestCase):
         trainer = Trainer.objects.get(id=self.trainer_id)
         loc = Location.objects.get()
         self.assertEqual(trainer.location, loc)
+        #user gets trainers contact
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
         response = GetTrainerContactView.get(GetTrainerContactView, request)
         self.assertTrue(response.data.get('success'))
@@ -564,8 +642,99 @@ class ProfileTestCase(TestCase):
         self.assertEqual(response.data.get('data').get('address'), 'Straße 4, 64287 Darmstadt, Deutschland')
         self.assertEqual(trainer.telephone, response.data.get('data').get('telephone'))
         self.assertEqual(trainer.email_address, response.data.get('data').get('email'))
+        #trainer gets its contact
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetTrainerContactView.get(GetTrainerContactView, request)
+        self.assertTrue(response.data.get('success'))
+        trainer = Trainer.objects.get(id=self.trainer_id)
+        self.assertEqual(response.data.get('data').get('name'), 'dr. nat Erik Prescher')
+        self.assertEqual(response.data.get('data').get('address'), 'Straße 4, 64287 Darmstadt, Deutschland')
+        self.assertEqual(trainer.telephone, response.data.get('data').get('telephone'))
+        self.assertEqual(trainer.email_address, response.data.get('data').get('email'))
+        #invalid
+        #trainer not allowed to get profile
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetProfileView.get(GetProfileView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetProfileView.get(GetProfileView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetProfileView.get(GetProfileView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        #user not able to change telephone number
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'telephone': '015712251102'})
+        response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'telephone': '015712251102'})
+        response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['telephone'])
+        #user not able to change academia
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'academia': 'dr. nat'})
+        response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'academia': 'dr. nat'})
+        response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['academia'])
+        #user not able to change location
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {
+            'street': 'Straße',
+            'house_nr': '4',
+            'postal_code': '64287',
+            'city': 'Darmstadt',
+            'country': 'Deutschland',
+            'address_add': ''
+            })
+        response = SetTrainerLocationView.post(SetTrainerLocationView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
+            'street': 'Straße',
+            'house_nr': '4',
+            'postal_code': '64287',
+            'city': 'Darmstadt',
+            'country': 'Deutschland',
+            'address_add': ''
+            })
+        response = SetTrainerLocationView.post(SetTrainerLocationView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = SetTrainerLocationView.post(SetTrainerLocationView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['street', 'house_nr', 'postal_code', 'city', 'country', 'address_add'])
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetTrainerContactView.get(GetTrainerContactView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetTrainerContactView.get(GetTrainerContactView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
 
     def test_done_exercises_of_month(self):
+        #additional setup
         ex = Exercise.objects.create(title='Kniebeuge')
         trainer = Trainer.objects.get(id=self.trainer_id)
         plan = TrainingSchedule.objects.create(trainer=trainer)
@@ -573,6 +742,7 @@ class ProfileTestCase(TestCase):
         user = User.objects.get(id=self.user1_id)
         dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
         now = datetime.datetime.now()
+        #valid
         result = get_done_exercises_of_month(now.month, now.year, user)
         '''[{
             "exercise_plan_id": dex.exercise.id,
@@ -587,6 +757,27 @@ class ProfileTestCase(TestCase):
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('done'), result)
+        #invalid
+        #trainer not able to
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {
+            'year': now.year,
+            'month': now.month
+        })
+        response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
+            'year': now.year,
+            'month': now.month
+        })
+        response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['year', 'month'])
 
 class TestUserViews(TestCase):
 
