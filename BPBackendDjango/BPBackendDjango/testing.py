@@ -294,28 +294,28 @@ class getUsersAndTrainersTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
         self.assertFalse(response.data.get('success'))
         request = ViewSupport.setup_request({}, {})
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
         response = DeleteTrainerView.post(DeleteTrainerView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
         request = ViewSupport.setup_request({'Session-Token': token4}, {'id': id})
         response = DeleteUserView.post(DeleteUserView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
 
 
 class AchievementTestCase(TestCase):
@@ -353,8 +353,8 @@ class AchievementTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
 
 class LevelTestCase(TestCase):
@@ -400,8 +400,8 @@ class LevelTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetUserLevelView.get(GetUserLevelView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['username'])
 
 
 class HandlingInvitesTestCase(TestCase):
@@ -432,8 +432,8 @@ class HandlingInvitesTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetInvitedView.get(GetInvitedView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
     def test_invalidate(self):
         #valid
@@ -455,8 +455,8 @@ class HandlingInvitesTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = InvalidateInviteView.post(InvalidateInviteView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
 
 
 class ProfileTestCase(TestCase):
@@ -498,8 +498,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['username'])
 
     def test_change_password(self):
         #valid
@@ -542,8 +542,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ChangePasswordView.post(ChangePasswordView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['password', 'new_password'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['password', 'new_password'])
 
     def test_change_avatar(self):
         #valid
@@ -570,8 +570,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['avatar'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['avatar'])
 
     def test_change_motivation(self):
         #valid
@@ -593,8 +593,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ChangeMotovationView.post(ChangeMotovationView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['motivation'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['motivation'])
 
     def test_profile_data(self):
         #valid
@@ -664,8 +664,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetProfileView.get(GetProfileView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
         #user not able to change telephone number
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'telephone': '015712251102'})
         response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
@@ -678,8 +678,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['telephone'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['telephone'])
         #user not able to change academia
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'academia': 'dr. nat'})
         response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
@@ -692,8 +692,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ChangeTrainerAcademiaView.post(ChangeTrainerAcademiaView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['academia'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['academia'])
         #user not able to change location
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
             'street': 'Straße',
@@ -720,8 +720,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = SetTrainerLocationView.post(SetTrainerLocationView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['street', 'house_nr', 'postal_code', 'city', 'country', 'address_add'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['street', 'house_nr', 'postal_code', 'city', 'country', 'address_add'])
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = GetTrainerContactView.get(GetTrainerContactView, request)
@@ -730,8 +730,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetTrainerContactView.get(GetTrainerContactView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
     def test_done_exercises_of_month(self):
         #additional setup
@@ -776,8 +776,8 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['year', 'month'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['year', 'month'])
 
 class TestUserViews(TestCase):
 
@@ -820,8 +820,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = DeleteAccountView.post(self=APIView, request=request) 
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
         #setup user again
         trainer = Trainer.objects.get(id=self.trainer_id)
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
@@ -860,8 +860,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = LoginView.post(LoginView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), [])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username', 'password'])
+        self.assertEquals(response.data.get('data').get('header'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['username', 'password'])
     
     def test_register(self):
         #register user
@@ -911,8 +911,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = RegisterView.post(RegisterView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), [])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username', 'password', 'new_user_token'])
+        self.assertEquals(response.data.get('data').get('header'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['username', 'password', 'new_user_token'])
 
     def test_createUser(self):
         trainer = Trainer.objects.get(first_name="Erik")
@@ -956,8 +956,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = CreateUserView.post(CreateUserView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['first_name', 'last_name', 'email_address'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['first_name', 'last_name', 'email_address'])
 
     def test_auth(self):
         #correct
@@ -979,8 +979,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = AuthView.post(AuthView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), [])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['refresh_token'])
+        self.assertEquals(response.data.get('data').get('header'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['refresh_token'])
 
     def test_logoutAllDevices(self):
         #valid
@@ -1004,8 +1004,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
 
 class TestExerciseView(TestCase):
@@ -1059,8 +1059,8 @@ class TestExerciseView(TestCase):
         request = ViewSupport.setup_request({},{})
         response = GetExerciseView.post(GetExerciseView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
 
     def test_get_list(self):
         #valid
@@ -1085,8 +1085,8 @@ class TestExerciseView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetExerciseListView.get(GetExerciseListView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
 
 class TestPlanView(TestCase):
@@ -1175,8 +1175,8 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['name', 'exercise'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['name', 'exercise'])
 
     def test_create_change(self):
         #valid
@@ -1240,8 +1240,8 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['name', 'exercise'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['name', 'exercise'])
 
     def test_add_user(self):
         TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
@@ -1299,8 +1299,8 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = AddPlanToUserView.post(AddPlanToUserView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['plan', 'user'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['plan', 'user'])
 
     def test_get_list(self):
         #valid
@@ -1321,8 +1321,8 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetAllPlansView.get(GetAllPlansView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
     def test_get(self):
         #valid
@@ -1349,8 +1349,8 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ShowPlanView.post(ShowPlanView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['plan'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['plan'])
 
     def test_get_for_user(self):
         #valid
@@ -1390,14 +1390,14 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
         #missing arguments as trainer
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['username'])
 
     def test_delete(self):
         #valid
@@ -1427,8 +1427,8 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
 
 
 class TestLeaderboardView(TestCase):
@@ -1490,8 +1490,8 @@ class TestLeaderboardView(TestCase):
         request = ViewSupport.setup_request({}, {})
         response = ListLeaderboardView.post(ListLeaderboardView, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('missing').get('data'), ['count'])
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['count'])
 
 #TODO
 class TestDoneExercise(TestCase):
