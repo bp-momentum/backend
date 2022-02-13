@@ -5,7 +5,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'first_name', 'last_name', 'username', 'password', 'email_address', 'trainer'
+            'first_name', 'last_name', 'username', 'password', 'email_address', 'trainer', 'first_login'
         )
 
 
@@ -63,3 +63,10 @@ class AchieveAchievement(serializers.ModelSerializer):
         fields = (
             'achievement', 'user'
         )
+class CreateFriends(serializers.ModelSerializer):
+    class Meta:
+        model = Friends
+        fields = (
+            'friend1', 'friend2'
+        )
+

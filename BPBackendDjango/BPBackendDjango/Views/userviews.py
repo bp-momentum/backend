@@ -205,6 +205,44 @@ def get_string_of_date(d, m, y):
         month = str(m)
     return str(y)+'-'+str(month)+'-'+str(day)
 
+#just this method has to be changed to get more information for profile
+def get_profile_data(user):
+    return {
+        'username': user.username,
+        'avatar': user.avatar,
+        'first_login': user.first_login,
+        'motivation': user.motivation
+    }
+
+#just this method has to be changed to get more contact information for trainers
+def get_trainer_contact(trainer):
+    loc = trainer.location
+    #check if trainer has location
+    if loc == None:
+        location = None
+    else:
+        #cocatinate location
+        location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
+    if trainer.academia == '':
+        academia = ''
+    else:
+        academia = trainer.academia + ' '
+    return {
+        'name': str(academia + trainer.first_name + ' ' + trainer.last_name),
+        'address': str(location),
+        'telephone': trainer.telephone,
+        'email': trainer.email_address
+    }
+
+#only method needs to be changed to get different information about users
+def get_users_data(users):
+    data = []
+    for user in users:
+        data.append({
+            'id': user.id,
+            'username': user.username
+        })
+    return data
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
@@ -236,6 +274,9 @@ class RegisterView(APIView):
         if token["info"]["create_account_type"] == "user":
             trainer_id = Trainer.objects.get(username=token["info"]["initiator"]).id
             req_data["trainer"] = trainer_id
+            today = datetime.datetime.now()
+            first_login = get_string_of_date(today.day, today.month, today.year)
+            req_data['first_login'] = first_login
             serializer = CreateUserSerializer(data=req_data)
         
         elif token["info"]["create_account_type"] == "trainer":
@@ -572,6 +613,8 @@ class ChangeLanguageView(APIView):
 
         return Response(data)
 
+        users = User.objects.all()
+        users_data = get_users_data(users)  
 
 class GetLanguageView(APIView):
     def get(self, request, *args, **kwargs):
@@ -1006,3 +1049,535 @@ class InvalidateInviteView(APIView):
             'data': {}
         }
         return Response(data)
+
+
+class ChangeUsernameView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['username'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #get correct user
+        if info['account_type'] == 'user':
+            user = User.objects.get(username=info['username'])
+        elif info['account_type'] == 'trainer':
+            user = Trainer.objects.get(username=info['username'])
+        elif info['account_type'] == 'admin':
+            user = Admin.objects.get(username=info['username'])
+
+        #check if username is not already uesd
+        if (User.objects.filter(username=req_data['username']).exists() or
+                Trainer.objects.filter(username=req_data['username']).exists() or 
+                Admin.objects.filter(username=req_data['username']).exists()):
+            data = {
+                'success': False,
+                'description': 'Username already used',
+                'data': {}
+            }
+            return Response(data)
+
+        #change username
+        user.username = req_data['username']
+        user.save(force_update=True)
+        #creating tokens
+        session_token = JwToken.create_session_token(req_data['username'], info["account_type"])
+        refresh_token = JwToken.create_refresh_token(req_data['username'], info["account_type"], True)
+        data = {
+            'success': True,
+            'description': 'Usernamed changed',
+            'data': {
+                "session_token": session_token,
+                "refresh_token": refresh_token
+            }
+        }
+        return Response(data)
+
+
+class ChangePasswordView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['password', 'new_password'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        #get correct user
+        if info['account_type'] == 'user':
+            user = User.objects.get(username=info['username'])
+        elif info['account_type'] == 'trainer':
+            user = Trainer.objects.get(username=info['username'])
+        elif info['account_type'] == 'admin':
+            user = Admin.objects.get(username=info['username'])
+
+        #logout on all devices
+        response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
+        if not response.data.get('success'):
+            return response
+
+        #check password
+        if not check_password(user.username, req_data['password']) == info['account_type']:
+            data = {
+                'success': False,
+                'description': 'incorrect password',
+                'data': {}
+            }
+            return Response(data)
+
+        #change password
+        user.password = str(hashlib.sha3_256(req_data["new_password"].encode('utf8')).hexdigest())
+        user.save(force_update=True)
+        #creating tokens
+        session_token = JwToken.create_session_token(info['username'], info["account_type"])
+        refresh_token = JwToken.create_refresh_token(info['username'], info["account_type"], True)
+        data = {
+            'success': True,
+            'description': 'Password changed',
+            'data': {
+                "session_token": session_token,
+                "refresh_token": refresh_token
+            }
+        }
+        return Response(data)
+
+
+class ChangeAvatarView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['avatar'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #check if it is a user
+        if not info['account_type'] == 'user':
+            data = {
+                'success': False,
+                'description': 'Only users can change their avatar',
+                'data': {}
+            }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+
+        a = int(req_data['avatar'])
+        #checking if number is small enough to fit in data base
+        if a >= 100000:
+            data = {
+                'success': False,
+                'description': 'invalid value',
+                'data': {}
+            }
+            return Response(data)
+        #chaneg avatar
+        user.avatar = a
+        user.save(force_update=True)
+        data = {
+            'success': True,
+            'description': 'Avatar changed',
+            'data': {}
+        }
+        return Response(data)
+
+
+class GetProfileView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        #check if it is a user
+        if not info['account_type'] == 'user':
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+        #get profile data
+        data = {
+            'success': True,
+            'description': 'Returning profile data',
+            'data': get_profile_data(user)
+        }
+        return Response(data)
+
+
+class GetTrainerContactView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #check if request by user
+        if not (info['account_type'] == 'user' or info['account_type'] == 'trainer'):
+            data = {
+                'success': False,
+                'description': 'Only users can request their trainers contact and trainers their own one',
+                'data': {}
+            }
+            return Response(data)
+        if info['account_type'] == 'user':
+            user = User.objects.get(username=info['username'])
+            #get trainer of user
+            trainer = user.trainer
+            description = 'Returning contact data of trainer'
+        elif info['account_type'] == 'trainer':
+            trainer = Trainer.objects.get(username=info['username'])
+            description = 'Returning your contact data'
+        #get contact data of the trainer
+        data = {
+            'success': True,
+            'description': description,
+            'data': get_trainer_contact(trainer)
+        }
+        return Response(data)
+
+
+class SetTrainerLocationView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['street', 'postal_code', 'country', 'city', 'house_nr', 'address_add'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = request.data
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+        info = token['info']
+
+        #check if requested by trainer
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'Not a trainer',
+                'data': {}
+            }
+            return Response(data)
+
+        trainer = Trainer.objects.get(username=info['username'])
+        #create or get location
+        if not Location.objects.filter(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add']).exists():
+            loc = Location.objects.create(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
+        else:
+            loc = Location.objects.get(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
+        #change location
+        trainer.location = loc
+        trainer.save(force_update=True)
+        data = {
+            'success': True,
+            'description': 'Location updated',
+            'data': {}
+        }
+        return Response(data)
+
+
+class ChangeTrainerTelephoneView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['telephone'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = request.data
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+        info = token['info']
+
+        #check if requested by trainer
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'Not a trainer',
+                'data': {}
+            }
+            return Response(data)
+            
+        trainer = Trainer.objects.get(username=info['username'])
+        #change telephone number
+        trainer.telephone = req_data['telephone']
+        trainer.save(force_update=True)
+        data = {
+            'success': True,
+            'description': 'Telephone number updated',
+            'data': {}
+        }
+        return Response(data)
+
+
+class ChangeTrainerAcademiaView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['academia'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = request.data
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+        info = token['info']
+
+        #check if requested by trainer
+        if not info['account_type'] == 'trainer':
+            data = {
+                'success': False,
+                'description': 'Not a trainer',
+                'data': {}
+            }
+            return Response(data)
+            
+        trainer = Trainer.objects.get(username=info['username'])
+        #change academia
+        trainer.academia = req_data['academia']
+        trainer.save(force_update=True)
+        data = {
+            'success': True,
+            'description': 'Academia updated',
+            'data': {}
+        }
+        return Response(data)
+
+
+class ChangeMotovationView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['motivation'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #check if request by user
+        if not info['account_type'] == 'user':
+            data = {
+                'success': False,
+                'description': 'Only users can change their motivation',
+                'data': {}
+            }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+
+        #change motivation
+        user.motivation = req_data['motivation']
+        user.save(force_update=True)
+        data = {
+            'success': True,
+            'description': 'Motivation changed',
+            'data': {}
+        }
+        return Response(data)
+
+           
+class SearchUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['search'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        users = User.objects.filter(username__icontains=req_data['search']).exclude(username=info['username'])
+        users_data = get_users_data(users)
+
+        data = {
+                'success': True,
+                'description': 'returning list of matching users',
+                'data': {
+                    'users': users_data
+                }
+            }
+        return Response(data)
+
+
+class GetListOfUsers(APIView):
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        users = User.objects.exclude(username=info['username'])
+        users_data = get_users_data(users)  
+
+        data = {
+                'success': True,
+                'description': 'returning list of users',
+                'data': {
+                    'users': users_data
+                }
+            }
+        return Response(data)
+
+ 
