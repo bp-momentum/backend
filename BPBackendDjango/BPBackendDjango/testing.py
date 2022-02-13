@@ -396,6 +396,12 @@ class LevelTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'trainer')}, {'username': self.trainer.username})
         response = GetUserLevelView.post(GetUserLevelView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetUserLevelView.get(GetUserLevelView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username'])
 
 
 class HandlingInvitesTestCase(TestCase):
