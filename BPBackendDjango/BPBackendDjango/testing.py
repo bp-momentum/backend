@@ -1042,6 +1042,7 @@ class TestExerciseView(TestCase):
         self.assertEquals(data.get('description'), "Do squats...")
         self.assertEquals(data.get('video'), None)
         self.assertEquals(data.get('activated'), True)
+        #invalid
         #invalid exercise
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token},{'id': 2543})
         response = GetExerciseView.post(GetExerciseView, request)
@@ -1054,6 +1055,12 @@ class TestExerciseView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'},{'id': self.ex_id})
         response = GetExerciseView.post(GetExerciseView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({},{})
+        response = GetExerciseView.post(GetExerciseView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
 
     def test_get_list(self):
         #valid
@@ -1061,6 +1068,7 @@ class TestExerciseView(TestCase):
         response = GetExerciseListView.get(GetExerciseListView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(len(response.data.get('data').get('exercises')) == len(Exercise.objects.all()))
+        #invalid
         #user not allowed
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = GetExerciseListView.get(GetExerciseListView, request)
@@ -1073,6 +1081,12 @@ class TestExerciseView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = GetExerciseListView.get(GetExerciseListView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetExerciseListView.get(GetExerciseListView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
 
 
 class TestPlanView(TestCase):
