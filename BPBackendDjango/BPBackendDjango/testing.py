@@ -1394,10 +1394,10 @@ class TestPlanView(TestCase):
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
         #missing arguments as trainer
-        request = ViewSupport.setup_request({}, {})
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('header'), [])
         self.assertEquals(response.data.get('data').get('data'), ['username'])
 
     def test_delete(self):
