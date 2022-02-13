@@ -1599,5 +1599,30 @@ class TestFriendSystem(TestCase):
         self.assertEquals(response.data.get('data').get('data'), ['search'])
 
     def test_get_list(self):
-        #TODO
-        self.assertTrue(True)
+        #valid
+        #as admin
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetListOfUsers.get(SearchUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all()))
+        #as trainer
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetListOfUsers.get(SearchUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all()))
+        #as user
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = GetListOfUsers.get(SearchUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all().exclude(username='user1')))
+        #invalid
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetListOfUsers.get(SearchUserView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetListOfUsers.get(SearchUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
