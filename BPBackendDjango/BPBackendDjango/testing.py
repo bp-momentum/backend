@@ -1523,3 +1523,5 @@ class TestDoneExercise(TestCase):
     def test_get_done(self):
         #TODO
         self.assertTrue(True)
+
+#TODO Friend System
