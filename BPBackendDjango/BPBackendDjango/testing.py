@@ -349,6 +349,12 @@ class AchievementTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.trainer.username, 'trainer')}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetAchievementsView.get(GetAchievementsView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
 
 
 class LevelTestCase(TestCase):
