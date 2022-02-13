@@ -1,3 +1,4 @@
+from pickle import TRUE
 from django.http import request
 from django.test import TestCase
 
@@ -1494,7 +1495,7 @@ class TestLeaderboardView(TestCase):
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), ['count'])
 
-#TODO
+#TODO Done Exercises
 class TestDoneExercise(TestCase):
 
     trainer_id = 1
@@ -1526,3 +1527,77 @@ class TestDoneExercise(TestCase):
         self.assertTrue(True)
 
 #TODO Friend System
+class TestFriendSystem(TestCase):
+
+    users = []
+    admin = None
+    trainer = None
+    token1 = None
+    token2 = None
+    token3 = None
+    token4 = None
+    token5 = None
+
+    def setUp(self) -> None:
+        Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", password="Password1234")
+        self.admin = Admin.objects.get(username="DerAdmin")
+        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainer = Trainer.objects.get(first_name="Erik")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user6", email_address="user6@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user7", email_address="user7@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user8", email_address="user8@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user9", email_address="user9@users.com", trainer=self.trainer,password="pswd22")
+        User.objects.create(first_name="vorname", last_name="nachname", username="user10", email_address="user10@users.com", trainer=self.trainer,password="pswd22")
+        self.users = list(User.objects.all())
+        self.token1 = JwToken.create_session_token(self.admin.username, 'admin')
+        self.token2 = JwToken.create_session_token(self.trainer.username, 'trainer')
+        self.token3 = JwToken.create_session_token(self.users[0].username, 'user')
+        self.token4 = JwToken.create_session_token(self.users[1].username, 'user')
+        self.token5 = JwToken.create_session_token(self.users[2].username, 'user')
+
+    def test_system(self):
+        #TODO
+        self.assertTrue(True)
+
+    def test_pattern_search(self):
+        #valid
+        #as admin
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'search': 'user1'})
+        response = SearchUserView.post(SearchUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
+        #as trainer
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'search': 'user1'})
+        response = SearchUserView.post(SearchUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
+        #as user
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'search': 'user1'})
+        response = SearchUserView.post(SearchUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user10')]))
+        #empty
+        request = ViewSupport.setup_request({'Session-Token': self.token4}, {'search': 'del'})
+        response = SearchUserView.post(SearchUserView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('users'), get_users_data([]))
+        #invalid
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'search': 'del'})
+        response = SearchUserView.post(SearchUserView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = SearchUserView.post(SearchUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['search'])
+
+    def test_get_list(self):
+        #TODO
+        self.assertTrue(True)
