@@ -1481,10 +1481,17 @@ class TestLeaderboardView(TestCase):
         entry = Leaderboard.objects.get(score=200)
         leaderboard.append({"rank": 4, "username": entry.user.username, "score": entry.score})
         self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
+        #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'count': 3})
         response = ListLeaderboardView.post(ListLeaderboardView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ListLeaderboardView.post(ListLeaderboardView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['count'])
 
 #TODO
 class TestDoneExercise(TestCase):
