@@ -1118,7 +1118,7 @@ class TestPlanView(TestCase):
     def test_create_new(self):
         trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
-        #without user
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
             'name': 'test_plan',
             'exercise': [{
@@ -1136,6 +1136,7 @@ class TestPlanView(TestCase):
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data').get('plan_id'))).exists())
+        #invalid
         #user not allowed
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {
             'name': 'test_plan',
@@ -1170,8 +1171,15 @@ class TestPlanView(TestCase):
         })
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['name', 'exercise'])
 
     def test_create_change(self):
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
             'name': 'test_plan',
             'exercise': [{
@@ -1191,6 +1199,7 @@ class TestPlanView(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertTrue(TrainingSchedule.objects.filter(id=int(response.data.get('data').get('plan_id'))).exists())
         self.ts_id = int(response.data.get('data').get('plan_id'))
+        #invalid
         #user not allowed
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {
             'name': 'test_plan',
@@ -1227,6 +1236,12 @@ class TestPlanView(TestCase):
         })
         response = CreatePlanView.post(CreatePlanView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments (same as create cause id is optional argument)
+        request = ViewSupport.setup_request({}, {})
+        response = CreatePlanView.post(CreatePlanView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['name', 'exercise'])
 
     def test_add_user(self):
         TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
@@ -1244,6 +1259,7 @@ class TestPlanView(TestCase):
         self.assertTrue(response.data.get('success'))
         user = User.objects.get(username='jbadV')
         self.assertEquals(user.plan.id, self.ts_id)
+        #invalid
         #invalid user
         request = ViewSupport.setup_request({'Session-Token':  self.trainer_token}, {
             'plan': self.ts_id,
@@ -1263,6 +1279,28 @@ class TestPlanView(TestCase):
         self.assertFalse(response.data.get('success'))
         user = User.objects.get(username='DeadlyFarts')
         self.assertEquals(user.plan, None)
+        #user not allowed to
+        request = ViewSupport.setup_request({'Session-Token':  self.user_token}, {
+            'plan': self.ts_id,
+            'user': 'DeadlyFarts'
+        })
+        response = AddPlanToUserView.post(AddPlanToUserView, request)
+        self.assertFalse(response.data.get('success'))
+        user = User.objects.get(username='DeadlyFarts')
+        self.assertEquals(user.plan, None)
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token':  'invalid'}, {
+            'plan': self.ts_id,
+            'user': 'DeadlyFarts'
+        })
+        response = AddPlanToUserView.post(AddPlanToUserView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = AddPlanToUserView.post(AddPlanToUserView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['plan', 'user'])
 
     def test_get_list(self):
         #valid
@@ -1270,6 +1308,7 @@ class TestPlanView(TestCase):
         response = GetAllPlansView.get(GetAllPlansView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('plans')), len(TrainingSchedule.objects.filter(trainer=self.trainer_id)))
+        #invalid
         #user not allowed to
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = GetAllPlansView.get(GetAllPlansView, request)
@@ -1278,6 +1317,12 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = GetAllPlansView.get(GetAllPlansView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetAllPlansView.get(GetAllPlansView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
 
     def test_get(self):
         #valid
@@ -1288,6 +1333,7 @@ class TestPlanView(TestCase):
         self.assertEquals(response.data.get('data').get('name'), ts.name)
         self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=self.ts_id)))
         #invalid
+        #invalid plan
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'plan': -1})
         response = ShowPlanView.post(ShowPlanView, request)
         self.assertFalse(response.data.get('success'))
@@ -1299,8 +1345,15 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'plan': self.ts_id})
         response = ShowPlanView.post(ShowPlanView, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ShowPlanView.post(ShowPlanView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['plan'])
 
     def test_get_for_user(self):
+        #valid
         user = User.objects.get(id=self.user_id)
         TrainingSchedule.objects.create(name='getfromuser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
         ts = TrainingSchedule.objects.get(name='getfromuser_plan')
@@ -1321,6 +1374,7 @@ class TestPlanView(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=ts.id)))
         #invalid
+        #invalid user
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'username': 'user.username'})
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertFalse(response.data.get('success'))
@@ -1332,6 +1386,18 @@ class TestPlanView(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'username': user.username})
         response = GetPlanOfUser.post(GetPlanOfUser, request)
         self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
+        #missing arguments as trainer
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
+        response = GetPlanOfUser.post(GetPlanOfUser, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['username'])
 
     def test_delete(self):
         #valid
@@ -1342,6 +1408,7 @@ class TestPlanView(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertFalse(TrainingSchedule.objects.filter(id=ts.id).exists())
         #invalid
+        #invalid plan
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': -1})
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertFalse(response.data.get('success'))
@@ -1356,6 +1423,12 @@ class TestPlanView(TestCase):
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertFalse(response.data.get('success'))
         self.assertTrue(TrainingSchedule.objects.filter(id=ts.id).exists())
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = DeletePlanView.post(DeletePlanView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
 
 
 class TestLeaderboardView(TestCase):
