@@ -418,20 +418,45 @@ class HandlingInvitesTestCase(TestCase):
         self.token = JwToken.create_session_token('DerTrainer', 'trainer')
 
     def test_get(self):
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.token}, {})
         response = GetInvitedView.get(GetInvitedView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('invited'), get_invited_data([self.ot1,]))
+        #invalid
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetInvitedView.get(GetInvitedView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetInvitedView.get(GetInvitedView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), [])
 
     def test_invalidate(self):
+        #valid
         request = ViewSupport.setup_request({'Session-Token': self.token}, {'id': self.ot1.id})
         response = InvalidateInviteView.post(InvalidateInviteView, request)
         self.assertTrue(response.data.get('success'))
         self.assertFalse(OpenToken.objects.filter(id=self.ot1.id).exists())
+        #invalid
+        #not allowed to delete
         request = ViewSupport.setup_request({'Session-Token': self.token}, {'id': self.ot2.id})
         response = InvalidateInviteView.post(InvalidateInviteView, request)
         self.assertFalse(response.data.get('success'))
         self.assertTrue(OpenToken.objects.filter(id=self.ot2.id).exists())
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'id': self.ot2.id})
+        response = InvalidateInviteView.post(InvalidateInviteView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = InvalidateInviteView.post(InvalidateInviteView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('missing').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('missing').get('data'), ['id'])
 
 
 class ProfileTestCase(TestCase):
