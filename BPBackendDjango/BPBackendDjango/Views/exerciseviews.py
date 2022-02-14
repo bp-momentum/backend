@@ -59,7 +59,7 @@ def get_done_exercises_of_month(month, year, user):
         next_month_offset = month_offset + get_lastday_of_month(month, year) * SECS_PER_DAY
         offset_gt = year_offset + month_offset
         offset_lt = year_offset + next_month_offset
-        done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt)
+        done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True)
         # list of all exercises to done
         all = ExerciseInPlan.objects.filter(plan=user.plan)
         out = []
@@ -282,7 +282,7 @@ class GetDoneExercisesView(APIView):
     def GetDone(self, user):
         # list of all done in last week
         # calculation of timespan and filter
-        done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800)
+        done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800, completed=True)
 
         # list of all exercises to done
         all = ExerciseInPlan.objects.filter(plan=user.plan)
@@ -298,7 +298,7 @@ class GetDoneExercisesView(APIView):
                                 "repeats_per_set": a.repeats_per_set,
                                 "done": True
                                 })
-                    done_found  = True
+                    done_found = True
                     break
             if done_found:
                 continue

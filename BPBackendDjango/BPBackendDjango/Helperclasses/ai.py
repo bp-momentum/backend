@@ -2,13 +2,15 @@ import random
 import math
 
 class AIInterface():
+    @staticmethod
     def call_ai(exercise, video, username):
         #TODO assign result user
         #expecting (success, results, feedback)
         return DummyAI.dummy_function(exercise, video)
 
 
-class DummyAI():
+class DummyAI:
+    @staticmethod
     def dummy_function(ex, video):
         return True, {
             'intensity': math.ceil(random.random()*10000)/100,

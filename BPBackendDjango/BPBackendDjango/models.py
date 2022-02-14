@@ -74,6 +74,13 @@ class DoneExercises(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.BigIntegerField(default=0)
+    executions_done = models.IntegerField(default=0)
+    current_set = models.IntegerField(default=0)
+    current_set_execution = models.IntegerField(default=0)
+    speed = models.IntegerField(default=0)
+    intensity = models.IntegerField(default=0)
+    cleanliness = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
 
 
 class Admin(models.Model):
@@ -118,3 +125,7 @@ class OpenToken(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     creator = models.CharField(max_length=50)
+
+
+
+
