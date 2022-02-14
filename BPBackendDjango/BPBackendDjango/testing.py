@@ -1591,7 +1591,7 @@ class TestFriendSystem(TestCase):
         self.assertEquals(len(response.data.get('data').get('pending')), 2)
         self.assertEquals(response.data.get('data').get('pending'), get_pending_requests(self.users[0]))
         #user1 accepts from user2
-        id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=False)
+        id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=False).id
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
         response = AcceptRequestView.post(AcceptRequestView, request)
         self.assertTrue(response.data.get('success'))
@@ -1599,7 +1599,7 @@ class TestFriendSystem(TestCase):
         self.assertTrue(Friends.objects.filter(friend1=self.users[1], friend2=self.users[0], accepted=True).exists())
         self.assertFalse(Friends.objects.filter(friend1=self.users[0], friend2=self.users[1]).exists())
         #user3 declines from user1
-        id = Friends.objects.get(friend1=self.users[0], friend2=self.users[2], accepted=False)
+        id = Friends.objects.get(friend1=self.users[0], friend2=self.users[2], accepted=False).id
         request = ViewSupport.setup_request({'Session-Token': self.token5}, {'id': id})
         response = DeclineRequestView.post(DeclineRequestView, request)
         self.assertTrue(response.data.get('success'))
@@ -1611,7 +1611,7 @@ class TestFriendSystem(TestCase):
         self.assertEquals(len(response.data.get('data').get('friends')), 1)
         self.assertEquals(response.data.get('data').get('friends'), get_friends(self.users[0]))
         #user1 delete friend (user2)
-        id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=True)
+        id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=True).id
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
         response = DeleteFriendView.post(DeleteFriendView, request)
         self.assertTrue(response.data.get('success'))
