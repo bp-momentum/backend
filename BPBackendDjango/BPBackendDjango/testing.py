@@ -1746,7 +1746,7 @@ class TestFriendSystem(TestCase):
         response = DeleteFriendView.post(DeleteFriendView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
 
     def test_pattern_search(self):
         #valid
