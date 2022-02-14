@@ -16,6 +16,8 @@ from .Helperclasses.jwttoken import JwToken
 class SetConsumer(WebsocketConsumer):
     def __init__(self):
         super().__init__()
+
+        # initialising the new connection
         self.filename = None
         self.doing_set = False
         self.f_stop = None
@@ -25,6 +27,7 @@ class SetConsumer(WebsocketConsumer):
         self.authenticated = False
         self.initiated = False
 
+        # initialising new exercise will be overwritten after init when exercise could be loaded
         self.executions_per_set = 0
         self.sets = 0
 
@@ -42,14 +45,17 @@ class SetConsumer(WebsocketConsumer):
 
         self.exinplan = None
 
+    # in this method the incoming video stream will be saved
     def save_video(self, data):
         if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username)):
+            # check if the user folder was already created else mkdir
             try:
                 os.mkdir(os.path.join(INTERN_SETTINGS['video_dir'], self.username))
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
 
+        # add new video blob to the file
         if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username, self.filename)):
             mode = 'wb'
         else:
@@ -60,6 +66,8 @@ class SetConsumer(WebsocketConsumer):
             f.close()
 
     def authenticate(self, session_token):
+
+        # check if token is valid
         token = JwToken.check_session_token(session_token['session_token'])
         if not token['valid']:
             self.send(text_data=json.dumps({
@@ -69,7 +77,21 @@ class SetConsumer(WebsocketConsumer):
                 'data': {}
             }))
             return
+
+        # check if account_type is user
+        if not token['info']['account_type'] == "user":
+            self.send(text_data=json.dumps({
+                'message_type': 'authenticate',
+                'success': False,
+                'description': "Only a user can do an exercise",
+                'data': {}
+            }))
+            return
+
+        # set connection as authenticated
         self.authenticated = True
+
+        # set connections user info
         info = token['info']
         self.username = info['username']
         self.user = User.objects.get(username=self.username)
@@ -82,6 +104,9 @@ class SetConsumer(WebsocketConsumer):
         }))
 
     def start_set(self, data):
+
+        # check if user is already doing a set
+        # when not start new thread
         if not self.doing_set:
             self.send(text_data=json.dumps({
                 'message_type': 'start_set',
@@ -103,6 +128,7 @@ class SetConsumer(WebsocketConsumer):
             }))
 
     def end_set(self, data):
+        # check if user is doing a set, if so and the set !!! is currently disabled and has to be changed when enabled!!
         if self.doing_set:
             self.f_stop.set()
             self.doing_set = False
@@ -121,6 +147,7 @@ class SetConsumer(WebsocketConsumer):
             }))
 
     def ai_evaluation(self, data):
+
         if not self.doing_set:
             self.send(text_data=json.dumps({
                 'success': False,
@@ -131,15 +158,19 @@ class SetConsumer(WebsocketConsumer):
         AIInterface.call_ai(self.exercise, data, self.username)
 
     def initiate(self, data):
+        # save, which exercise is done
         self.exercise = data["exercise"]
         self.initiated = True
 
+        # load exercise info from database
         self.exinplan = ExerciseInPlan.objects.get(id=self.exercise)
         self.sets = self.exinplan.sets
         self.executions_per_set = self.exinplan.repeats_per_set
 
-        query = DoneExercises.objects.filter(date__gt=time.time() - 86400, exercise=self.exercise, user=self.user.id)
+        # load already done exercises in this week
+        query = DoneExercises.objects.filter(date__gt=time.time() - 518400, exercise=self.exercise, user=self.user.id)
 
+        # when exercise was already started, load info
         if query.exists():
             self.done_exercise_entry = query[0]
             self.executions_done = self.done_exercise_entry.executions_done
@@ -152,6 +183,7 @@ class SetConsumer(WebsocketConsumer):
             self.completed = self.done_exercise_entry.completed
 
         else:
+            #if not started already  initialise
             self.done_exercise_entry = None
 
             self.exercise = 0
@@ -164,6 +196,7 @@ class SetConsumer(WebsocketConsumer):
             self.cleanliness = 0
 
 
+        # current state of the exercise will be returned
         self.send(text_data=json.dumps({
             'message_type': 'init',
             'success': True,
@@ -180,9 +213,12 @@ class SetConsumer(WebsocketConsumer):
         }))
 
     def send_stats(self, ex_id):
+        # send stats emulates the ai when sending info after a single execution
         # calculating points
         if not self.doing_set:
             return
+
+        #load ai data
         a, b, c = DummyAI.dummy_function(ex=ex_id, video=None)
         intensity = b['intensity']
         speed = b['speed']
@@ -210,6 +246,7 @@ class SetConsumer(WebsocketConsumer):
 
         type = 0
 
+        # end set when set is done
         if self.current_set_execution == self.executions_per_set:
             self.f_stop.set()
             self.doing_set = False
@@ -218,7 +255,7 @@ class SetConsumer(WebsocketConsumer):
 
             type += 1
 
-
+        # end exercise when exercise is done
         if self.current_set == self.sets:
             self.f_stop.set()
             self.doing_set = False
@@ -236,6 +273,7 @@ class SetConsumer(WebsocketConsumer):
                     'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done}
             }))
 
+        #send set information
         if type == 1:
             self.send(text_data=json.dumps({
                 'message_type': 'end_set',
@@ -248,6 +286,7 @@ class SetConsumer(WebsocketConsumer):
                 }
             }))
 
+    # start new thread
     def f(self, f_stop):
         self.send_stats(1)
         if not f_stop.is_set():
@@ -268,6 +307,7 @@ class SetConsumer(WebsocketConsumer):
             pass
         self.doing_set = False
 
+        # save current state in database
         points = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
         if self.done_exercise_entry is None:
             DoneExercises.objects.create(exercise=self.exinplan, user=self.user, points=points, date=time.time(),
@@ -292,6 +332,7 @@ class SetConsumer(WebsocketConsumer):
 
         # check if request has bytes_data
         if bytes_data is not None:
+            # send bytes to ai
             self.ai_evaluation(bytes_data)
 
         # check if request hast text_data
@@ -300,6 +341,7 @@ class SetConsumer(WebsocketConsumer):
             m_type = text_data_json['message_type']
             data = text_data_json['data']
 
+            # check if authenticing else if authenticated
             if m_type == "authenticate":
                 self.authenticate(data)
             elif not self.authenticated:
@@ -309,6 +351,7 @@ class SetConsumer(WebsocketConsumer):
                     'description': "You have to be authenticated",
                     'data': {}
                 }))
+            #check if initialising else check if initialised
             elif m_type == "init":
                 self.initiate(data)
             elif not self.initiated:
@@ -319,6 +362,7 @@ class SetConsumer(WebsocketConsumer):
                     'data': {}
                 }))
 
+            # check if already completed
             elif self.completed:
                 self.send(text_data=json.dumps({
                     'message_type': 'exercise_complete',
@@ -327,8 +371,11 @@ class SetConsumer(WebsocketConsumer):
                     'data': {}
                 }))
 
+            # start the set
             elif m_type == "start_set":
                 self.start_set(data)
+
+            # end the set
 
             elif m_type == "end_set":
                 pass
