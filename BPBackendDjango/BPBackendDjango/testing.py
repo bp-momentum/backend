@@ -1533,7 +1533,7 @@ class TestDoneExercise(TestCase):
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertFalse(response.data.get('success'))
         #invalid exercise in plan
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': -1})
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': 5412654})
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertFalse(response.data.get('success'))
         #admin not allowed to
