@@ -1519,6 +1519,7 @@ class TestDoneExercise(TestCase):
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
+        Leaderboard.objects.create(user=User.objects.get(username=self.user.username), score=0)
 
     def test_do_exercise(self):
         #valid
