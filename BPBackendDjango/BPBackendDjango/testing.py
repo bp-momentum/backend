@@ -1495,7 +1495,7 @@ class TestLeaderboardView(TestCase):
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), ['count'])
 
-#TODO Done Exercises
+
 class TestDoneExercise(TestCase):
 
     trainer_id = 1
@@ -1503,6 +1503,7 @@ class TestDoneExercise(TestCase):
     trainer_token = None
     user_token = None
     admin_token = None
+    user = None
 
     def setUp(self) -> None:
         trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
@@ -1510,10 +1511,11 @@ class TestDoneExercise(TestCase):
         ts = TrainingSchedule.objects.create(trainer=trainer)
         self.exip = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex_id, plan=ts)
         self.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
-        user = User.objects.get(first_name="Erik")
-        admin = Admin.objects.get(first_name="Erik")
+        user = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
+        user.plan = ts
+        user.save(force_update=True)
+        self.user = User.objects.get(username='DeadlyFarts')
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
@@ -1553,8 +1555,58 @@ class TestDoneExercise(TestCase):
         self.assertEquals(response.data.get('data').get('data'), ['exercise_plan_id'])
 
     def test_get_done(self):
-        #TODO
-        self.assertTrue(True)
+        #valid
+        #as user
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
+        response = GetDoneExercisesView.get(GetDoneExercisesView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('exercises'), GetDoneExercisesView.GetDone(GetDoneExercisesView, self.user))
+        #as trainer
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'user': self.user.username})
+        response = GetDoneExercisesView.post(GetDoneExercisesView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('exercises'), GetDoneExercisesView.GetDone(GetDoneExercisesView, self.user))
+        #invalid
+        #trainer cant call user method
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
+        response = GetDoneExercisesView.get(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        #admin cant call user method
+        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {})
+        response = GetDoneExercisesView.get(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token for user method
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetDoneExercisesView.get(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments for user method
+        request = ViewSupport.setup_request({}, {})
+        response = GetDoneExercisesView.get(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
+        #invalid user for trainer
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'user': 'unknown'})
+        response = GetDoneExercisesView.post(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        #user cant call trainer method
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'user': self.user.username})
+        response = GetDoneExercisesView.post(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        #admin cant call trainer method
+        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {'user': self.user.username})
+        response = GetDoneExercisesView.post(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token for trainer method
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'user': self.user.username})
+        response = GetDoneExercisesView.post(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments for trainer method
+        request = ViewSupport.setup_request({}, {})
+        response = GetDoneExercisesView.post(GetDoneExercisesView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['user'])
 
 
 class TestFriendSystem(TestCase):
