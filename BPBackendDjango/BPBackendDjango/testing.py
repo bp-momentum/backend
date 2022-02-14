@@ -1562,7 +1562,191 @@ class TestFriendSystem(TestCase):
 
     def test_system(self):
         #TODO
-        self.assertTrue(True)
+        #valid
+        #user1 adds user2
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'user2'})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(Friends.objects.filter(friend1=self.users[0], friend2=self.users[1], accepted=False).exists())
+        #user2 adds user1
+        request = ViewSupport.setup_request({'Session-Token': self.token4}, {'username': 'user1'})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(Friends.objects.filter(friend1=self.users[1], friend2=self.users[0], accepted=False).exists())
+        #user1 adds user3
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'user3'})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertTrue(Friends.objects.filter(friend1=self.users[0], friend2=self.users[2], accepted=False).exists())
+        #user1 get requests
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = GetRequestView.get(GetRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(len(response.data.get('data').get('requests')), 1)
+        self.assertEquals(response.data.get('data').get('requests'), get_requests(self.user[0]))
+        #user1 get pending
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = GetPendingRequestView.get(GetPendingRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(len(response.data.get('data').get('pending')), 2)
+        self.assertEquals(response.data.get('data').get('pending'), get_pending_requests(self.user[0]))
+        #user1 accepts from user2
+        id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=False)
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
+        response = AcceptRequestView.post(AcceptRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(Friends.objects.filter(friend1=self.users[1], friend2=self.users[0], accepted=False).exists())
+        self.assertTrue(Friends.objects.filter(friend1=self.users[1], friend2=self.users[0], accepted=True).exists())
+        self.assertFalse(Friends.objects.filter(friend1=self.users[0], friend2=self.users[1]).exists())
+        #user3 declines from user1
+        id = Friends.objects.get(friend1=self.users[0], friend2=self.users[2], accepted=False)
+        request = ViewSupport.setup_request({'Session-Token': self.token5}, {'id': id})
+        response = DeclineRequestView.post(DeclineRequestView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(Friends.objects.filter(friend1=self.users[0], friend2=self.users[2]).exists())
+        #user1 get friends
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = GetMyFriendsView.get(GetMyFriendsView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(len(response.data.get('data').get('friends')), 1)
+        self.assertEquals(response.data.get('data').get('friends'), get_friends(self.user[0]))
+        #user1 delete friend (user2)
+        id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=True)
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
+        response = DeleteFriendView.post(DeleteFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertFalse(Friends.objects.filter(friend1=self.users[1], friend2=self.users[0]).exists())
+        #invalid
+        #admin not able to use
+        #add
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'username': 'user2'})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #requests
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetRequestView.get(GetRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #pending requests
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetPendingRequestView.get(GetPendingRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #friends
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetMyFriendsView.get(GetMyFriendsView, request)
+        self.assertFalse(response.data.get('success'))
+        #accept
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'id': 1})
+        response = AcceptRequestView.post(AcceptRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #decline
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'id': 1})
+        response = DeclineRequestView.post(DeclineRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #delete
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'id': 1})
+        response = DeleteFriendView.post(DeleteFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #trainers not able to use
+        #add
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'user2'})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #requests
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetRequestView.get(GetRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #pending requests
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetPendingRequestView.get(GetPendingRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #friends
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetMyFriendsView.get(GetMyFriendsView, request)
+        self.assertFalse(response.data.get('success'))
+        #accept
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'id': 1})
+        response = AcceptRequestView.post(AcceptRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #decline
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'id': 1})
+        response = DeclineRequestView.post(DeclineRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #delete
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'id': 1})
+        response = DeleteFriendView.post(DeleteFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        #add
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'username': 'user2'})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #requests
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetRequestView.get(GetRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #pending requests
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetPendingRequestView.get(GetPendingRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #friends
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetMyFriendsView.get(GetMyFriendsView, request)
+        self.assertFalse(response.data.get('success'))
+        #accept
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'id': 1})
+        response = AcceptRequestView.post(AcceptRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #decline
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'id': 1})
+        response = DeclineRequestView.post(DeclineRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        #delete
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'id': 1})
+        response = DeleteFriendView.post(DeleteFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        #add
+        request = ViewSupport.setup_request({}, {})
+        response = AddFriendView.post(AddFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['username'])
+        #requests
+        request = ViewSupport.setup_request({}, {})
+        response = GetRequestView.get(GetRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
+        #pending requests
+        request = ViewSupport.setup_request({}, {})
+        response = GetPendingRequestView.get(GetPendingRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
+        #friends
+        request = ViewSupport.setup_request({}, {})
+        response = GetMyFriendsView.get(GetMyFriendsView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
+        #accept
+        request = ViewSupport.setup_request({}, {})
+        response = AcceptRequestView.post(AcceptRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
+        #decline
+        request = ViewSupport.setup_request({}, {})
+        response = DeclineRequestView.post(DeclineRequestView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['id'])
+        #delete
+        request = ViewSupport.setup_request({}, {})
+        response = DeleteFriendView.post(DeleteFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
     def test_pattern_search(self):
         #valid
