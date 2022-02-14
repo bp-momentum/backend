@@ -347,7 +347,7 @@ class GetDoneExercisesView(APIView):
         user = User.objects.get(username=info['username'])
 
         #create data in form of get plan
-        data = self.GetDone(user)
+        data = self.GetDone(user=user)
         return Response(data)
 
     def post(self, request, *args, **kwargs):
@@ -381,7 +381,7 @@ class GetDoneExercisesView(APIView):
             return Response(data)
 
         user = User.objects.get(username=req_data['user'])
-        data = self.GetDone(user)
+        data = self.GetDone(user=user)
         return Response(data)
 
 
