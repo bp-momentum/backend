@@ -63,7 +63,7 @@ SECRET_KEY = 'django-insecure-isvhbpca@5s(qb6a!d&&njfxtp9d#v93$i_zc)zc&k6e_#k2y+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['78.46.150.116']
+ALLOWED_HOSTS = ['78.46.150.116', '127.0.0.1']
 
 from corsheaders.defaults import default_headers
 
@@ -74,7 +74,8 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:80',
-    'http://78.46.150.116'
+    'http://78.46.150.116',
+    'https://bp.geoscribble.de'
 ]
 
 # Application definition
