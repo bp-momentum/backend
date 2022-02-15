@@ -44,7 +44,18 @@ class ListLeaderboardView(APIView):
                 if l >= count_entries:
                     continue
                 rank += 1
-                entry = {"rank": rank, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
+                execs_done = leaderboard.executions
+                score = (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * execs_done)
+                speed = leaderboard[l].speed / execs_done
+                intensity = leaderboard[l].intensity / execs_done
+                cleanliness = leaderboard[l].cleanliness / execs_done
+
+                entry = {"rank": rank, "username": leaderboard[l].user.username,
+                         "score": score,
+                         "speed": speed,
+                         "intensity": intensity,
+                         "cleanliness": cleanliness}
+
                 out.append(entry)
             data = {
                 'success': True,

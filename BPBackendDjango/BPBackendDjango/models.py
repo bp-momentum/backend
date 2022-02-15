@@ -113,7 +113,11 @@ class UserAchievedAchievement(models.Model):
 
 class Leaderboard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
-    score = models.IntegerField(default=0)
+    speed = models.IntegerField(default=0)
+    intensity = models.IntegerField(default=0)
+    cleanliness = models.IntegerField(default=0)
+    executions = models.IntegerField(default=0)
+
 
     class Meta:
         indexes = [models.Index(fields=["-score"])]

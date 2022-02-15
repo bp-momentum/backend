@@ -279,7 +279,14 @@ class SetConsumer(WebsocketConsumer):
                 (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
 
             leaderboard_entry = Leaderboard.objects.get(user=self.user.id)
+
+            leaderboard_entry.speed += self.speed
+            leaderboard_entry.intensity += self.intensity
+            leaderboard_entry.cleanliness += self.cleanliness
             leaderboard_entry.score += self.points
+            leaderboard_entry.executions += self.executions_done
+
+
 
         #send set information
         if type == 1:
