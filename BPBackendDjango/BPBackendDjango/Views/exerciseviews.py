@@ -280,6 +280,7 @@ class DoneExerciseView(APIView):
 class GetDoneExercisesView(APIView):
 
     def GetDone(self, user):
+
         # list of all done in last week
         # calculation of timespan and filter
         done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800, completed=True)
@@ -345,6 +346,14 @@ class GetDoneExercisesView(APIView):
 
         info = token['info']
         user = User.objects.get(username=info['username'])
+
+        if user.plan is None:
+            data = {
+                'success': False,
+                'description': 'User has no plan assigned',
+                'data': {}
+            }
+            return Response(data)
 
         #create data in form of get plan
         data = self.GetDone(user)
