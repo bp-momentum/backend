@@ -8,7 +8,7 @@ from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
 
-from .models import DoneExercises, User, ExerciseInPlan
+from .models import DoneExercises, User, ExerciseInPlan, Leaderboard
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
@@ -17,6 +17,7 @@ class SetConsumer(WebsocketConsumer):
     def __init__(self):
         super().__init__()
 
+        self.points = 0
         # initialising the new connection
         self.filename = None
         self.doing_set = False
@@ -273,6 +274,13 @@ class SetConsumer(WebsocketConsumer):
                     'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done}
             }))
 
+            # save in Leaderboard
+            self.points = 0 if self.executions_per_set == 0 else int(
+                (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
+
+            leaderboard_entry = Leaderboard.objects.get(user=self.user.id)
+            leaderboard_entry.score += self.points
+
         #send set information
         if type == 1:
             self.send(text_data=json.dumps({
@@ -308,24 +316,27 @@ class SetConsumer(WebsocketConsumer):
         self.doing_set = False
 
         # save current state in database
-        points = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
-        if self.done_exercise_entry is None:
-            DoneExercises.objects.create(exercise=self.exinplan, user=self.user, points=points, date=time.time(),
-                                         executions_done=self.executions_done, current_set=self.current_set,
-                                         current_set_execution=self.current_set_execution, speed=self.speed,
-                                         intensity=self.intensity, cleanliness=self.cleanliness,
-                                         completed=self.completed)
-        else:
 
-            self.done_exercise_entry.executions_done = self.executions_done
-            self.done_exercise_entry.current_set = self.current_set
-            self.done_exercise_entry.current_set_execution = self.current_set_execution
+        if self.initiated:
+            if self.done_exercise_entry is None:
+                DoneExercises.objects.create(exercise=self.exinplan, user=self.user, points=self.points, date=time.time(),
+                                             executions_done=self.executions_done, current_set=self.current_set,
+                                             current_set_execution=self.current_set_execution, speed=self.speed,
+                                             intensity=self.intensity, cleanliness=self.cleanliness,
+                                             completed=self.completed)
+            else:
 
-            self.done_exercise_entry.speed = self.speed
-            self.done_exercise_entry.intensity = self.intensity
-            self.done_exercise_entry.cleanliness = self.cleanliness
-            self.done_exercise_entry.completed = self.completed
-            self.done_exercise_entry.save(force_update=True)
+                self.done_exercise_entry.executions_done = self.executions_done
+                self.done_exercise_entry.current_set = self.current_set
+                self.done_exercise_entry.current_set_execution = self.current_set_execution
+
+                self.done_exercise_entry.speed = self.speed
+                self.done_exercise_entry.intensity = self.intensity
+                self.done_exercise_entry.cleanliness = self.cleanliness
+                self.done_exercise_entry.completed = self.completed
+                self.done_exercise_entry.save(force_update=True)
+
+
 
     # On Receive
     def receive(self, text_data=None, bytes_data=None):
