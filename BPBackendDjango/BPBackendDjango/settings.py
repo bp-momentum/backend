@@ -77,6 +77,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:80',
     'http://78.46.150.116',
     'https://bp.geoscribble.de',
+    'https://bp-survey.geoscribble.de',
+    'https://bp-test.geoscribble.de',
     'https://bp-api.geoscribble.de'
 ]
 
