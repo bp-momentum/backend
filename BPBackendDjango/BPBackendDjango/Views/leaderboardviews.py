@@ -83,7 +83,7 @@ class ListLeaderboardView(APIView):
                 intensity = 0 if execs_done == 0 else l.intensity / execs_done
                 cleanliness = 0 if execs_done == 0 else l.cleanliness / execs_done
 
-                entry = {"rank": rank, "username": leaderboard[l].user.username,
+                entry = {"rank": rank, "username": l.user.username,
                          "score": score,
                          "speed": speed,
                          "intensity": intensity,
