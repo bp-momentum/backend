@@ -9,6 +9,9 @@ from ..Helperclasses.handlers import ErrorHandler
 
 
 class ListLeaderboardView(APIView):
+
+
+
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
         check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['count'], request.data)
@@ -38,6 +41,11 @@ class ListLeaderboardView(APIView):
         count_entries = len(leaderboard)
         user_index = 0
 
+        exs_to_do = 0
+        plan_data = ExerciseInPlan.objects.filter(plan=self.user.plan.id)
+        for ex in plan_data:
+            exs_to_do += ex.repeats_per_set * ex.sets
+
         if not info['account_type'] == "user":
 
             for l in range(0, count_of_entries):
@@ -45,7 +53,7 @@ class ListLeaderboardView(APIView):
                     continue
                 rank += 1
                 execs_done = leaderboard[l].executions
-                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * execs_done)
+                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * exs_to_do)
                 speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
                 intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
                 cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
@@ -73,12 +81,14 @@ class ListLeaderboardView(APIView):
                 break
             else:
                 user_index += 1
+
+
         # they are just as many entries as requested
         if len(leaderboard) <= count_of_entries:
             for l in leaderboard:
                 rank += 1
                 execs_done = l.executions
-                score = 0 if execs_done == 0 else (l.speed + l.intensity + l.cleanliness) / (3 * execs_done)
+                score = 0 if execs_done == 0 else (l.speed + l.intensity + l.cleanliness) / (3 * exs_to_do)
                 speed = 0 if execs_done == 0 else l.speed / execs_done
                 intensity = 0 if execs_done == 0 else l.intensity / execs_done
                 cleanliness = 0 if execs_done == 0 else l.cleanliness / execs_done
@@ -100,7 +110,7 @@ class ListLeaderboardView(APIView):
                 rank += 1
                 execs_done = leaderboard[l].executions
                 score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
-                        3 * execs_done)
+                        3 * exs_to_do)
                 speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
                 intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
                 cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
@@ -119,9 +129,10 @@ class ListLeaderboardView(APIView):
                 if l < 0:
                     continue
                 rank += 1
+
                 execs_done = leaderboard[l].executions
                 score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
-                                                          3 * execs_done)
+                                                          3 * exs_to_do)
                 speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
                 intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
                 cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
@@ -137,7 +148,7 @@ class ListLeaderboardView(APIView):
             for l in range(user_index - math.floor(count_of_entries/2), user_index + math.ceil(count_of_entries/2)):
                 execs_done = leaderboard[l].executions
                 score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
-                                                          3 * execs_done)
+                                                          3 * exs_to_do)
                 speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
                 intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
                 cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
