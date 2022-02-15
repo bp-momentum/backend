@@ -33,7 +33,8 @@ INTERN_SETTINGS = {
         "password": "",
         "host": "localhost",
     },
-    "video_dir": "videos/"
+    "video_dir": "videos/",
+    "secret_key": ""
 }
 try:
     with open(SETTINGS_JSON) as json_file:
@@ -58,7 +59,7 @@ except:
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-isvhbpca@5s(qb6a!d&&njfxtp9d#v93$i_zc)zc&k6e_#k2y+'
+SECRET_KEY = INTERN_SETTINGS["secret_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
