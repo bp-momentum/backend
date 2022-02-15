@@ -76,7 +76,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:80',
     'http://78.46.150.116',
-    '*.geoscribble.de'
+    'https://*.geoscribble.de'
 ]
 
 # Application definition
