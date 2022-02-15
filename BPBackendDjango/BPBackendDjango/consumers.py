@@ -286,6 +286,7 @@ class SetConsumer(WebsocketConsumer):
             leaderboard_entry.cleanliness += self.cleanliness
             leaderboard_entry.score = (leaderboard_entry.score * leaderboard_entry.executions + p)/(self.executions_done + leaderboard_entry.executions)
             leaderboard_entry.executions += self.executions_done
+            leaderboard_entry.save(force_update=True)
 
 
 
