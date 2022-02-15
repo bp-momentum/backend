@@ -48,13 +48,13 @@ jobs:
       - name: Collect Migrations
         run: cp -r ${{ env.OLD_MIGRATIONS_PATH }}* ${{ env.NEW_MIGRATIONS_PATH }} | echo "No migrations found"
       - name: List new migrations
-        run: ls ${{ env.NEW_MIGRATIONS_PATH }}*
+        run: ls ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Makemigrations
         run: python ${{ env.DJANGO_PATH }} makemigrations BPBackendDjango
       - name: Migrate
         run: python ${{ env.DJANGO_PATH }} migrate BPBackendDjango
       - name: List new migrations
-        run: ls ${{ env.NEW_MIGRATIONS_PATH }}*
+        run: ls ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Delete old migrations
         run: rm -rf /home/github/bachelor-praktikum/api/migrations/*
       - name: Save Migrations
