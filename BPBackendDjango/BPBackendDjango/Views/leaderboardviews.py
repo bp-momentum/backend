@@ -34,6 +34,8 @@ class ListLeaderboardView(APIView):
 
         info = token['info']
 
+        user = User.objects.get(username=info['username'])
+
         leaderboard = Leaderboard.objects.order_by("-score")
         out = []
         rank = 0
@@ -42,7 +44,8 @@ class ListLeaderboardView(APIView):
         user_index = 0
 
         exs_to_do = 0
-        plan_data = ExerciseInPlan.objects.filter(plan=self.user.plan.id)
+
+        plan_data = ExerciseInPlan.objects.filter(plan=user.plan.id)
         for ex in plan_data:
             exs_to_do += ex.repeats_per_set * ex.sets
 
