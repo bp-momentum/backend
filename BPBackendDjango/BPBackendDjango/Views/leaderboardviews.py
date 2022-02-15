@@ -44,7 +44,7 @@ class ListLeaderboardView(APIView):
                 if l >= count_entries:
                     continue
                 rank += 1
-                execs_done = leaderboard.executions
+                execs_done = leaderboard[l].executions
                 score = (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * execs_done)
                 speed = leaderboard[l].speed / execs_done
                 intensity = leaderboard[l].intensity / execs_done
@@ -57,6 +57,8 @@ class ListLeaderboardView(APIView):
                          "cleanliness": cleanliness}
 
                 out.append(entry)
+
+
             data = {
                 'success': True,
                 'description': 'Got the top count of users',
@@ -75,7 +77,18 @@ class ListLeaderboardView(APIView):
         if len(leaderboard) <= count_of_entries:
             for l in leaderboard:
                 rank += 1
-                entry = {"rank": rank, "username": l.user.username, "score": l.score}
+                execs_done = leaderboard[l].executions
+                score = (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
+                            3 * execs_done)
+                speed = leaderboard[l].speed / execs_done
+                intensity = leaderboard[l].intensity / execs_done
+                cleanliness = leaderboard[l].cleanliness / execs_done
+
+                entry = {"rank": rank, "username": leaderboard[l].user.username,
+                         "score": score,
+                         "speed": speed,
+                         "intensity": intensity,
+                         "cleanliness": cleanliness}
                 out.append(entry)
 
 
@@ -86,7 +99,18 @@ class ListLeaderboardView(APIView):
                 if l >= count_entries:
                     break
                 rank += 1
-                entry = {"rank": rank, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
+                execs_done = leaderboard[l].executions
+                score = (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
+                        3 * execs_done)
+                speed = leaderboard[l].speed / execs_done
+                intensity = leaderboard[l].intensity / execs_done
+                cleanliness = leaderboard[l].cleanliness / execs_done
+
+                entry = {"rank": rank, "username": leaderboard[l].user.username,
+                         "score": score,
+                         "speed": speed,
+                         "intensity": intensity,
+                         "cleanliness": cleanliness}
                 out.append(entry)
 
         # user in bottom count_of_series
