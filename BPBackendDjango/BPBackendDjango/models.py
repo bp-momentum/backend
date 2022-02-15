@@ -117,7 +117,7 @@ class Leaderboard(models.Model):
     intensity = models.IntegerField(default=0)
     cleanliness = models.IntegerField(default=0)
     executions = models.IntegerField(default=0)
-
+    score = = models.IntegerField(default=0)
 
     class Meta:
         indexes = [models.Index(fields=["-score"])]

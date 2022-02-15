@@ -278,12 +278,13 @@ class SetConsumer(WebsocketConsumer):
             self.points = 0 if self.executions_per_set == 0 else int(
                 (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
 
+            p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
             leaderboard_entry = Leaderboard.objects.get(user=self.user.id)
 
             leaderboard_entry.speed += self.speed
             leaderboard_entry.intensity += self.intensity
             leaderboard_entry.cleanliness += self.cleanliness
-            leaderboard_entry.score += self.points
+            leaderboard_entry.score = (leaderboard_entry.score * leaderboard_entry.executions + p)/(self.executions_done + leaderboard_entry.executions)
             leaderboard_entry.executions += self.executions_done
 
 
