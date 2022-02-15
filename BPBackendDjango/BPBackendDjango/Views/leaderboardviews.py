@@ -45,10 +45,10 @@ class ListLeaderboardView(APIView):
                     continue
                 rank += 1
                 execs_done = leaderboard[l].executions
-                score = (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * execs_done)
-                speed = leaderboard[l].speed / execs_done
-                intensity = leaderboard[l].intensity / execs_done
-                cleanliness = leaderboard[l].cleanliness / execs_done
+                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * execs_done)
+                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
 
                 entry = {"rank": rank, "username": leaderboard[l].user.username,
                          "score": score,
@@ -78,11 +78,10 @@ class ListLeaderboardView(APIView):
             for l in leaderboard:
                 rank += 1
                 execs_done = leaderboard[l].executions
-                score = (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
-                            3 * execs_done)
-                speed = leaderboard[l].speed / execs_done
-                intensity = leaderboard[l].intensity / execs_done
-                cleanliness = leaderboard[l].cleanliness / execs_done
+                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * execs_done)
+                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
 
                 entry = {"rank": rank, "username": leaderboard[l].user.username,
                          "score": score,
@@ -100,11 +99,11 @@ class ListLeaderboardView(APIView):
                     break
                 rank += 1
                 execs_done = leaderboard[l].executions
-                score = (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
+                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
                         3 * execs_done)
-                speed = leaderboard[l].speed / execs_done
-                intensity = leaderboard[l].intensity / execs_done
-                cleanliness = leaderboard[l].cleanliness / execs_done
+                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
 
                 entry = {"rank": rank, "username": leaderboard[l].user.username,
                          "score": score,
@@ -120,12 +119,34 @@ class ListLeaderboardView(APIView):
                 if l < 0:
                     continue
                 rank += 1
-                entry = {"rank": rank, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
+                execs_done = leaderboard[l].executions
+                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
+                                                          3 * execs_done)
+                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
+
+                entry = {"rank": rank, "username": leaderboard[l].user.username,
+                         "score": score,
+                         "speed": speed,
+                         "intensity": intensity,
+                         "cleanliness": cleanliness}
                 out.append(entry)
 
         else:
             for l in range(user_index - math.floor(count_of_entries/2), user_index + math.ceil(count_of_entries/2)):
-                entry = {"rank": l + 1, "username": leaderboard[l].user.username, "score": leaderboard[l].score}
+                execs_done = leaderboard[l].executions
+                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
+                                                          3 * execs_done)
+                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
+
+                entry = {"rank": rank, "username": leaderboard[l].user.username,
+                         "score": score,
+                         "speed": speed,
+                         "intensity": intensity,
+                         "cleanliness": cleanliness}
                 out.append(entry)
 
 
