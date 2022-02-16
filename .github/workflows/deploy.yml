@@ -56,7 +56,7 @@ jobs:
       - name: List new migrations
         run: ls ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Delete old migrations
-        run: rm -rf /home/github/bachelor-praktikum/api/migrations/*
+        run: rm -rf ${{ env.OLD_MIGRATIONS_PATH }}*
       - name: Save Migrations
         run: mv ${{ env.NEW_MIGRATIONS_PATH }}* ${{ env.OLD_MIGRATIONS_PATH }} | echo "No migrations found"
       - name: Delete old files
