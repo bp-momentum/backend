@@ -47,10 +47,6 @@ class ListLeaderboardView(APIView):
         exs_to_do = 0
 
 
-        plan_data = ExerciseInPlan.objects.filter(plan=user.plan.id)
-        for ex in plan_data:
-            exs_to_do += ex.repeats_per_set * ex.sets
-
         if not info['account_type'] == "user":
 
             for l in range(0, count_of_entries):
