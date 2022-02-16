@@ -53,14 +53,18 @@ class ListLeaderboardView(APIView):
                 if l >= count_entries:
                     continue
                 rank += 1
-                plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
-                for ex in plan_data:
-                    exs_to_do += ex.repeats_per_set * ex.sets
+
+                if leaderboard[l].user.plan is not None:
+                    plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
+                    for ex in plan_data:
+                        exs_to_do += ex.repeats_per_set * ex.sets
+                else:
+                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
-                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * exs_to_do)
-                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
-                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
-                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
+                score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * exs_to_do)
+                speed = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].cleanliness / execs_done
 
                 entry = {"rank": rank, "username": leaderboard[l].user.username,
                          "score": score,
@@ -91,14 +95,18 @@ class ListLeaderboardView(APIView):
         if len(leaderboard) <= count_of_entries:
             for l in leaderboard:
                 rank += 1
-                plan_data = ExerciseInPlan.objects.filter(plan=l.user.plan.id)
-                for ex in plan_data:
-                    exs_to_do += ex.repeats_per_set * ex.sets
+                if l.user.plan is not None:
+                    plan_data = ExerciseInPlan.objects.filter(plan=l.user.plan.id)
+                    for ex in plan_data:
+                        exs_to_do += ex.repeats_per_set * ex.sets
+                else:
+                    exs_to_do = 0
                 execs_done = l.executions
-                score = 0 if execs_done == 0 else (l.speed + l.intensity + l.cleanliness) / (3 * exs_to_do)
-                speed = 0 if execs_done == 0 else l.speed / execs_done
-                intensity = 0 if execs_done == 0 else l.intensity / execs_done
-                cleanliness = 0 if execs_done == 0 else l.cleanliness / execs_done
+                score = 0 if execs_done == 0 or exs_to_do == 0 else (l.speed + l.intensity +
+                                                                     l.cleanliness) / (3 * exs_to_do)
+                speed = 0 if execs_done == 0 or exs_to_do == 0 else l.speed / execs_done
+                intensity = 0 if execs_done == 0 or exs_to_do == 0 else l.intensity / execs_done
+                cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else l.cleanliness / execs_done
 
                 entry = {"rank": rank, "username": l.user.username,
                          "score": score,
@@ -116,15 +124,18 @@ class ListLeaderboardView(APIView):
                     break
                 rank += 1
 
-                plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
-                for ex in plan_data:
-                    exs_to_do += ex.repeats_per_set * ex.sets
+                if leaderboard[l].user.plan is not None:
+                    plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
+                    for ex in plan_data:
+                        exs_to_do += ex.repeats_per_set * ex.sets
+                else:
+                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
-                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
-                        3 * exs_to_do)
-                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
-                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
-                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
+                score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity +
+                                                                     leaderboard[l].cleanliness) / (3 * exs_to_do)
+                speed = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].cleanliness / execs_done
 
                 entry = {"rank": rank, "username": leaderboard[l].user.username,
                          "score": score,
@@ -140,15 +151,18 @@ class ListLeaderboardView(APIView):
                 if l < 0:
                     continue
                 rank += 1
-                plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
-                for ex in plan_data:
-                    exs_to_do += ex.repeats_per_set * ex.sets
+                if leaderboard[l].user.plan is not None:
+                    plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
+                    for ex in plan_data:
+                        exs_to_do += ex.repeats_per_set * ex.sets
+                else:
+                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
-                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
-                                                          3 * exs_to_do)
-                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
-                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
-                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
+                score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity +
+                                                                     leaderboard[l].cleanliness) / (3 * exs_to_do)
+                speed = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].cleanliness / execs_done
 
                 entry = {"rank": rank, "username": leaderboard[l].user.username,
                          "score": score,
@@ -159,15 +173,18 @@ class ListLeaderboardView(APIView):
 
         else:
             for l in range(user_index - math.floor(count_of_entries/2), user_index + math.ceil(count_of_entries/2)):
-                plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
-                for ex in plan_data:
-                    exs_to_do += ex.repeats_per_set * ex.sets
+                if leaderboard[l].user.plan is not None:
+                    plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
+                    for ex in plan_data:
+                        exs_to_do += ex.repeats_per_set * ex.sets
+                else:
+                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
-                score = 0 if execs_done == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (
-                                                          3 * exs_to_do)
-                speed = 0 if execs_done == 0 else leaderboard[l].speed / execs_done
-                intensity = 0 if execs_done == 0 else leaderboard[l].intensity / execs_done
-                cleanliness = 0 if execs_done == 0 else leaderboard[l].cleanliness / execs_done
+                score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity +
+                                                                     leaderboard[l].cleanliness) / (3 * exs_to_do)
+                speed = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].speed / execs_done
+                intensity = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].intensity / execs_done
+                cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].cleanliness / execs_done
 
                 entry = {"rank": rank, "username": leaderboard[l].user.username,
                          "score": score,
