@@ -291,6 +291,8 @@ class GetDoneExercisesView(APIView):
         for a in all:
             done_found = False
             for d in done:
+                if done_found:
+                    continue
                 if a.id == d.exercise.id:
                     out.append({"exercise_plan_id": a.id,
                                 "id": a.exercise.id,
@@ -311,6 +313,8 @@ class GetDoneExercisesView(APIView):
                         "repeats_per_set": a.repeats_per_set,
                         "done": False
                         })
+
+
 
         data = {
             "success": True,
