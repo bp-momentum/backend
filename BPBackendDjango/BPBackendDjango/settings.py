@@ -34,7 +34,9 @@ INTERN_SETTINGS = {
         "host": "localhost",
     },
     "video_dir": "videos/",
-    "secret_key": ""
+    "secret_key": "",
+    "allowed_origins": ["localhost:80", "localhost:81"],
+    "website_url": "https://my_url.de"
 }
 try:
     with open(SETTINGS_JSON) as json_file:
@@ -72,14 +74,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "Session-Token",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:80',
-    'http://78.46.150.116',
-    'https://bp.geoscribble.de',
-    'https://bp-survey.geoscribble.de',
-    'https://bp-test.geoscribble.de',
-]
+CORS_ALLOWED_ORIGINS = INTERN_SETTINGS["allowed_origins"]
 
 # Application definition
 
