@@ -13,7 +13,7 @@ class DummyAI:
     @staticmethod
     def dummy_function(ex, video):
         return True, {
-            'intensity': math.ceil(random.random()*10000)/100,
-            'speed': math.ceil(random.random()*10000)/100,
-            'cleanliness': math.ceil(random.random()*10000)/100
+            'intensity': math.ceil(random.random()*10000)/200 + 50,
+            'speed': math.ceil(random.random()*10000)/200 + 50,
+            'cleanliness': math.ceil(random.random()*10000)/200 + 50
         }, "This is your indivual feedback, these values are random generated."
