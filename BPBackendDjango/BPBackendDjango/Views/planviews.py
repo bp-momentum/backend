@@ -72,6 +72,8 @@ def getListOfExercises(id):
         })
     return exs
 
+PLAN_LENGTH = 50
+
 
 class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
@@ -95,7 +97,7 @@ class CreatePlanView(APIView):
                 }
             return Response(data)
 
-        if TrainingSchedule.name.max_length < len(req_data['name']):
+        if PLAN_LENGTH < len(req_data['name']):
             data = {
                 'success': False,
                 'description': 'name too long',

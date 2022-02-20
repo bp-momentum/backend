@@ -7,6 +7,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
+from BPBackendDjango.BPBackendDjango.Views.planviews import ACADEMIA_LENGTH, ADDRESS_ADD_LENGTH, CITY_LENGTH, COUNTRY_LENGTH, EMAIL_LENGTH, FIRST_NAME_LENGTH, H_NR_LENGTH, LANGUAGE_LENGTH, LAST_NAME_LENGTH, POSTAL_CODE_LENGTH, STREET_LENGTH, TELEPHONE_LENGTH, USERNAME_LENGTH
+
 from .exerciseviews import GetDoneExercisesView
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
@@ -48,7 +50,7 @@ def check_password(username, passwd):
         return "invalid"
 
 def set_user_language(username, language):
-    if User.language.max_length < len(language):
+    if LANGUAGE_LENGTH < len(language):
         return False
     if User.objects.filter(username=username).exists():
         user = User.objects.get(username=username)
@@ -246,6 +248,22 @@ def get_users_data(users):
         })
     return data
 
+USERNAME_LENGTH = 50
+FIRST_NAME_LENGTH = 50
+LAST_NAME_LENGTH = 50
+EMAIL_LENGTH = 254
+STREET_LENGTH = 128
+POSTAL_CODE_LENGTH = 12
+TELEPHONE_LENGTH = 50
+CITY_LENGTH = 128
+COUNTRY_LENGTH = 64
+LANGUAGE_LENGTH = 50
+ACADEMIA_LENGTH = 50
+ADDRESS_ADD_LENGTH = 128
+H_NR_LENGTH = 12
+MOTIVATION_LENGTH = 1000
+
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
@@ -370,7 +388,7 @@ class CreateUserView(APIView):
             return Response(data)
 
         #check if arguments are fine
-        if (User.first_name.max_length < len(req_data['first_name'])) or (User.last_name.max_length < len(req_data['last_name'])) or (User.email_address.max_length < len(req_data['email_address'])):
+        if (FIRST_NAME_LENGTH < len(req_data['first_name'])) or (LAST_NAME_LENGTH < len(req_data['last_name'])) or (EMAIL_LENGTH < len(req_data['email_address'])):
             data = {
                 'success': False,
                 'description': 'One argument is too long.',
@@ -1096,7 +1114,7 @@ class ChangeUsernameView(APIView):
             return Response(data)
 
         #check if length is fine
-        if User.username.max_length < req_data['username']:
+        if USERNAME_LENGTH < req_data['username']:
             data = {
                     'success': False,
                     'description': 'username too long',
@@ -1385,7 +1403,7 @@ class SetTrainerLocationView(APIView):
             return Response(data)
 
         #check length
-        if (len(req_data['street']) > Location.street.max_length) or (len(req_data['postal_code']) > Location.postal_code.max_length) or (len(req_data['country']) > Location.country.max_length) or (len(req_data['city']) > Location.city.max_length) or (len(req_data['house_nr']) > Location.house_nr.max_length) or (len(req_data['address_add']) > Location.address_addition.max_length):
+        if (len(req_data['street']) > STREET_LENGTH) or (len(req_data['postal_code']) > POSTAL_CODE_LENGTH) or (len(req_data['country']) > COUNTRY_LENGTH) or (len(req_data['city']) > CITY_LENGTH) or (len(req_data['house_nr']) > H_NR_LENGTH) or (len(req_data['address_add']) > ADDRESS_ADD_LENGTH):
             data = {
                     'success': False,
                     'description': 'One or more arguments are too long',
@@ -1444,7 +1462,7 @@ class ChangeTrainerTelephoneView(APIView):
             return Response(data)
 
         #check length
-        if Trainer.telephone.max_length < len(req_data['telephone']):
+        if TELEPHONE_LENGTH < len(req_data['telephone']):
             data = {
                     'success': False,
                     'description': 'Token is not valid',
@@ -1499,7 +1517,7 @@ class ChangeTrainerAcademiaView(APIView):
             return Response(data)
 
         #check length
-        if Trainer.academia.max_length < len(req_data['academia']):
+        if ACADEMIA_LENGTH < len(req_data['academia']):
             data = {
                     'success': False,
                     'description': 'Academia too long',
@@ -1554,7 +1572,7 @@ class ChangeMotovationView(APIView):
             return Response(data)
 
         #check length
-        if User.motivation.max_length < len(req_data['motivation']):
+        if MOTIVATION_LENGTH < len(req_data['motivation']):
             data = {
                     'success': False,
                     'description': 'Motivation too long',
