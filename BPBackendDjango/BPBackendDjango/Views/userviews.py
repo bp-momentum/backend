@@ -269,6 +269,15 @@ class RegisterView(APIView):
                 }
             return Response(data)
 
+        #check if first symbol ist space
+        if str(req_data['username']).startswith(' '):
+            data = {
+                'success': False,
+                'description': 'Invalid username',
+                'data': {}
+                }
+            return Response(data)
+
         #check account type
         req_data["first_name"] = token["info"]["first_name"]
         req_data["last_name"] = token["info"]["last_name"]
@@ -1092,6 +1101,15 @@ class ChangeUsernameView(APIView):
                     'success': False,
                     'description': 'username too long',
                     'data': {}
+                }
+            return Response(data)
+
+        #check if first symbol ist space
+        if str(req_data['username']).startswith(' '):
+            data = {
+                'success': False,
+                'description': 'Invalid username',
+                'data': {}
                 }
             return Response(data)
 
