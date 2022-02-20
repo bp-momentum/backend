@@ -1365,6 +1365,15 @@ class SetTrainerLocationView(APIView):
                     'data': {}
                 }
             return Response(data)
+
+        #check length
+        if (len(req_data['street']) > Location.street.max_length) or (len(req_data['postal_code']) > Location.postal_code.max_length) or (len(req_data['country']) > Location.country.max_length) or (len(req_data['city']) > Location.city.max_length) or (len(req_data['house_nr']) > Location.house_nr.max_length) or (len(req_data['address_add']) > Location.address_addition.max_length):
+            data = {
+                    'success': False,
+                    'description': 'One or more arguments are too long',
+                    'data': {}
+                }
+            return Response(data)
         info = token['info']
 
         #check if requested by trainer
