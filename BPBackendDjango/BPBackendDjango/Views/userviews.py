@@ -1086,6 +1086,15 @@ class ChangeUsernameView(APIView):
                 }
             return Response(data)
 
+        #check if length is fine
+        if User.username.max_length < req_data['username']:
+            data = {
+                    'success': False,
+                    'description': 'username too long',
+                    'data': {}
+                }
+            return Response(data)
+
         info = token['info']
 
         #get correct user
