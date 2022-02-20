@@ -95,6 +95,14 @@ class CreatePlanView(APIView):
                 }
             return Response(data)
 
+        if TrainingSchedule.name.max_length < len(req_data['name']):
+            data = {
+                'success': False,
+                'description': 'name too long',
+                'data': {}
+                }
+            return Response(data)
+
         #check if user is allowed to request
         if not token["info"]["account_type"] == "trainer":
             data = {
