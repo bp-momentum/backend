@@ -1424,6 +1424,16 @@ class ChangeTrainerTelephoneView(APIView):
                     'data': {}
                 }
             return Response(data)
+
+        #check length
+        if Trainer.telephone.max_length < len(req_data['telephone']):
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+            
         info = token['info']
 
         #check if requested by trainer
