@@ -48,6 +48,8 @@ def check_password(username, passwd):
         return "invalid"
 
 def set_user_language(username, language):
+    if User.language.max_length < len(language):
+        return False
     if User.objects.filter(username=username).exists():
         user = User.objects.get(username=username)
     elif Trainer.objects.filter(username=username).exists():
