@@ -7,8 +7,6 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from BPBackendDjango.BPBackendDjango.Views.planviews import ACADEMIA_LENGTH, ADDRESS_ADD_LENGTH, CITY_LENGTH, COUNTRY_LENGTH, EMAIL_LENGTH, FIRST_NAME_LENGTH, H_NR_LENGTH, LANGUAGE_LENGTH, LAST_NAME_LENGTH, POSTAL_CODE_LENGTH, STREET_LENGTH, TELEPHONE_LENGTH, USERNAME_LENGTH
-
 from .exerciseviews import GetDoneExercisesView
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
