@@ -360,6 +360,15 @@ class CreateUserView(APIView):
             }
             return Response(data)
 
+        #check if arguments are fine
+        if (User.first_name.max_length < len(req_data['first_name'])) or (User.last_name.max_length < len(req_data['last_name'])) or (User.email_address.max_length < len(req_data['email_address'])):
+            data = {
+                'success': False,
+                'description': 'One argument is too long.',
+                'data': {}
+            }
+            return Response(data)
+
         info = token["info"]
         
         #check account type and create new-user-token
