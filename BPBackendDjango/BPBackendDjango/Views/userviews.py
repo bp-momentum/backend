@@ -1112,7 +1112,7 @@ class ChangeUsernameView(APIView):
             return Response(data)
 
         #check if length is fine
-        if USERNAME_LENGTH < req_data['username']:
+        if USERNAME_LENGTH < len(req_data['username']):
             data = {
                     'success': False,
                     'description': 'username too long',
