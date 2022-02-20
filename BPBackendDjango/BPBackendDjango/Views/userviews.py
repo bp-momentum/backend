@@ -1480,14 +1480,15 @@ class ChangeTrainerAcademiaView(APIView):
                 }
             return Response(data)
 
+        #check length
         if Trainer.academia.max_length < len(req_data['academia']):
             data = {
                     'success': False,
-                    'description': 'Token is not valid',
+                    'description': 'Academia too long',
                     'data': {}
                 }
             return Response(data)
-            
+
         info = token['info']
 
         #check if requested by trainer
@@ -1530,6 +1531,15 @@ class ChangeMotovationView(APIView):
             data = {
                     'success': False,
                     'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+
+        #check length
+        if User.motivation.max_length < len(req_data['motivation']):
+            data = {
+                    'success': False,
+                    'description': 'Motivation too long',
                     'data': {}
                 }
             return Response(data)
