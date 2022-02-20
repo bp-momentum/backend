@@ -1433,7 +1433,7 @@ class ChangeTrainerTelephoneView(APIView):
                     'data': {}
                 }
             return Response(data)
-            
+
         info = token['info']
 
         #check if requested by trainer
@@ -1479,6 +1479,15 @@ class ChangeTrainerAcademiaView(APIView):
                     'data': {}
                 }
             return Response(data)
+
+        if Trainer.academia.max_length < len(req_data['academia']):
+            data = {
+                    'success': False,
+                    'description': 'Token is not valid',
+                    'data': {}
+                }
+            return Response(data)
+            
         info = token['info']
 
         #check if requested by trainer
