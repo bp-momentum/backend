@@ -260,6 +260,8 @@ ACADEMIA_LENGTH = 50
 ADDRESS_ADD_LENGTH = 128
 H_NR_LENGTH = 12
 MOTIVATION_LENGTH = 1000
+MIN_USERNAME_LENGTH = 3
+ALLOWED = "1234567890qwertzuiopasdfghjklyxcvbnmQWERTZUIOPASDFGHJKLYXCVBNM _-"
 
 
 class RegisterView(APIView):
@@ -285,8 +287,8 @@ class RegisterView(APIView):
                 }
             return Response(data)
 
-        #check if first symbol ist space
-        if str(req_data['username']).startswith(' '):
+        #check if username is allowed
+        if (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH:
             data = {
                 'success': False,
                 'description': 'Invalid username',
