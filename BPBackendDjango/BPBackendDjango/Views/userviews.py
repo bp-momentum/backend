@@ -288,7 +288,7 @@ class RegisterView(APIView):
             return Response(data)
 
         #check if username is allowed
-        if (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH:
+        if (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
             data = {
                 'success': False,
                 'description': 'Invalid username',
