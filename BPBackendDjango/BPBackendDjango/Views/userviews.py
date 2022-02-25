@@ -1114,7 +1114,7 @@ class ChangeUsernameView(APIView):
             return Response(data)
 
         #check if length is fine
-        if USERNAME_LENGTH < len(req_data['username']):
+        if USERNAME_LENGTH < len(req_data['username']) or (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
             data = {
                     'success': False,
                     'description': 'username too long',
