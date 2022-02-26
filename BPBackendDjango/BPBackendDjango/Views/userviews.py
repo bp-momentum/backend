@@ -1642,9 +1642,20 @@ class SetPasswordResetEmailView(APIView):
                 'data': check.get('missing')
             }
             return Response(data)
+
+        reset_token = JwToken.check_reset_password_token(req_data["reset_token"])
+
+        if not reset_token['valid']:
+            data = {
+                'success': False,
+                'description': 'Reset token is not valid',
+                'data': {}
+            }
+            return Response(data)
+        info = reset_token['info']
         user = None
-        if User.objects.filter(username=req_data['Username']).exists():
-            user = User.objects.get(username=req_data['Username'])
+        if User.objects.filter(username=info['username']).exists():
+            user = User.objects.get(username=info['username'])
         else:
             data = {
                 'success': False,
