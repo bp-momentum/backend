@@ -1583,7 +1583,7 @@ class GetListOfUsers(APIView):
 
 
 class GetPasswordResetEmailView(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         # checking if it contains all arguments
         check = ErrorHandler.check_arguments([], request.headers, ['username', 'url'], request.data)
         req_data = request.data
@@ -1595,8 +1595,8 @@ class GetPasswordResetEmailView(APIView):
             }
             return Response(data)
         user = None
-        if User.objects.filter(username=req_data['Username']).exists():
-            user = User.objects.get(username=req_data['Username'])
+        if User.objects.filter(username=req_data['username']).exists():
+            user = User.objects.get(username=req_data['username'])
         else:
             data = {
                 'success': False,
@@ -1616,23 +1616,23 @@ class GetPasswordResetEmailView(APIView):
             send_mail("BachelorPraktikum Passwort",
                     plain_message,
                      EMAIL_HOST_USER,
-                     [req_data['email_address']], html_message=html_message)
+                     [user.email_address], html_message=html_message)
             data = {
                     'success': True,
                     'description': 'email with invite was sent',
                     'data': {}
                 }
-        except:
+        except Exception as e:
             data = {
                     'success': False,
                     'description': 'email with invite was not sent',
-                    'data': {}
+                    'data': {e}
                 }
 
         return Response(data)
 
 class SetPasswordResetEmailView(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         check = ErrorHandler.check_arguments([], request.headers, ['reset_token', 'new_password'], request.data)
         req_data = request.data
         if not check.get('valid'):
