@@ -13,7 +13,7 @@ def add_plan_to_user(username, plan):
         return "user_invalid"
     #checks if plan exists
     if plan != None:
-        if not TrainingSchedule.objects.filter(id=int(plan)).exists():
+        if not TrainingSchedule.objects.filter(id=int(plan), visable = True).exists():
                 return "plan_invalid"
     #assign plan to user
     user = User.objects.get(username=username)
@@ -205,11 +205,10 @@ class CreatePlanView(APIView):
             for exip in ExerciseInPlan.objects.filter(plan=plan):
                 if DoneExercises.objects.filter(exercise=exip).exists():
                     needed = True
+                    break
             #if yes keep old plan and relate it to new one
             if needed:
-                old_plan.new_plan = plan
-                old_plan.changed = True
-                old_plan.save(force_update=True)
+                old_plan.visable = False
             #else delete old plan
             else:
                 TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
@@ -314,7 +313,7 @@ class ShowPlanView(APIView):
             return Response(data)
 
         #check if plan exists
-        if not TrainingSchedule.objects.filter(id=int(req_data['plan'])).exists():
+        if not TrainingSchedule.objects.filter(id=int(req_data['plan']), visable=True).exists():
             data = {
                 'success': False,
                 'description': 'Training schedule does not exist',
@@ -370,7 +369,7 @@ class GetAllPlansView(APIView):
         
         trainer = Trainer.objects.get(username=info['username'])
         #get all plans as list
-        plans = TrainingSchedule.objects.filter(trainer=trainer.id)
+        plans = TrainingSchedule.objects.filter(trainer=trainer.id, visable=True)
         plans_res = []
         #get all ids as list
         for plan in plans:
@@ -528,8 +527,22 @@ class DeletePlanView(APIView):
                 }
             return Response(data)
 
-        #delete plan
-        TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).delete()
+        #delete plan/keep it, but unaccessable
+        needed = False
+        ts = TrainingSchedule.objects.get(id=int(req_data['id']),trainer=trainer.id)
+        for exip in ExerciseInPlan.objects.filter(plan=ts):
+            if DoneExercises.objects.filter(exercise=exip).exists():
+                needed = True
+                break
+        if needed:
+            for user in User.objects.filter(plan=ts):
+                user.plan = None
+                user.save(force_update=True)
+            ts = TrainingSchedule.objects.get(id=int(req_data['id']),trainer=trainer.id)
+            ts.visable = False
+            ts.save(force_update=True)
+        else:
+            TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).delete()
         data = {
                 'success': True,
                 'description': 'plan deleted',

@@ -30,8 +30,7 @@ class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField(null=True)
-    changed = models.BooleanField(default=False)
-    plan_new = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
+    visable = models.BooleanField(default=True)
 
 
 class Exercise(models.Model):
