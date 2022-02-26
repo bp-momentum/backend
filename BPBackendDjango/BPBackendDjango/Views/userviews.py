@@ -1581,4 +1581,85 @@ class GetListOfUsers(APIView):
             }
         return Response(data)
 
- 
+
+class GetPasswordResetEmailView(APIView):
+    def get(self, request, *args, **kwargs):
+        # checking if it contains all arguments
+        check = ErrorHandler.check_arguments([], request.headers, ['username', 'url'], request.data)
+        req_data = request.data
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        user = None
+        if User.objects.filter(username=req_data['Username']).exists():
+            user = User.objects.get(username=req_data['Username'])
+        else:
+            data = {
+                'success': False,
+                'description': 'Username is not used',
+                'data': {}
+            }
+            return Response(data)
+
+        url = req_data["url"]
+        reset_token = JwToken.create_reset_password_token(user.username)
+        html_message = render_to_string('BPBackendDjango/resetEmail.html',
+                                        {'full_name': f' {user.first_name} {user.last_name}',
+                                         "link": f'{url}/?reset_token={reset_token}'})
+        plain_message = strip_tags(html_message)
+
+        try:
+            send_mail("BachelorPraktikum Passwort",
+                    plain_message,
+                     EMAIL_HOST_USER,
+                     [req_data['email_address']], html_message=html_message)
+            data = {
+                    'success': True,
+                    'description': 'email with invite was sent',
+                    'data': {}
+                }
+        except:
+            data = {
+                    'success': False,
+                    'description': 'email with invite was not sent',
+                    'data': {}
+                }
+
+        return Response(data)
+
+class SetPasswordResetEmailView(APIView):
+    def get(self, request, *args, **kwargs):
+        check = ErrorHandler.check_arguments([], request.headers, ['reset_token', 'new_password'], request.data)
+        req_data = request.data
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        user = None
+        if User.objects.filter(username=req_data['Username']).exists():
+            user = User.objects.get(username=req_data['Username'])
+        else:
+            data = {
+                'success': False,
+                'description': 'Username is not used',
+                'data': {}
+            }
+            return Response(data)
+
+        user.password = str(hashlib.sha3_256(req_data["new_password"].encode('utf8')).hexdigest())
+        user.save(force_update=True)
+
+
+        data = {
+            'success': True,
+            'description': 'Password got reset',
+            'data': {}
+        }
+        return Response(data)

@@ -89,7 +89,8 @@ INSTALLED_APPS = [
     'BPBackendDjango',
     'corsheaders',
     'ordered_model',
-    'rest_framework'
+    'rest_framework',
+    'django_celery_beat'
 ]
 
 MIDDLEWARE = [
