@@ -3,6 +3,10 @@ from django.test import TestCase
 
 from .Views.exerciseviews import GetDoneExercisesOfMonthView, get_done_exercises_of_month
 from .Helperclasses.fortests import ViewSupport
+from .Helperclasses.jwttoken import JwToken
+from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetUserLevelView
@@ -267,7 +271,6 @@ class HandlingInvitesTestCase(TestCase):
         response = InvalidateInviteView.post(InvalidateInviteView, request)
         self.assertFalse(response.data.get('success'))
         self.assertTrue(OpenToken.objects.filter(id=self.ot2.id).exists())
-
 
 
 class ProfileTestCase(TestCase):

@@ -26,7 +26,7 @@ MULT_PER_LVL = 1.25
 FIRST_LVL = 300
 
 #creating random password
-from ..settings import EMAIL_HOST_USER
+from ..settings import EMAIL_HOST_USER, INTERN_SETTINGS
 
 
 def get_random_password(length):
@@ -234,6 +234,16 @@ def get_trainer_contact(trainer):
         'email': trainer.email_address
     }
 
+#only method needs to be changed to get different information about users
+def get_users_data(users):
+    data = []
+    for user in users:
+        data.append({
+            'id': user.id,
+            'username': user.username
+        })
+    return data
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
@@ -366,7 +376,8 @@ class CreateUserView(APIView):
         #create data base entry
         OpenToken.objects.create(token=new_user_token, email=req_data['email_address'], first_name=req_data['first_name'], last_name=req_data['last_name'], creator=info['username'])
         #create and send mail
-        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'http://78.46.150.116/#/?new_user_token={new_user_token}'})
+        url = INTERN_SETTINGS['website_url']
+        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'{url}/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         addon = " "
         try:
@@ -603,6 +614,8 @@ class ChangeLanguageView(APIView):
 
         return Response(data)
 
+        users = User.objects.all()
+        users_data = get_users_data(users)  
 
 class GetLanguageView(APIView):
     def get(self, request, *args, **kwargs):
@@ -1495,3 +1508,77 @@ class ChangeMotovationView(APIView):
             'data': {}
         }
         return Response(data)
+
+           
+class SearchUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['search'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        users = User.objects.filter(username__icontains=req_data['search']).exclude(username=info['username'])
+        users_data = get_users_data(users)
+
+        data = {
+                'success': True,
+                'description': 'returning list of matching users',
+                'data': {
+                    'users': users_data
+                }
+            }
+        return Response(data)
+
+
+class GetListOfUsers(APIView):
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        users = User.objects.exclude(username=info['username'])
+        users_data = get_users_data(users)  
+
+        data = {
+                'success': True,
+                'description': 'returning list of users',
+                'data': {
+                    'users': users_data
+                }
+            }
+        return Response(data)
+
+ 
