@@ -464,8 +464,6 @@ class GetPlanOfUser(APIView):
             }
             return Response(data)
 
-            return Response(data)
-
         else:
             data = {
                 'success': False,
