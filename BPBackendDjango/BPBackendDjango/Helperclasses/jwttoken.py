@@ -76,7 +76,7 @@ class JwToken(object):
         try:
             ST = jwt.JWT(key=key, jwt = token)
         except:
-            print("Signature is not valid")
+            #print("Signature is not valid")
             return {"valid": False, "info": {}}
         #check if the token is still valid (1 day) and of right type
         info = json.loads(str(ST.claims))
