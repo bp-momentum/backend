@@ -233,17 +233,18 @@ class DoneExerciseView(APIView):
                 'data': {}
             }
             return Response(data)
-        eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
 
-        if eip == None:
+        #check if exercise in plan with given id exists
+        if ExerciseInPlan.objects.filter(id=req_data['exercise_plan_id']).exists():
             data = {
                 'success': False,
                 'description': 'Exercise in plan id does not exists',
                 'data': {}
             }
             return Response(data)
+        eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
 
-        # check if its alrady done this week
+        # check if its already done this week
         done = DoneExercises.objects.filter(exercise=eip, user=user)
         for d in done:
             # calculate the timespan and if its already done done
