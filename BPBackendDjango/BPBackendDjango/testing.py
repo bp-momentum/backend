@@ -1530,6 +1530,7 @@ class TestDoneExercise(TestCase):
         #valid
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip_id})
         response = DoneExerciseView.post(DoneExerciseView, request)
+        print(response.data.get('description'))
         self.assertTrue(response.data.get('success'))
         self.assertTrue(DoneExercises.objects.all().exists())
         #invalid
