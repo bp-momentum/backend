@@ -744,13 +744,12 @@ class ProfileTestCase(TestCase):
         dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
         now = datetime.datetime.now()
         #valid
-        result = get_done_exercises_of_month(now.month, now.year, user)
-        '''[{
+        result = [{
             "exercise_plan_id": dex.exercise.id,
             "id": dex.exercise.exercise.id,
             "date": dex.date,
             "points": dex.points
-        }]'''
+        }]
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
             'year': now.year,
             'month': now.month
