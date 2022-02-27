@@ -1511,12 +1511,12 @@ class TestDoneExercise(TestCase):
 
     def setUp(self) -> None:
         trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        self.ex_id = Exercise.objects.create(title='Kniebeuge', description='{"german": "Gehe in die Knie, achte...", "english": "Do squats..."}')
+        self.ex_id = Exercise.objects.create(title='Kniebeuge', description='{"de": "Gehe in die Knie, achte...", "en": "Do squats..."}')
         ts = TrainingSchedule.objects.create(trainer=trainer)
         exip = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex_id, plan=ts)
         self.exip_id = exip.id
         self.trainer_id = trainer.id
-        user = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234", plan=ts)
         admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
         user.plan = ts
         user.save(force_update=True)
