@@ -235,7 +235,7 @@ class DoneExerciseView(APIView):
             return Response(data)
 
         #check if exercise in plan with given id exists
-        if ExerciseInPlan.objects.filter(id=req_data['exercise_plan_id']).exists():
+        if not ExerciseInPlan.objects.filter(id=req_data['exercise_plan_id']).exists():
             data = {
                 'success': False,
                 'description': 'Exercise in plan id does not exists',
