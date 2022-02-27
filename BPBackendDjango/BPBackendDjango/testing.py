@@ -1562,7 +1562,7 @@ class TestDoneExercise(TestCase):
         self.assertEquals(response.data.get('data').get('data'), ['exercise_plan_id'])
 
     def test_get_done(self): #not working, issue with method in tests
-        '''#valid
+        #valid
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = GetDoneExercisesView.get(GetDoneExercisesView, request)
@@ -1613,7 +1613,7 @@ class TestDoneExercise(TestCase):
         response = GetDoneExercisesView.post(GetDoneExercisesView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['user'])'''
+        self.assertEquals(response.data.get('data').get('data'), ['user'])
 
 
 class TestFriendSystem(TestCase):
