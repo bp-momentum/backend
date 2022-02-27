@@ -168,7 +168,7 @@ class ListLeaderboardView(APIView):
         else:
             for l in range(user_index - math.floor(count_of_entries/2), user_index + math.ceil(count_of_entries/2)):
                 exs_to_do = 0
-                rank = l
+                rank = l+1
                 if leaderboard[l].user.plan is not None:
                     plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
                     for ex in plan_data:
