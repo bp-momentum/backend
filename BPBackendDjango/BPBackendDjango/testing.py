@@ -1507,12 +1507,14 @@ class TestDoneExercise(TestCase):
     user_token = None
     admin_token = None
     user = None
+    exip_id = 0
 
     def setUp(self) -> None:
         trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.ex_id = Exercise.objects.create(title='Kniebeuge', description='{"german": "Gehe in die Knie, achte...", "english": "Do squats..."}')
         ts = TrainingSchedule.objects.create(trainer=trainer)
-        self.exip = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex_id, plan=ts)
+        exip = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex_id, plan=ts)
+        self.exip_id = exip.id
         self.trainer_id = trainer.id
         user = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
         admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
@@ -1526,13 +1528,13 @@ class TestDoneExercise(TestCase):
 
     def test_do_exercise(self):
         #valid
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip.id})
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip_id})
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertTrue(response.data.get('success'))
         self.assertTrue(DoneExercises.objects.all().exists())
         #invalid
         #already done
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip.id})
+        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip_id})
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertFalse(response.data.get('success'))
         #invalid exercise in plan
@@ -1540,15 +1542,15 @@ class TestDoneExercise(TestCase):
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertFalse(response.data.get('success'))
         #admin not allowed to
-        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {'exercise_plan_id': self.exip.id})
+        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {'exercise_plan_id': self.exip_id})
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertFalse(response.data.get('success'))
         #trainer not allowed to
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'exercise_plan_id': self.exip.id})
+        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'exercise_plan_id': self.exip_id})
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertFalse(response.data.get('success'))
         #invalid token
-        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'exercise_plan_id': self.exip.id})
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'exercise_plan_id': self.exip_id})
         response = DoneExerciseView.post(DoneExerciseView, request)
         self.assertFalse(response.data.get('success'))
         #missing arguments
