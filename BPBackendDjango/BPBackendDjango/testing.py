@@ -1446,7 +1446,7 @@ class TestLeaderboardView(TestCase):
         self.trainer_id = trainer.id
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         ts = TrainingSchedule.objects.create(name='plan_for_everyone', trainer=trainer)
-        ex = Exercise.objects.create('Kniebeuge')
+        ex = Exercise.objects.create(title='Kniebeuge')
         ExerciseInPlan.objects.create(exercise=ex, plan=ts, sets=1, repeats_per_set=1)
         User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=trainer,password="pswd22", plan=ts)
         User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=trainer,password="pswd22", plan=ts)
