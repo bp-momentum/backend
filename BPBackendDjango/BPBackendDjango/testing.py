@@ -1462,6 +1462,7 @@ class TestLeaderboardView(TestCase):
             score+=10
 
     def test_get(self):
+        self.maxDiff = None
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'count': 3})
         response = ListLeaderboardView.post(ListLeaderboardView, request)
