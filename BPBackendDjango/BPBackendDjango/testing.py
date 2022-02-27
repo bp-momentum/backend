@@ -4,8 +4,8 @@ from django.test import TestCase
 from .Views.exerciseviews import GetDoneExercisesOfMonthView, get_done_exercises_of_month
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
-from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView, get_friends, get_pending_requests, get_requests
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, calc_level, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
@@ -401,3 +401,65 @@ class ProfileTestCase(TestCase):
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('done'), result)
+
+
+class TestProfileOfFriends(TestCase):
+
+    token1 = None
+    token2 = None
+    token3 = None
+    
+    def setUp(self) -> None:
+        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        user1 = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()), avatar=5, motivation='Krise', xp=20)
+        user2 = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()), avatar=2, motivation='Gute Tage', xp=5000)
+        user3 = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()), avatar=4, motivation='Es lebe der Leichtsinn', xp=60000)
+        Friends.objects.create(friend1=user1, friend2=user2, accepted=True)
+        Friends.objects.create(friend1=user1, friend2=user3, accepted=False)
+        self.token1 = JwToken.create_session_token(trainer.username, 'trainer')
+        self.token2 = JwToken.create_session_token(user1.username, 'user')
+        self.token3 = JwToken.create_session_token(user2.username, 'user')
+
+    def test(self):
+        #valid
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'jbad'})
+        response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data'), {
+            'username': 'jbad',
+            'level': calc_level(5000),
+            'avatar': 2,
+            'motivation': 'Gute Tage'
+        })
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'DeadlyFarts'})
+        response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data'), {
+            'username': 'DeadlyFarts',
+            'level': 0,
+            'avatar': 5,
+            'motivation': 'Krise'
+        })
+        #invalid
+        #not friends
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'jbadV'})
+        response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #not accepted
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'jbadV'})
+        response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #trainer not allowed to
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {'username': 'jbadV'})
+        response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'username': 'jbadV'})
+        response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), ['username'])
