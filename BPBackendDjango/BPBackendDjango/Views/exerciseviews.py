@@ -224,15 +224,15 @@ class DoneExerciseView(APIView):
             return Response(data)
 
         info = token['info']
-        user = User.objects.get(username=info['username'])
         #check if is user/user exists
-        if user == None:
+        if not User.objects.filter(username=info['username']).exists():
             data = {
                 'success': False,
                 'description': 'Not a user',
                 'data': {}
             }
             return Response(data)
+        user = User.objects.get(username=info['username'])
 
         #check if exercise in plan with given id exists
         if not ExerciseInPlan.objects.filter(id=req_data['exercise_plan_id']).exists():
