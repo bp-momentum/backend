@@ -53,13 +53,11 @@ class ListLeaderboardView(APIView):
                 if l >= count_entries:
                     continue
                 rank += 1
-
+                exs_to_do = 0
                 if leaderboard[l].user.plan is not None:
                     plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
                     for ex in plan_data:
                         exs_to_do += ex.repeats_per_set * ex.sets
-                else:
-                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
                 score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity + leaderboard[l].cleanliness) / (3 * exs_to_do)
                 speed = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[l].speed / execs_done
