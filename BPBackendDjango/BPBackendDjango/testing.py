@@ -1445,18 +1445,21 @@ class TestLeaderboardView(TestCase):
         trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_id = trainer.id
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
-        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=trainer,password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=trainer,password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=trainer,password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=trainer, password="pswd22")
-        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=trainer,password="pswd22")
+        ts = TrainingSchedule.objects.create(name='plan_for_everyone', trainer=trainer)
+        ex = Exercise.objects.create('Kniebeuge')
+        ExerciseInPlan.objects.create(exercise=ex, plan=ts, sets=1, repeats_per_set=1)
+        User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=trainer,password="pswd22", plan=ts)
+        User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=trainer,password="pswd22", plan=ts)
+        User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=trainer,password="pswd22", plan=ts)
+        User.objects.create(first_name="vorname", last_name="nachname", username="user4", email_address="user4@users.com", trainer=trainer, password="pswd22", plan=ts)
+        User.objects.create(first_name="vorname", last_name="nachname", username="user5", email_address="user5@users.com", trainer=trainer,password="pswd22", plan=ts)
         self.users = User.objects.all()
-        score = 100
+        score = 60
         for user in self.users:
-            Leaderboard.objects.create(user=user, score=score)
-            if score == 300:
+            Leaderboard.objects.create(user=user, score=score, cleanliness=score, intensity=score, speed=score, executions=1)
+            if score == 80:
                 self.user_token = JwToken.create_session_token(user.username, 'user')
-            score+=100
+            score+=10
 
     def test_get(self):
         #as trainer
@@ -1464,24 +1467,24 @@ class TestLeaderboardView(TestCase):
         response = ListLeaderboardView.post(ListLeaderboardView, request)
         self.assertTrue(response.data.get('success'))
         leaderboard = []
-        entry = Leaderboard.objects.get(score=500)
-        leaderboard.append({"rank": 1, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
-        entry = Leaderboard.objects.get(score=400)
-        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
-        entry = Leaderboard.objects.get(score=300)
-        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
+        entry = Leaderboard.objects.get(score=100)
+        leaderboard.append({"rank": 1, "username": entry.user.username, "score": 100, "cleanliness": 100, "intensity": 100, "speed": 100})
+        entry = Leaderboard.objects.get(score=90)
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": 90, "cleanliness": 90, "intensity": 90, "speed": 90})
+        entry = Leaderboard.objects.get(score=80)
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": 90, "cleanliness": 90, "intensity": 90, "speed": 90})
         self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'count': 3})
         response = ListLeaderboardView.post(ListLeaderboardView, request)
         self.assertTrue(response.data.get('success'))
         leaderboard = []
-        entry = Leaderboard.objects.get(score=400)
-        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
-        entry = Leaderboard.objects.get(score=300)
-        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
-        entry = Leaderboard.objects.get(score=200)
-        leaderboard.append({"rank": 4, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
+        entry = Leaderboard.objects.get(score=90)
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": 90, "cleanliness": 90, "intensity": 90, "speed": 90})
+        entry = Leaderboard.objects.get(score=80)
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": 80, "cleanliness": 80, "intensity": 80, "speed": 80})
+        entry = Leaderboard.objects.get(score=70)
+        leaderboard.append({"rank": 4, "username": entry.user.username, "score": 70, "cleanliness": 70, "intensity": 70, "speed": 70})
         self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
         #invalid
         #invalid token
