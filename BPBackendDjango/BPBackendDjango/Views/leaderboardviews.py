@@ -120,13 +120,11 @@ class ListLeaderboardView(APIView):
                 if l >= count_entries:
                     break
                 rank += 1
-
+                exs_to_do = 0
                 if leaderboard[l].user.plan is not None:
                     plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
                     for ex in plan_data:
                         exs_to_do += ex.repeats_per_set * ex.sets
-                else:
-                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
                 score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity +
                                                                      leaderboard[l].cleanliness) / (3 * exs_to_do)
@@ -148,12 +146,11 @@ class ListLeaderboardView(APIView):
                 if l < 0:
                     continue
                 rank += 1
+                exs_to_do = 0
                 if leaderboard[l].user.plan is not None:
                     plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
                     for ex in plan_data:
                         exs_to_do += ex.repeats_per_set * ex.sets
-                else:
-                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
                 score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity +
                                                                      leaderboard[l].cleanliness) / (3 * exs_to_do)
@@ -170,12 +167,11 @@ class ListLeaderboardView(APIView):
 
         else:
             for l in range(user_index - math.floor(count_of_entries/2), user_index + math.ceil(count_of_entries/2)):
+                exs_to_do = 0
                 if leaderboard[l].user.plan is not None:
                     plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[l].user.plan.id)
                     for ex in plan_data:
                         exs_to_do += ex.repeats_per_set * ex.sets
-                else:
-                    exs_to_do = 0
                 execs_done = leaderboard[l].executions
                 score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[l].speed + leaderboard[l].intensity +
                                                                      leaderboard[l].cleanliness) / (3 * exs_to_do)
