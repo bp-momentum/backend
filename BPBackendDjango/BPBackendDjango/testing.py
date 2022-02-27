@@ -1465,11 +1465,11 @@ class TestLeaderboardView(TestCase):
         self.assertTrue(response.data.get('success'))
         leaderboard = []
         entry = Leaderboard.objects.get(score=500)
-        leaderboard.append({"rank": 1, "username": entry.user.username, "score": entry.score})
+        leaderboard.append({"rank": 1, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
         entry = Leaderboard.objects.get(score=400)
-        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score})
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
         entry = Leaderboard.objects.get(score=300)
-        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score})
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
         self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'count': 3})
@@ -1477,11 +1477,11 @@ class TestLeaderboardView(TestCase):
         self.assertTrue(response.data.get('success'))
         leaderboard = []
         entry = Leaderboard.objects.get(score=400)
-        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score})
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
         entry = Leaderboard.objects.get(score=300)
-        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score})
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
         entry = Leaderboard.objects.get(score=200)
-        leaderboard.append({"rank": 4, "username": entry.user.username, "score": entry.score})
+        leaderboard.append({"rank": 4, "username": entry.user.username, "score": entry.score, "cleanliness": 0, "intensity": 0, "speed": 0})
         self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
         #invalid
         #invalid token
