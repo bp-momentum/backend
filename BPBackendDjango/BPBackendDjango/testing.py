@@ -427,7 +427,7 @@ class TestProfileOfFriends(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data'), {
             'username': 'jbad',
-            'level': calc_level(5000),
+            'level': calc_level(5000)[0],
             'avatar': 2,
             'motivation': 'Gute Tage'
         })
