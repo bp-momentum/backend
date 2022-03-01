@@ -403,7 +403,7 @@ class GetPlanOfUser(APIView):
             #check if user has plan assigned
             if user.plan == None:
                 data = {
-                    'success': False,
+                    'success': True,
                     'description': 'user has no plan assigned',
                     'data': {}
                 }
