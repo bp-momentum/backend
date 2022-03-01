@@ -2,6 +2,8 @@ from os import name
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from BPBackendDjango.BPBackendDjango.Views.userviews import check_input_length
+
 from ..models import *
 from ..serializers import *
 from ..Helperclasses.jwttoken import JwToken
@@ -97,7 +99,7 @@ class CreatePlanView(APIView):
                 }
             return Response(data)
 
-        if PLAN_LENGTH < len(req_data['name']):
+        if not check_input_length(req_data['name'], PLAN_LENGTH):
             data = {
                 'success': False,
                 'description': 'name too long',

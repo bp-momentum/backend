@@ -246,6 +246,10 @@ def get_users_data(users):
         })
     return data
 
+#check length of input
+def check_input_length(input, length):
+    return len(input)<length
+
 USERNAME_LENGTH = 50
 FIRST_NAME_LENGTH = 50
 LAST_NAME_LENGTH = 50
@@ -388,10 +392,24 @@ class CreateUserView(APIView):
             return Response(data)
 
         #check if arguments are fine
-        if (FIRST_NAME_LENGTH < len(req_data['first_name'])) or (LAST_NAME_LENGTH < len(req_data['last_name'])) or (EMAIL_LENGTH < len(req_data['email_address'])):
+        if not check_input_length(req_data['first_name'], FIRST_NAME_LENGTH):
             data = {
                 'success': False,
-                'description': 'One argument is too long.',
+                'description': 'first name is too long.',
+                'data': {}
+            }
+            return Response(data)
+        if not check_input_length(req_data['last_name'], LAST_NAME_LENGTH):
+            data = {
+                'success': False,
+                'description': 'first name is too long.',
+                'data': {}
+            }
+            return Response(data)
+        if not check_input_length(req_data['email_address'], EMAIL_LENGTH):
+            data = {
+                'success': False,
+                'description': 'first name is too long.',
                 'data': {}
             }
             return Response(data)
@@ -1114,7 +1132,7 @@ class ChangeUsernameView(APIView):
             return Response(data)
 
         #check if length is fine
-        if USERNAME_LENGTH < len(req_data['username']) or (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
+        if not check_input_length(req_data['username'], USERNAME_LENGTH) or (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
             data = {
                     'success': False,
                     'description': 'username too long',
@@ -1403,13 +1421,49 @@ class SetTrainerLocationView(APIView):
             return Response(data)
 
         #check length
-        if (len(req_data['street']) > STREET_LENGTH) or (len(req_data['postal_code']) > POSTAL_CODE_LENGTH) or (len(req_data['country']) > COUNTRY_LENGTH) or (len(req_data['city']) > CITY_LENGTH) or (len(req_data['house_nr']) > H_NR_LENGTH) or (len(req_data['address_add']) > ADDRESS_ADD_LENGTH):
+        if not check_input_length(req_data['street'], STREET_LENGTH):
             data = {
                     'success': False,
-                    'description': 'One or more arguments are too long',
+                    'description': 'Name of street too long',
                     'data': {}
                 }
             return Response(data)
+        if not check_input_length(req_data['postal_code'], POSTAL_CODE_LENGTH):
+            data = {
+                    'success': False,
+                    'description': 'postal code too long',
+                    'data': {}
+                }
+            return Response(data)
+        if not check_input_length(req_data['country'], COUNTRY_LENGTH):
+            data = {
+                    'success': False,
+                    'description': 'name of country too long',
+                    'data': {}
+                }
+            return Response(data)
+        if not check_input_length(req_data['city'], CITY_LENGTH):
+            data = {
+                    'success': False,
+                    'description': 'city too long',
+                    'data': {}
+                }
+            return Response(data)
+        if not check_input_length(req_data['house_nr'], H_NR_LENGTH):
+            data = {
+                    'success': False,
+                    'description': 'house number too long',
+                    'data': {}
+                }
+            return Response(data)
+        if not check_input_length(req_data['address_add'], ADDRESS_ADD_LENGTH):
+            data = {
+                    'success': False,
+                    'description': 'address addition too long',
+                    'data': {}
+                }
+            return Response(data)
+        
         info = token['info']
 
         #check if requested by trainer
@@ -1462,7 +1516,7 @@ class ChangeTrainerTelephoneView(APIView):
             return Response(data)
 
         #check length
-        if TELEPHONE_LENGTH < len(req_data['telephone']):
+        if not check_input_length(req_data['telephone'], TELEPHONE_LENGTH):
             data = {
                     'success': False,
                     'description': 'Token is not valid',
@@ -1517,7 +1571,7 @@ class ChangeTrainerAcademiaView(APIView):
             return Response(data)
 
         #check length
-        if ACADEMIA_LENGTH < len(req_data['academia']):
+        if not check_input_length(req_data['academia'], ACADEMIA_LENGTH):
             data = {
                     'success': False,
                     'description': 'Academia too long',
@@ -1572,7 +1626,7 @@ class ChangeMotovationView(APIView):
             return Response(data)
 
         #check length
-        if MOTIVATION_LENGTH < len(req_data['motivation']):
+        if not check_input_length(req_data['motivation'], MOTIVATION_LENGTH):
             data = {
                     'success': False,
                     'description': 'Motivation too long',
