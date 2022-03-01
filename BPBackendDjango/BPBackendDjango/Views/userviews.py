@@ -465,6 +465,7 @@ class LogoutAllDevicesView(APIView):
 
         info = token["info"]
         #create new tokens
+        JwToken.invalidate_session_token(info['username'])
         session_token = JwToken.create_session_token(username=info['username'], account_type=info['account_type'])
         refresh_token = JwToken.create_refresh_token(username=info['username'], account_type=info['account_type'], set_pswd=True)
         data = {
