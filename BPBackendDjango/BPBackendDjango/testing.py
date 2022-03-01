@@ -1,3 +1,4 @@
+from multiprocessing.connection import wait
 from pickle import TRUE
 from django.http import request
 from django.test import TestCase
@@ -990,6 +991,7 @@ class TestUserViews(TestCase):
             self.user_refresh_token = JwToken.create_refresh_token('DeadlyFarts', 'user', True)
         self.assertTrue(JwToken.check_refresh_token(self.user_refresh_token).get('valid'))
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
+        time.sleep(10)
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
         self.assertTrue(response.data.get('success'))
         request = ViewSupport.setup_request({}, {
@@ -1302,7 +1304,7 @@ class TestPlanView(TestCase):
         response = AddPlanToUserView.post(AddPlanToUserView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['user', 'plan'])
+        self.assertEquals(response.data.get('data').get('data'), ['user'])
 
     def test_get_list(self):
         #valid
