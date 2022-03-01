@@ -1122,7 +1122,7 @@ class ChangeUsernameView(APIView):
                 }
             return Response(data)
 
-        #check if first symbol ist space
+        #check if first symbol is space
         if str(req_data['username']).startswith(' '):
             data = {
                 'success': False,
