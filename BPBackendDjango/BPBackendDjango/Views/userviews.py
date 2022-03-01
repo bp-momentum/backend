@@ -463,14 +463,18 @@ class LogoutAllDevicesView(APIView):
             return Response(data)
 
         info = token["info"]
-        #creates new password for refresh-token
-        JwToken.save_refreshpswd(info['username'], get_random_password(10))
+        #create new tokens
         JwToken.invalidate_session_token(info['username'])
+        session_token = JwToken.create_session_token(username=info['username'], account_type=info['account_type'])
+        refresh_token = JwToken.create_refresh_token(username=info['username'], account_type=info['account_type'], set_pswd=True)
         data = {
             'success': True,
             'description': 'refresh-token changed',
-            'data': {}
+            'data': {
+                'session_token': session_token,
+                'refresh_token': refresh_token
             }
+        }
 
         return Response(data)
 

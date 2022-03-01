@@ -217,8 +217,7 @@ class JwToken(object):
             user = Admin.objects.get(username=username)
         else:
             return
-
-        user.token_date = int(time.time())
+        user.token_date = int(time.time())-10
         user.save(force_update=True)
 
 
