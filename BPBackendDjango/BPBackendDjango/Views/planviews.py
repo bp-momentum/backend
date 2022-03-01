@@ -2,7 +2,7 @@ from os import name
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from BPBackendDjango.BPBackendDjango.Views.userviews import check_input_length
+from .userviews import check_input_length
 
 from ..models import *
 from ..serializers import *
