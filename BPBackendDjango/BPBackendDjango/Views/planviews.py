@@ -226,7 +226,7 @@ class CreatePlanView(APIView):
 class AddPlanToUserView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
-        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['user', 'plan'], request.data)
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['user'], request.data)
         if not check.get('valid'):
             data = {
                 'success': False,
@@ -255,7 +255,7 @@ class AddPlanToUserView(APIView):
                 }
             return Response(data)
 
-        res = add_plan_to_user(username=req_data['user'], plan=req_data['plan'])
+        res = add_plan_to_user(username=req_data['user'], plan=req_data.get('plan'))
 
         #checks whether assigning was successful
         if res == "user_invalid":
@@ -415,7 +415,7 @@ class GetPlanOfUser(APIView):
             #check if user has plan assigned
             if user.plan == None:
                 data = {
-                    'success': False,
+                    'success': True,
                     'description': 'user has no plan assigned',
                     'data': {}
                 }
