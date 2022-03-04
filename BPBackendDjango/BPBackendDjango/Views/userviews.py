@@ -1,4 +1,6 @@
 import email
+import locale
+from re import A
 from django.db.models.query_utils import refs_expression
 from django.shortcuts import render
 from rest_framework.views import APIView
@@ -139,43 +141,41 @@ def get_invited_data(open_tokens):
         })
     return data
 
-def streak(user):
+#set last login
+def last_login(username):
     now = datetime.datetime.now()
     year = now.year
     month = now.month
     day = now.day
     today = get_string_of_date(day, month, year)
-    if day == 1:
-        if month == 1:
-            month = 12
-            year = year - 1
-            day = 31
-        else:
-            month = month - 1
-            day = get_lastday_of_month(month, year)
-    yesterday = get_string_of_date(day, month, year)
-    if not User.objects.filter(username=user).exists():
+    if not User.objects.filter(username=username).exists():
         #if its trainer only set last login
-        if not Trainer.objects.filter(username=user).exists():
+        if not Trainer.objects.filter(username=username).exists():
             return
         else:
-            t = Trainer.objects.get(username=user)
-            t.last_login = today
-            t.save(force_update=True)
-            return
-    u = User.objects.get(username=user)
-    last_login = u.last_login
-    if last_login == today:
-        return
-    elif last_login == yesterday:
-        old = u.streak
-        u.streak = old + 1
-        u.last_login = today
-        u.save()
+            username = Trainer.objects.get(username=username)
     else:
-        u.streak = 1
-        u.last_login = today
-        u.save()
+        username = User.objects.get(username=username)
+    username.last_login = today
+    username.save(force_update=True)
+
+#check streak
+def streak(user:User)->None:
+    if user.plan == None:
+        return
+    #check if no exercises have to be done
+    now = datetime.datetime.now()
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+    weekday = now.strftime('%A').lower()
+    exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+    if not exips.exists():
+        return
+    for exip in exips:
+        if not DoneExercises.objects.filter(exercise=exip, user=user).exists():
+            return
+    user.streak += 1
+    user.save(force_update=True)
+    return
 
 def get_lastday_of_month(m, y):
     if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
@@ -320,7 +320,7 @@ class RegisterView(APIView):
                     }
 
                 OpenToken.objects.filter(token=req_data['new_user_token']).delete()
-                streak(req_data['username'])
+                last_login(req_data['username'])
 
                 return Response(data)
             else:
@@ -436,7 +436,7 @@ class LoginView(APIView):
                 }
             }
 
-        streak(req_data['username'])
+        last_login(req_data['username'])
 
         return Response(data)
         
@@ -516,7 +516,7 @@ class AuthView(APIView):
                 }
             }
 
-        streak(info['info']['username'])
+        last_login(info['info']['username'])
 
         return Response(data)
 
