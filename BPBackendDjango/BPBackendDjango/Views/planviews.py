@@ -2,7 +2,7 @@ from os import name
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .userviews import check_input_length
+from .userviews import check_input_length, length_wrong_response
 
 from ..models import *
 from ..serializers import *
@@ -100,12 +100,7 @@ class CreatePlanView(APIView):
             return Response(data)
 
         if not check_input_length(req_data['name'], PLAN_LENGTH):
-            data = {
-                'success': False,
-                'description': 'name too long',
-                'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('Plan name')
 
         #check if user is allowed to request
         if not token["info"]["account_type"] == "trainer":

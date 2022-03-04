@@ -250,6 +250,15 @@ def get_users_data(users):
 def check_input_length(input, length):
     return len(input)<length
 
+#return data for length
+def length_wrong_response(argument):
+    data = {
+        'success': False,
+        'description': str(argument) + ' is too long',
+        'data': {}
+    }
+    return Response(data)
+
 USERNAME_LENGTH = 50
 FIRST_NAME_LENGTH = 50
 LAST_NAME_LENGTH = 50
@@ -393,26 +402,11 @@ class CreateUserView(APIView):
 
         #check if arguments are fine
         if not check_input_length(req_data['first_name'], FIRST_NAME_LENGTH):
-            data = {
-                'success': False,
-                'description': 'first name is too long.',
-                'data': {}
-            }
-            return Response(data)
+            return length_wrong_response('first name')
         if not check_input_length(req_data['last_name'], LAST_NAME_LENGTH):
-            data = {
-                'success': False,
-                'description': 'first name is too long.',
-                'data': {}
-            }
-            return Response(data)
+            return length_wrong_response('last name')
         if not check_input_length(req_data['email_address'], EMAIL_LENGTH):
-            data = {
-                'success': False,
-                'description': 'first name is too long.',
-                'data': {}
-            }
-            return Response(data)
+            return length_wrong_response('email address')
 
         info = token["info"]
         
@@ -1139,7 +1133,7 @@ class ChangeUsernameView(APIView):
         if not check_input_length(req_data['username'], USERNAME_LENGTH) or (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
             data = {
                     'success': False,
-                    'description': 'username too long',
+                    'description': 'username invalid',
                     'data': {}
                 }
             return Response(data)
@@ -1426,47 +1420,17 @@ class SetTrainerLocationView(APIView):
 
         #check length
         if not check_input_length(req_data['street'], STREET_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'Name of street too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('Name of street')
         if not check_input_length(req_data['postal_code'], POSTAL_CODE_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'postal code too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('postal code')
         if not check_input_length(req_data['country'], COUNTRY_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'name of country too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('Name of country')
         if not check_input_length(req_data['city'], CITY_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'city too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('Name of city')
         if not check_input_length(req_data['house_nr'], H_NR_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'house number too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('house number')
         if not check_input_length(req_data['address_add'], ADDRESS_ADD_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'address addition too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('Address addition')
         
         info = token['info']
 
@@ -1521,12 +1485,7 @@ class ChangeTrainerTelephoneView(APIView):
 
         #check length
         if not check_input_length(req_data['telephone'], TELEPHONE_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'Token is not valid',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('telephone numer')
 
         info = token['info']
 
@@ -1576,12 +1535,7 @@ class ChangeTrainerAcademiaView(APIView):
 
         #check length
         if not check_input_length(req_data['academia'], ACADEMIA_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'Academia too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('academia')
 
         info = token['info']
 
@@ -1631,12 +1585,7 @@ class ChangeMotovationView(APIView):
 
         #check length
         if not check_input_length(req_data['motivation'], MOTIVATION_LENGTH):
-            data = {
-                    'success': False,
-                    'description': 'Motivation too long',
-                    'data': {}
-                }
-            return Response(data)
+            return length_wrong_response('Motivation')
 
         info = token['info']
 
