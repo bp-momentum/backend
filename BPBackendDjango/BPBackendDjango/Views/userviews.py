@@ -22,7 +22,7 @@ from ..models import *
 from BPBackendDjango.settings import *
 
 MAX_LEVEL = 200
-MULT_PER_LVL = 1.25
+MULT_PER_LVL = 2.25
 FIRST_LVL = 300
 
 #creating random password
