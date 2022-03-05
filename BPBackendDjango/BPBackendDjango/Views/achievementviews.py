@@ -1,3 +1,4 @@
+from urllib import request
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import json
@@ -442,5 +443,96 @@ class GetAchievementsView(APIView):
                 'achievements': achieved,
                 'nr_unachieved_hidden': nr_unachieved_hidden
                 }
+            }
+        return Response(data)
+
+
+class ReloadFriendAchievementView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #only users can get their own achievements
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+
+        #can not be achieved
+        if not Achievement.objects.filter(name='havingFriends').exists():
+            data = {
+                'success': True,
+                'description': 'Not achieved',
+                'data': {}
+                }
+            return Response(data)
+
+        achievement = Achievement.objects.get(name='havingFriends')
+
+        #already achieved
+        if UserAchievedAchievement.objects.filter(achievement=achievement).exists():
+            data = {
+                'success': True,
+                'description': 'Not achieved',
+                'data': {}
+                }
+            return Response(data)
+
+        #get number of friends
+        nr_of_friends = len(Friends.objects.filter(friend1=user.id).union(Friends.objects.filter(friend2=user.id)))
+        #check which level is reached
+        if nr_of_friends >= 1:
+            res = achieve_achievement(user, achievement)
+            if not res[0]:
+                data = {
+                    'success': False,
+                    'description': 'assigning achievement failed',
+                    'data': {
+                        'error': res[1],
+                        'achievement': achievement.name
+                        }
+                    }
+                return Response(data)
+            data = {
+                'success': True,
+                'description': 'Achieved',
+                'data': {
+                    'name': achievement.name,
+                    'description': get_correct_description(user.username, achievement.description),
+                    'level': 1,
+                    'progress': 'done',
+                    'hidden': achievement.hidden,
+                    'icon': achievement.icon
+                }
+            }
+        else:
+            data = {
+                'success': True,
+                'description': 'Not achieved',
+                'data': {}
             }
         return Response(data)
