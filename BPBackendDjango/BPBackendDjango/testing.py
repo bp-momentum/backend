@@ -5,7 +5,7 @@ from .Views.exerciseviews import GetDoneExercisesOfMonthView, get_done_exercises
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
 from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
@@ -401,3 +401,63 @@ class ProfileTestCase(TestCase):
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('done'), result)
+
+
+class TestResetPassword(TestCase):
+
+    token1 = None
+    token2 = None
+    token3 = None
+    user_id = 0
+    trainer_id = 0
+    admin_id = 0
+
+    def setUp(self) -> None:
+        admin = Admin.objects.create(first_name="Jannis", last_name="Bauer", username="DerAdmin", email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        trainer = Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerTrainer", email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        self.trainer_id = trainer.id
+        user = User.objects.create(first_name="Jannis", last_name="Bauer", username="derNutzer", trainer=trainer, email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
+        self.user_id = user.id
+        self.admin_id = admin.id
+
+    def test_send(self):
+        #valid
+        #user
+        request = ViewSupport.setup_request({}, {
+            'username': 'derNutzer',
+            'url': 'www.test/#/'
+        })
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        '''not implemented yet#trainer
+        request = ViewSupport.setup_request({}, {
+            'username': 'DerTrainer',
+            'url': 'www.test/#/'
+        })
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        #admin
+        request = ViewSupport.setup_request({}, {
+            'username': 'DerAdmin',
+            'url': 'www.test/#/'
+        })
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))'''
+        #invalid
+        #invalid username
+        request = ViewSupport.setup_request({}, {
+            'username': 'invalid',
+            'url': 'www.test/#/'
+        })
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['username', 'url'])
+
+    def test_change(self):
+        #TODO
+        self.assertTrue(True)
