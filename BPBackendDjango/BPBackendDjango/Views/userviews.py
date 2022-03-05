@@ -48,6 +48,8 @@ def check_password(username, passwd):
         return "invalid"
 
 def set_user_language(username, language):
+    if LANGUAGE_LENGTH < len(language):
+        return False
     if User.objects.filter(username=username).exists():
         user = User.objects.get(username=username)
     elif Trainer.objects.filter(username=username).exists():
@@ -244,6 +246,37 @@ def get_users_data(users):
         })
     return data
 
+#check length of input
+def check_input_length(input, length):
+    return len(input)<length
+
+#return data for length
+def length_wrong_response(argument):
+    data = {
+        'success': False,
+        'description': str(argument) + ' is too long',
+        'data': {}
+    }
+    return Response(data)
+
+USERNAME_LENGTH = 50
+FIRST_NAME_LENGTH = 50
+LAST_NAME_LENGTH = 50
+EMAIL_LENGTH = 254
+STREET_LENGTH = 128
+POSTAL_CODE_LENGTH = 12
+TELEPHONE_LENGTH = 50
+CITY_LENGTH = 128
+COUNTRY_LENGTH = 64
+LANGUAGE_LENGTH = 50
+ACADEMIA_LENGTH = 50
+ADDRESS_ADD_LENGTH = 128
+H_NR_LENGTH = 12
+MOTIVATION_LENGTH = 1000
+MIN_USERNAME_LENGTH = 3
+ALLOWED = "1234567890qwertzuiopasdfghjklyxcvbnmQWERTZUIOPASDFGHJKLYXCVBNM _-"
+
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
@@ -263,6 +296,15 @@ class RegisterView(APIView):
             data = {
                 'success': False,
                 'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        #check if username is allowed
+        if (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
+            data = {
+                'success': False,
+                'description': 'Invalid username',
                 'data': {}
                 }
             return Response(data)
@@ -357,6 +399,14 @@ class CreateUserView(APIView):
                 'data': {}
             }
             return Response(data)
+
+        #check if arguments are fine
+        if not check_input_length(req_data['first_name'], FIRST_NAME_LENGTH):
+            return length_wrong_response('first name')
+        if not check_input_length(req_data['last_name'], LAST_NAME_LENGTH):
+            return length_wrong_response('last name')
+        if not check_input_length(req_data['email_address'], EMAIL_LENGTH):
+            return length_wrong_response('email address')
 
         info = token["info"]
         
@@ -1079,6 +1129,24 @@ class ChangeUsernameView(APIView):
                 }
             return Response(data)
 
+        #check if length is fine
+        if not check_input_length(req_data['username'], USERNAME_LENGTH) or (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
+            data = {
+                    'success': False,
+                    'description': 'username invalid',
+                    'data': {}
+                }
+            return Response(data)
+
+        #check if first symbol is space
+        if str(req_data['username']).startswith(' '):
+            data = {
+                'success': False,
+                'description': 'Invalid username',
+                'data': {}
+                }
+            return Response(data)
+
         info = token['info']
 
         #get correct user
@@ -1349,6 +1417,21 @@ class SetTrainerLocationView(APIView):
                     'data': {}
                 }
             return Response(data)
+
+        #check length
+        if not check_input_length(req_data['street'], STREET_LENGTH):
+            return length_wrong_response('Name of street')
+        if not check_input_length(req_data['postal_code'], POSTAL_CODE_LENGTH):
+            return length_wrong_response('postal code')
+        if not check_input_length(req_data['country'], COUNTRY_LENGTH):
+            return length_wrong_response('Name of country')
+        if not check_input_length(req_data['city'], CITY_LENGTH):
+            return length_wrong_response('Name of city')
+        if not check_input_length(req_data['house_nr'], H_NR_LENGTH):
+            return length_wrong_response('house number')
+        if not check_input_length(req_data['address_add'], ADDRESS_ADD_LENGTH):
+            return length_wrong_response('Address addition')
+        
         info = token['info']
 
         #check if requested by trainer
@@ -1399,6 +1482,11 @@ class ChangeTrainerTelephoneView(APIView):
                     'data': {}
                 }
             return Response(data)
+
+        #check length
+        if not check_input_length(req_data['telephone'], TELEPHONE_LENGTH):
+            return length_wrong_response('telephone numer')
+
         info = token['info']
 
         #check if requested by trainer
@@ -1444,6 +1532,11 @@ class ChangeTrainerAcademiaView(APIView):
                     'data': {}
                 }
             return Response(data)
+
+        #check length
+        if not check_input_length(req_data['academia'], ACADEMIA_LENGTH):
+            return length_wrong_response('academia')
+
         info = token['info']
 
         #check if requested by trainer
@@ -1489,6 +1582,10 @@ class ChangeMotovationView(APIView):
                     'data': {}
                 }
             return Response(data)
+
+        #check length
+        if not check_input_length(req_data['motivation'], MOTIVATION_LENGTH):
+            return length_wrong_response('Motivation')
 
         info = token['info']
 
