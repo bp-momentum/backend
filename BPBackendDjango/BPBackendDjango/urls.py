@@ -53,6 +53,7 @@ urlpatterns = [
     path('api/changeacademia', ChangeTrainerAcademiaView.as_view(), name='setTrainerAcademia'),
     path('api/searchuser', SearchUserView.as_view(), name='searchUser'),
     path('api/getlistofusers', GetListOfUsers.as_view(), name='getListOfUsers'),
+    path('api/getstreak', GetStreakView.as_view(), name='getStreak'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),

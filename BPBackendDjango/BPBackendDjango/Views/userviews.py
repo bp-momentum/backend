@@ -1585,4 +1585,47 @@ class GetListOfUsers(APIView):
             }
         return Response(data)
 
- 
+
+class GetStreakView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #only users can get their own achievements
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+
+        data = {
+            'success': True,
+            'description': 'returning streak',
+            'data': {
+                'streak': user.streak
+            }
+        }
+        return Response(data)
