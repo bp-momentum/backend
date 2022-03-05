@@ -40,8 +40,8 @@ def upgrade_level(user, achievement, level):
     #update level
     uaa = UserAchievedAchievement.objects.get(achievement=achievement.id,user=user.id)
     #only update if new level is higher
-    if level < user.level:
-        return True, 'user already achieved higher level'
+    if level <= user.level:
+        return True, 'user already achieved (higher) level'
     uaa.level = level
     uaa.save()
     return True, 'level upgraded'
@@ -494,7 +494,7 @@ class ReloadFriendAchievementView(APIView):
         achievement = Achievement.objects.get(name='havingFriends')
 
         #already achieved
-        if UserAchievedAchievement.objects.filter(achievement=achievement).exists():
+        if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
             data = {
                 'success': True,
                 'description': 'Not achieved',
@@ -534,5 +534,234 @@ class ReloadFriendAchievementView(APIView):
                 'success': True,
                 'description': 'Not achieved',
                 'data': {}
+            }
+        return Response(data)
+
+
+class ReloadAfterExerciseView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #only users can get their own achievements
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+        achieved = []
+        #do excersises
+        if Achievement.objects.filter(name='doneExercises').exists():
+            achievement = Achievement.objects.get(name='doneExercises')
+            #get number of done exercises
+            nr_of_exs = len(DoneExercises.objects.filter(user=user.id))
+            #already achieved
+            if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user, level=3).exists():
+            #check which level is reached
+                if nr_of_exs >= 100:
+                    res = upgrade_level(user, achievement, 3)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    if res[1] == 'level upgraded':
+                        achieved.append({
+                        'name': achievement.name,
+                        'description': get_correct_description(user.username, achievement.description),
+                        'level': 3,
+                        'progress': 'done',
+                        'hidden': achievement.hidden,
+                        'icon': achievement.icon
+                    }) 
+                elif nr_of_exs >= 50:
+                    res = upgrade_level(user, achievement, 2)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    if res[1] == 'level upgraded':
+                        achieved.append({
+                        'name': achievement.name,
+                        'description': get_correct_description(user.username, achievement.description),
+                        'level': 2,
+                        'progress': str(nr_of_exs)+'/100',
+                        'hidden': achievement.hidden,
+                        'icon': achievement.icon
+                    }) 
+                elif nr_of_exs >= 10:
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    if res[1] == 'level upgraded':
+                        achieved.append({
+                        'name': achievement.name,
+                        'description': get_correct_description(user.username, achievement.description),
+                        'level': 1,
+                        'progress': str(nr_of_exs)+'/50',
+                        'hidden': achievement.hidden,
+                        'icon': achievement.icon
+                    }) 
+        #perfectExercise
+        if Achievement.objects.filter(name='perfectExercise').exists():
+            achievement = Achievement.objects.get(name='perfectExercise')
+            #check if achievement already achieved
+            if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
+                found = False
+                #get all exercise
+                all = DoneExercises.objects.filter(user=user)
+                #search for exercise with MAX_POINTS
+                for a in all:
+                    if a.points == MAX_POINTS:
+                        found = True
+                        break
+                #set achievement
+                if found:
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    if res[1] == 'level upgraded':
+                        achieved.append({
+                            'name': achievement.name,
+                            'description': get_correct_description(user.username, achievement.description),
+                            'level': 1,
+                            'progress': 'done',
+                            'hidden': achievement.hidden,
+                            'icon': achievement.icon
+                        })
+        #night owl
+        if Achievement.objects.filter(name='nightOwl').exists():
+            achievement = Achievement.objects.get(name='nightOwl')
+            #check if achievement already achieved
+            if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
+                found = False
+                #get all done exercises
+                all = DoneExercises.objects.filter(user=user)
+                #check which exercises where done in the night
+                for a in all:
+                    if ((a.date % 86400) > NIGHT_START) and ((a.date % 84600) < NIGHT_END):
+                        found = True
+                        break
+                #set achievement
+                if found:
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    if res[1] == 'level upgraded':
+                        achieved.append({
+                            'name': achievement.name,
+                            'description': get_correct_description(user.username, achievement.description),
+                            'level': 1,
+                            'progress': 'done',
+                            'hidden': achievement.hidden,
+                            'icon': achievement.icon
+                        })
+        #earlyBird
+        if Achievement.objects.filter(name='earlyBird').exists():
+            achievement = Achievement.objects.get(name='earlyBird')
+            #check if achievement already achieved
+            if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
+                found = False
+                #get all exercises
+                all = DoneExercises.objects.filter(user=user)
+                #check which ones where done erly in the morning
+                for a in all:
+                    if ((a.date % 86400) > NIGHT_END) and ((a.date % 84600) < EARLY_END):
+                        found = True
+                        break
+                #set achievement
+                if found:
+                    res = achieve_achievement(user, achievement)
+                    if not res[0]:
+                        data = {
+                            'success': False,
+                            'description': 'assigning achievement failed',
+                            'data': {
+                                'error': res[1],
+                                'achievement': achievement.name
+                                }
+                            }
+                        return Response(data)
+                    if res[1] == 'level upgraded':
+                        achieved.append({
+                            'name': achievement.name,
+                            'description': get_correct_description(user.username, achievement.description),
+                            'level': 1,
+                            'progress': 'done',
+                            'hidden': achievement.hidden,
+                            'icon': achievement.icon
+                        })
+        #check if new achieved
+        if len(achieved) == 0:
+            data = {
+                'success': True,
+                'description': 'no new achieved',
+                'data': {}
+            }
+        else:
+            data = {
+                'success': True,
+                'description': 'new achieved',
+                'data': {
+                    'achievements': achieved
+                }
             }
         return Response(data)
