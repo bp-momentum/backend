@@ -1560,7 +1560,7 @@ class ChangeTrainerAcademiaView(APIView):
         return Response(data)
 
 
-class ChangeMotovationView(APIView):
+class ChangeMotivationView(APIView):
 
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
