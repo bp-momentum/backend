@@ -218,10 +218,6 @@ def get_profile_data(user):
 
 #just this method has to be changed to get more contact information for trainers
 def get_trainer_contact(trainer, as_user):
-    if trainer.academia == '':
-        academia = ''
-    else:
-        academia = trainer.academia + ' '
     loc = trainer.location
     # check if trainer has location
     if loc is None:
@@ -232,15 +228,15 @@ def get_trainer_contact(trainer, as_user):
 
     if as_user:
         return {
-            'name': str(academia + trainer.first_name + ' ' + trainer.last_name),
+            'name': str(trainer.academia + ' ' + trainer.first_name + ' ' + trainer.last_name),
             'address': str(location),
             'telephone': trainer.telephone,
             'email': trainer.email_address
         }
     else:
         return {
-            'name': str(academia + trainer.first_name + ' ' + trainer.last_name),
-            'academia': academia,
+            'name': str(trainer.academia + ' ' + trainer.first_name + ' ' + trainer.last_name),
+            'academia': trainer.academia,
             'street': loc.street if loc is not None else "",
             'city': loc.city if loc is not None else "",
             'country': loc.country if loc is not None else "",
