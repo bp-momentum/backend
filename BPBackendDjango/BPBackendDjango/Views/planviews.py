@@ -2,6 +2,8 @@ from os import name
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from .userviews import check_input_length, length_wrong_response
+
 from ..models import *
 from ..serializers import *
 from ..Helperclasses.jwttoken import JwToken
@@ -72,6 +74,8 @@ def getListOfExercises(id):
         })
     return exs
 
+PLAN_LENGTH = 50
+
 
 class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
@@ -94,6 +98,9 @@ class CreatePlanView(APIView):
                 'data': {}
                 }
             return Response(data)
+
+        if not check_input_length(req_data['name'], PLAN_LENGTH):
+            return length_wrong_response('Plan name')
 
         #check if user is allowed to request
         if not token["info"]["account_type"] == "trainer":
@@ -226,7 +233,7 @@ class CreatePlanView(APIView):
 class AddPlanToUserView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
-        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['user', 'plan'], request.data)
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['user'], request.data)
         if not check.get('valid'):
             data = {
                 'success': False,
@@ -255,7 +262,7 @@ class AddPlanToUserView(APIView):
                 }
             return Response(data)
 
-        res = add_plan_to_user(username=req_data['user'], plan=req_data['plan'])
+        res = add_plan_to_user(username=req_data['user'], plan=req_data.get('plan'))
 
         #checks whether assigning was successful
         if res == "user_invalid":
@@ -415,7 +422,7 @@ class GetPlanOfUser(APIView):
             #check if user has plan assigned
             if user.plan == None:
                 data = {
-                    'success': False,
+                    'success': True,
                     'description': 'user has no plan assigned',
                     'data': {}
                 }
