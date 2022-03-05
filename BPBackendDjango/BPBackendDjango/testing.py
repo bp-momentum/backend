@@ -5,7 +5,7 @@ from .Views.exerciseviews import GetDoneExercisesOfMonthView, get_done_exercises
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
 from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, SetPasswordResetEmailView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
 from .Views.userviews import ChangeAvatarView, ChangeMotovationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
@@ -419,6 +419,9 @@ class TestResetPassword(TestCase):
         user = User.objects.create(first_name="Jannis", last_name="Bauer", username="derNutzer", trainer=trainer, email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
         self.user_id = user.id
         self.admin_id = admin.id
+        self.token1 = JwToken.create_reset_password_token('DerAdmin')
+        self.token2 = JwToken.create_reset_password_token('DerTrainer')
+        self.token3 = JwToken.create_reset_password_token('derNutzer')
 
     def test_send(self):
         #valid
@@ -429,7 +432,8 @@ class TestResetPassword(TestCase):
         })
         response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
         self.assertTrue(response.data.get('success'))
-        '''not implemented yet#trainer
+        '''not implemented yet
+        #trainer
         request = ViewSupport.setup_request({}, {
             'username': 'DerTrainer',
             'url': 'www.test/#/'
@@ -459,5 +463,46 @@ class TestResetPassword(TestCase):
         self.assertEquals(response.data.get('data').get('data'), ['username', 'url'])
 
     def test_change(self):
-        #TODO
-        self.assertTrue(True)
+        #valid
+        #user
+        request = ViewSupport.setup_request({}, {
+            'reset_token': self.token3,
+            'new_password': 'newFancy'
+        })
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        user = User.objects.get(id=self.user_id)
+        self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))
+        '''not implemented yet
+        #trainer
+        request = ViewSupport.setup_request({}, {
+            'reset_token': self.token2,
+            'new_password': 'newFancy'
+        })
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        user = Trainer.objects.get(id=self.trainer_id)
+        self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))
+        #admin
+        request = ViewSupport.setup_request({}, {
+            'reset_token': self.token1,
+            'new_password': 'newFancy'
+        })
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        user = Admin.objects.get(id=self.admin_id)
+        self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))'''
+        #invalid
+        #invalid token
+        request = ViewSupport.setup_request({}, {
+            'reset_token': 'invalid',
+            'new_password': 'newFancy'
+        })
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['reset_token', 'new_password'])
