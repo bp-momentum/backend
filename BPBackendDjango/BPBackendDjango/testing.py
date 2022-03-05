@@ -405,21 +405,16 @@ class ProfileTestCase(TestCase):
 
 class TestResetPassword(TestCase):
 
-    token1 = None
     token2 = None
     token3 = None
     user_id = 0
     trainer_id = 0
-    admin_id = 0
 
     def setUp(self) -> None:
-        admin = Admin.objects.create(first_name="Jannis", last_name="Bauer", username="DerAdmin", email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
         trainer = Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerTrainer", email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
         self.trainer_id = trainer.id
         user = User.objects.create(first_name="Jannis", last_name="Bauer", username="derNutzer", trainer=trainer, email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
         self.user_id = user.id
-        self.admin_id = admin.id
-        self.token1 = JwToken.create_reset_password_token('DerAdmin')
         self.token2 = JwToken.create_reset_password_token('DerTrainer')
         self.token3 = JwToken.create_reset_password_token('derNutzer')
 
@@ -436,13 +431,6 @@ class TestResetPassword(TestCase):
         #trainer
         request = ViewSupport.setup_request({}, {
             'username': 'DerTrainer',
-            'url': 'www.test/#/'
-        })
-        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
-        self.assertTrue(response.data.get('success'))
-        #admin
-        request = ViewSupport.setup_request({}, {
-            'username': 'DerAdmin',
             'url': 'www.test/#/'
         })
         response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
@@ -482,15 +470,6 @@ class TestResetPassword(TestCase):
         response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
         self.assertTrue(response.data.get('success'))
         user = Trainer.objects.get(id=self.trainer_id)
-        self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))
-        #admin
-        request = ViewSupport.setup_request({}, {
-            'reset_token': self.token1,
-            'new_password': 'newFancy'
-        })
-        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
-        self.assertTrue(response.data.get('success'))
-        user = Admin.objects.get(id=self.admin_id)
         self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))'''
         #invalid
         #invalid token
