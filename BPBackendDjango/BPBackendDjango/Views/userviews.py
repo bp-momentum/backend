@@ -217,24 +217,40 @@ def get_profile_data(user):
     }
 
 #just this method has to be changed to get more contact information for trainers
-def get_trainer_contact(trainer):
-    loc = trainer.location
-    #check if trainer has location
-    if loc == None:
-        location = None
-    else:
-        #cocatinate location
-        location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
+def get_trainer_contact(trainer, as_user):
     if trainer.academia == '':
         academia = ''
     else:
         academia = trainer.academia + ' '
-    return {
-        'name': str(academia + trainer.first_name + ' ' + trainer.last_name),
-        'address': str(location),
-        'telephone': trainer.telephone,
-        'email': trainer.email_address
-    }
+    loc = trainer.location
+    # check if trainer has location
+    if loc is None:
+        location = None
+    else:
+        # concatenate location
+        location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
+
+    if as_user:
+        return {
+            'name': str(academia + trainer.first_name + ' ' + trainer.last_name),
+            'address': str(location),
+            'telephone': trainer.telephone,
+            'email': trainer.email_address
+        }
+    else:
+        return {
+            'name': str(academia + trainer.first_name + ' ' + trainer.last_name),
+            'academia': academia,
+            'street': loc.street if loc is not None else "",
+            'city': loc.city if loc is not None else "",
+            'country': loc.country if loc is not None else "",
+            'address_addition': loc.address_addition if loc is not None else "",
+            'postal_code': loc.postal_code if loc is not None else "",
+            'house_nr': loc.house_nr if loc is not None else "",
+            'telephone': trainer.telephone,
+            'email': trainer.email_address
+        }
+
 
 #only method needs to be changed to get different information about users
 def get_users_data(users):
@@ -1390,7 +1406,7 @@ class GetTrainerContactView(APIView):
         data = {
             'success': True,
             'description': description,
-            'data': get_trainer_contact(trainer)
+            'data': get_trainer_contact(trainer, info['account_type'] == 'user')
         }
         return Response(data)
 
