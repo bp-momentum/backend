@@ -2,6 +2,8 @@ from os import name
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from .userviews import check_input_length, length_wrong_response
+
 from ..models import *
 from ..serializers import *
 from ..Helperclasses.jwttoken import JwToken
@@ -72,6 +74,8 @@ def getListOfExercises(id):
         })
     return exs
 
+PLAN_LENGTH = 50
+
 
 class CreatePlanView(APIView):
     def post(self, request, *args, **kwargs):
@@ -94,6 +98,9 @@ class CreatePlanView(APIView):
                 'data': {}
                 }
             return Response(data)
+
+        if not check_input_length(req_data['name'], PLAN_LENGTH):
+            return length_wrong_response('Plan name')
 
         #check if user is allowed to request
         if not token["info"]["account_type"] == "trainer":
