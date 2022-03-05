@@ -1,3 +1,4 @@
+from calendar import weekday
 import email
 import locale
 from re import A
@@ -143,6 +144,7 @@ def get_invited_data(open_tokens):
 
 #set last login
 def last_login(username):
+    streak()
     now = datetime.datetime.now()
     year = now.year
     month = now.month
@@ -159,23 +161,38 @@ def last_login(username):
     username.last_login = today
     username.save(force_update=True)
 
-#check streak
-def streak(user:User)->None:
-    if user.plan == None:
+#check streak, not updated if today everything is done
+def streak(user:User):
+    today = datetime.datetime.today()
+    #if user never logged in, streak=0
+    if user.last_login is None:
+        user.streak = 0
+        user.save(force_update=True)
+    #if user already logged in today return
+    if user.last_login == get_string_of_date(today.day, today.month, today.year):
         return
-    #check if no exercises have to be done
-    now = datetime.datetime.now()
-    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-    weekday = now.strftime('%A').lower()
-    exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
-    if not exips.exists():
-        return
-    for exip in exips:
-        if not DoneExercises.objects.filter(exercise=exip, user=user).exists():
+    count = 0
+    #until the last login check for every day if every exercise has been done
+    while True:
+        count += 1
+        day_before = today - datetime.timedelta(days=count)
+        weekday = day_before.strftime('%A')
+        exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+        #if there had not to be done any exercises, check if that's last login
+        if exips.exists():
+            for exip in exips:
+                #calculate period in which exercise had to be done
+                if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - (count * 86400) - time.time() % 86400, date__lt=time.time() - ((count-1) * 86400) - time.time() % 86400 ).exists():
+                    #if in this period no exercise has been done
+                    user.streak = 0
+                    user.save(force_update=True)
+                    return
+                #if all exercises had been done increment streak
+                user.streak += 1
+                user.save(force_update=True)
+        #check if that's last login, else check next day
+        if user.last_login == get_string_of_date(day_before.day, day_before.month, day_before.year):
             return
-    user.streak += 1
-    user.save(force_update=True)
-    return
 
 def get_lastday_of_month(m, y):
     if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
