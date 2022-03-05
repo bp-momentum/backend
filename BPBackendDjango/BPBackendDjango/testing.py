@@ -585,15 +585,15 @@ class ProfileTestCase(TestCase):
         #invalid
         #trainer not able to use
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
-        response = ChangeMotovationView.post(ChangeMotovationView, request)
+        response = ChangeMotivationView.post(ChangeMotivationView, request)
         self.assertFalse(response.data.get('success'))
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
-        response = ChangeMotovationView.post(ChangeMotovationView, request)
+        response = ChangeMotivationView.post(ChangeMotivationView, request)
         self.assertFalse(response.data.get('success'))
         #missing arguments
         request = ViewSupport.setup_request({}, {})
-        response = ChangeMotovationView.post(ChangeMotovationView, request)
+        response = ChangeMotivationView.post(ChangeMotivationView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), ['motivation'])
