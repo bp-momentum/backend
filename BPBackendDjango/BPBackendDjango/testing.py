@@ -12,7 +12,7 @@ from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, 
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
-from .Views.achievementviews import GetAchievementsView, ReloadFriendAchievementView
+from .Views.achievementviews import GetAchievementsView, ReloadAfterExerciseView, ReloadFriendAchievementView
 import hashlib
 import time
 import datetime
@@ -270,13 +270,43 @@ class AchievementTestCase(TestCase):
     def test_reload_exercise(self):
         #valid
         #no change
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data'), {})
+        #change
+        self.user1.streak = 7
+        self.user1.save(force_update=True)
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('achievements'), [{
+            'name': 'streak',
+            'description': "get a streak",
+            'level': 2,
+            'progress': '7/30',
+            'hidden': False,
+            'icon': "www.test.de/streak"
+        }])
         #invalid
         #as Trainer not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
         #as Admin not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
         #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
         #missing arguments
-        #TODO
-        self.assertFalse(False)
+        request = ViewSupport.setup_request({}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
     def test_streak(self):
         #valid
