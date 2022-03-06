@@ -53,12 +53,15 @@ def already_friends(user1, user2):
     return Friends.objects.filter(friend1=user1, friend2=user2).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
 
 #only method must be changed to get more/less data
-def get_profile(user):
+def get_profile(user:User):
+    lvl_info = calc_level(user.xp)
     return {
         'username': user.username,
-        'level': calc_level(user.xp)[0],
+        'level': lvl_info[0],
+        'level_progress': lvl_info[1],
         'avatar': user.avatar,
-        'motivation': user.motivation
+        'motivation': user.motivation,
+        'last_login': user.last_login
     }
 
 class GetMyFriendsView(APIView):

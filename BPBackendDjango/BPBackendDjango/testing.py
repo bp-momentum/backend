@@ -428,8 +428,10 @@ class TestProfileOfFriends(TestCase):
         self.assertEquals(response.data.get('data'), {
             'username': 'jbad',
             'level': calc_level(5000)[0],
+            'level_progress': calc_level(5000)[1],
             'avatar': 2,
-            'motivation': 'Gute Tage'
+            'motivation': 'Gute Tage',
+            'last_login': None
         })
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'DeadlyFarts'})
         response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
@@ -437,8 +439,10 @@ class TestProfileOfFriends(TestCase):
         self.assertEquals(response.data.get('data'), {
             'username': 'DeadlyFarts',
             'level': 0,
+            'level_progress': '20/300',
             'avatar': 5,
-            'motivation': 'Krise'
+            'motivation': 'Krise',
+            'last_login': None
         })
         #invalid
         #not friends
