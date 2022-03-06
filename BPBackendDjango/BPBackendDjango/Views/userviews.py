@@ -146,7 +146,7 @@ def get_invited_data(open_tokens):
 
 #set last login
 def last_login(username):
-    streak()
+    check_keep_streak()
     now = datetime.datetime.now()
     year = now.year
     month = now.month
@@ -164,7 +164,7 @@ def last_login(username):
     username.save(force_update=True)
 
 #check streak, not updated if today everything is done
-def streak(user:User):
+def check_keep_streak(user:User):
     today = datetime.datetime.today()
     #if user never logged in, streak=0
     if user.last_login is None:
@@ -189,9 +189,8 @@ def streak(user:User):
                     user.streak = 0
                     user.save(force_update=True)
                     return
-                #if all exercises had been done increment streak
-                user.streak += 1
-                user.save(force_update=True)
+                #if all exercises had been done return, because after every exercise increasing streak is checked
+                return
         #check if that's last login, else check next day
         if user.last_login == get_string_of_date(day_before.day, day_before.month, day_before.year):
             return

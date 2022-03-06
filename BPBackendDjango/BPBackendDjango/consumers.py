@@ -7,11 +7,27 @@ import threading
 from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
+import datetime
 
 from .models import DoneExercises, User, ExerciseInPlan, Leaderboard
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
+def check_if_last_exercise(user:User):
+    today = datetime.datetime.now()
+    weekday = today.strftime('%A')
+    exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+    #if there had not to be done any exercises, check if that's last login
+    if exips.exists():
+        for exip in exips:
+            #calculate period in which exercise had to be done
+            if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - time.time() % 86400).exists():
+                #if in this period no exercise has been done
+                return False
+            #if all exercises had been done return, because after every exercise increasing streak is checked
+            return True
+    #should not happen, if no exercises -> not last
+    return False
 
 class SetConsumer(WebsocketConsumer):
     def __init__(self):
@@ -344,6 +360,11 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.cleanliness = self.cleanliness
                 self.done_exercise_entry.completed = self.completed
                 self.done_exercise_entry.save(force_update=True)
+
+            if check_if_last_exercise(self.user):
+                user:User = User.objects.get(id=self.user.id)
+                user.streak += 1
+                user.save(force_update=True)
 
 
 
