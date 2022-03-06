@@ -5,7 +5,7 @@ from .Views.exerciseviews import GetDoneExercisesOfMonthView, get_done_exercises
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
 from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetStreakView, GetUsersOfTrainerView, GetTrainersView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
 from .Views.userviews import ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
@@ -277,6 +277,7 @@ class AchievementTestCase(TestCase):
         #change
         self.user1.streak = 7
         self.user1.save(force_update=True)
+        self.user1:User = User.objects.get(username=self.user1.username)
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
         self.assertTrue(response.data.get('success'))
@@ -310,13 +311,29 @@ class AchievementTestCase(TestCase):
 
     def test_streak(self):
         #valid
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('streak'), self.user1.streak)
         #invalid
         #as Trainer not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertFalse(response.data.get('success'))
         #as Admin not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertFalse(response.data.get('success'))
         #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertFalse(response.data.get('success'))
         #missing arguments
-        #TODO
-        self.assertFalse(False)
+        request = ViewSupport.setup_request({}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
 
 
 class LevelTestCase(TestCase):
