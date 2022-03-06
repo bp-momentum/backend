@@ -521,12 +521,14 @@ class ReloadFriendAchievementView(APIView):
                 'success': True,
                 'description': 'Achieved',
                 'data': {
-                    'name': achievement.name,
-                    'description': get_correct_description(user.username, achievement.description),
-                    'level': 1,
-                    'progress': 'done',
-                    'hidden': achievement.hidden,
-                    'icon': achievement.icon
+                    'achievements': {
+                        'name': achievement.name,
+                        'description': get_correct_description(user.username, achievement.description),
+                        'level': 1,
+                        'progress': 'done',
+                        'hidden': achievement.hidden,
+                        'icon': achievement.icon
+                    }
                 }
             }
         else:
