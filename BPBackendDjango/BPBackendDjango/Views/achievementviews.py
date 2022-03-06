@@ -753,7 +753,7 @@ class ReloadAfterExerciseView(APIView):
                         })
         #streak
         if Achievement.objects.filter(name='streak').exists():
-            achievement = Achievement.objects.get(name='earlyBird')
+            achievement = Achievement.objects.get(name='streak')
             #check if achievement already achieved
             if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user, level=4).exists():
                 #get users streak
