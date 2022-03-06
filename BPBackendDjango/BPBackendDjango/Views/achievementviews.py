@@ -40,7 +40,7 @@ def upgrade_level(user, achievement, level):
     #update level
     uaa = UserAchievedAchievement.objects.get(achievement=achievement.id,user=user.id)
     #only update if new level is higher
-    if level <= user.level:
+    if level <= uaa.level:
         return True, 'user already achieved (higher) level'
     uaa.level = level
     uaa.save()
