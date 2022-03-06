@@ -278,11 +278,6 @@ class AchievementTestCase(TestCase):
 
     def test_reload_exercise(self):
         #valid
-        #no change
-        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
-        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
-        self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data'), {})
         #change
         self.user1.streak = 7
         self.user1.save(force_update=True)
@@ -298,6 +293,11 @@ class AchievementTestCase(TestCase):
             'hidden': False,
             'icon': "www.test.de/streak"
         }])
+        #no change
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data'), {})
         #invalid
         #as Trainer not possible
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
