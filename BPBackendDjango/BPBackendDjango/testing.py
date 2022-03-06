@@ -12,7 +12,7 @@ from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, 
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
-from .Views.achievementviews import GetAchievementsView
+from .Views.achievementviews import GetAchievementsView, ReloadFriendAchievementView
 import hashlib
 import time
 import datetime
@@ -232,7 +232,7 @@ class AchievementTestCase(TestCase):
         #valid
         #changed
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
-        response = GetAchievementsView.get(GetAchievementsView, request)
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('achievements'), {
             'name': 'havingFriends',
@@ -244,17 +244,17 @@ class AchievementTestCase(TestCase):
         })
         #nothing changed
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
-        response = GetAchievementsView.get(GetAchievementsView, request)
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data'), {})
         #invalid
         #as Trainer not possible
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
-        response = GetAchievementsView.get(GetAchievementsView, request)
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
         self.assertFalse(response.data.get('success'))
         #as Admin not possible
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
-        response = GetAchievementsView.get(GetAchievementsView, request)
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
         self.assertFalse(response.data.get('success'))
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
@@ -262,13 +262,14 @@ class AchievementTestCase(TestCase):
         self.assertFalse(response.data.get('success'))
         #missing arguments
         request = ViewSupport.setup_request({}, {})
-        response = GetAchievementsView.get(GetAchievementsView, request)
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
 
     def test_reload_exercise(self):
         #valid
+        #no change
         #invalid
         #as Trainer not possible
         #as Admin not possible
