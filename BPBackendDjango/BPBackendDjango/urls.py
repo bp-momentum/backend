@@ -74,6 +74,8 @@ urlpatterns = [
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #achievements
     path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
+    path('api/loadfriendachievements', ReloadFriendAchievementView.as_view(), name='loadFriendAchievements'),
+    path('api/loadexerciseachievements', ReloadAfterExerciseView.as_view, name='loadExerciseAchievements'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
     path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),
