@@ -439,7 +439,7 @@ class TestProfileOfFriends(TestCase):
         self.assertEquals(response.data.get('data'), {
             'username': 'DeadlyFarts',
             'level': 0,
-            'level_progress': '20/300',
+            'level_progress': calc_level(20)[1],
             'avatar': 5,
             'motivation': 'Krise',
             'last_login': None
