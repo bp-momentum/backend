@@ -225,10 +225,17 @@ class AchievementTestCase(TestCase):
             'progress': '3/7',
             'hidden': False,
             'icon': "www.test.de/streak"
-        }])
+        }, {
+            'name': 'havingFriends', 
+            'description': 'add a friend', 
+            'level': 0, 
+            'progress': '0/1', 
+            'hidden': False, 
+            'icon': 'www.test.de/friends'}])
         self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 0)
 
     def test_reload_friends(self):
+        Friends.objects.create(friend1=self.user1, friend2=self.user2, accepted=True)
         #valid
         #changed
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
@@ -241,13 +248,7 @@ class AchievementTestCase(TestCase):
             'progress': 'done',
             'hidden': False,
             'icon': "www.test.de/friends"
-        }, {
-            'name': 'havingFriends', 
-            'description': 'add a friend', 
-            'level': 0, 
-            'progress': '0/1', 
-            'hidden': False, 'icon': 
-            'www.test.de/friends'})
+        })
         #nothing changed
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
@@ -272,9 +273,10 @@ class AchievementTestCase(TestCase):
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
+        #delete Friends again
+        Friends.objects.all().delete()
 
     def test_reload_exercise(self):
-        Friends.objects.create(friend1=self.user1, firend2=self.user2, accepted=True)
         #valid
         #no change
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
@@ -315,8 +317,6 @@ class AchievementTestCase(TestCase):
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
-        #delete Friends again
-        Friends.objects.all().delete()
 
     def test_streak(self):
         #valid
