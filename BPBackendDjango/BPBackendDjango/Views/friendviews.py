@@ -7,7 +7,7 @@ from .userviews import calc_level
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
-from ..models import Friends, UserAchievedAchievement
+from ..models import Achievement, Friends, UserAchievedAchievement
 from ..models import User
 from ..serializers import CreateFriends
 
@@ -69,16 +69,19 @@ def get_profile(user:User):
 def get_newest_achievements(user:User):
     new_achieved = []
     count = 0
-    uaas = UserAchievedAchievement.objects.filter(user=user, hidden=False).order_by('-date')
+    uaas = UserAchievedAchievement.objects.filter(user=user).order_by('-date')
     for uaa in uaas:
         if count >= 3:
             break
-        new_achieved.append({
-            	'name': uaa.achievement.name,
-                'level': uaa.level,
-                #'icon': uaa.achievement.icon #not implemented yet on this branch
-        })
-        count += 1
+        achievement:Achievement = uaa.achievement
+        #only not hidden achievements are shown
+        if not achievement.hidden:
+            new_achieved.append({
+                    'name': achievement.name,
+                    'level': uaa.level,
+                    #'icon': achievement.icon #not implemented yet on this branch
+            })
+            count += 1
     return new_achieved
 
 
