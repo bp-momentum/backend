@@ -203,13 +203,20 @@ class CreatePlanView(APIView):
                     }
             }
         else:
+            if not TrainingSchedule.objects.filter(id=int(req_data['id']), visable=True).exists():
+                data = {
+                    'success': False,
+                    'description': 'plan not accessable',
+                    'data': {}
+                }
+                return Response(data)
             users = User.objects.filter(plan=req_data['id'])
             for user in users:
                 add_plan_to_user(user.username, plan.id)
             old_plan = TrainingSchedule.objects.get(id=int(req_data['id']))
             #check if a doneExercise relates to this plan
             needed = False
-            for exip in ExerciseInPlan.objects.filter(plan=plan):
+            for exip in ExerciseInPlan.objects.filter(plan=old_plan):
                 if DoneExercises.objects.filter(exercise=exip).exists():
                     needed = True
                     break
@@ -526,7 +533,7 @@ class DeletePlanView(APIView):
 
         trainer = Trainer.objects.get(username=info['username'])
         #check if plan exists and belongs to trainer
-        if not TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).exists():
+        if not TrainingSchedule.objects.filter(id=int(req_data['id']), trainer=trainer.id, visable=True).exists():
             data = {
                 'success': False,
                 'description': 'plan does not exist or does not belong to this trainer',
@@ -536,7 +543,7 @@ class DeletePlanView(APIView):
 
         #delete plan/keep it, but unaccessable
         needed = False
-        ts = TrainingSchedule.objects.get(id=int(req_data['id']),trainer=trainer.id)
+        ts = TrainingSchedule.objects.get(id=int(req_data['id']), trainer=trainer.id)
         for exip in ExerciseInPlan.objects.filter(plan=ts):
             if DoneExercises.objects.filter(exercise=exip).exists():
                 needed = True
@@ -545,11 +552,11 @@ class DeletePlanView(APIView):
             for user in User.objects.filter(plan=ts):
                 user.plan = None
                 user.save(force_update=True)
-            ts = TrainingSchedule.objects.get(id=int(req_data['id']),trainer=trainer.id)
+            ts = TrainingSchedule.objects.get(id=int(req_data['id']), trainer=trainer.id)
             ts.visable = False
             ts.save(force_update=True)
         else:
-            TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).delete()
+            TrainingSchedule.objects.filter(id=int(req_data['id']), trainer=trainer.id).delete()
         data = {
                 'success': True,
                 'description': 'plan deleted',
