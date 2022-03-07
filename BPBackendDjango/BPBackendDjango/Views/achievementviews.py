@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import json
+import time
 
 from ..Helperclasses.jwttoken import JwToken
 from ..serializers import AchieveAchievement
@@ -17,7 +18,8 @@ def achieve_achievement(user, achievement):
     #set up data for new achievement
     data = {
         'achievement': achievement.id,
-        'user': user.id
+        'user': user.id,
+        'date': time.time()
     }
     #if already achieved do nothing
     if UserAchievedAchievement.objects.filter(achievement=achievement.id, user=user.id).exists():
@@ -37,12 +39,13 @@ def upgrade_level(user, achievement, level):
         if not res[0]:
             return res
     #update level
-    uaa = UserAchievedAchievement.objects.get(achievement=achievement.id,user=user.id)
+    uaa:UserAchievedAchievement = UserAchievedAchievement.objects.get(achievement=achievement.id,user=user.id)
     #only update if new level is higher
-    if level < user.level:
-        return True, 'user already achieved higher level'
+    if level <= uaa.level:
+        return True, 'user already achieved (higher) level'
     uaa.level = level
-    uaa.save()
+    uaa.date = time.time()
+    uaa.save(force_update=True)
     return True, 'level upgraded'
 
 def get_correct_description(username, description):

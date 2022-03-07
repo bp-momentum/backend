@@ -1,3 +1,4 @@
+from multiprocessing.managers import BaseManager
 from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from .userviews import calc_level
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
-from ..models import Friends
+from ..models import Friends, UserAchievedAchievement
 from ..models import User
 from ..serializers import CreateFriends
 
@@ -61,8 +62,25 @@ def get_profile(user:User):
         'level_progress': lvl_info[1],
         'avatar': user.avatar,
         'motivation': user.motivation,
-        'last_login': user.last_login
+        'last_login': user.last_login,
+        'last_achievements': get_newest_achievements(user)
     }
+
+def get_newest_achievements(user:User):
+    new_achieved = []
+    count = 0
+    uaas = UserAchievedAchievement.objects.filter(user=user, hidden=False).order_by('-date')
+    for uaa in uaas:
+        if count >= 3:
+            break
+        new_achieved.append({
+            	'name': uaa.achievement.name,
+                'level': uaa.level,
+                #'icon': uaa.achievement.icon #not implemented yet on this branch
+        })
+        count += 1
+    return new_achieved
+
 
 class GetMyFriendsView(APIView):
 
