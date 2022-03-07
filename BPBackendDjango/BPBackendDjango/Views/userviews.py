@@ -230,7 +230,7 @@ def get_trainer_contact(trainer, as_user):
         academia = ''
     else:
         academia += ' '
-    name = str(academia + ' ' + trainer.first_name + ' ' + trainer.last_name)
+    name = str(academia + trainer.first_name + ' ' + trainer.last_name)
     if as_user:
         return {
             'name': name,
