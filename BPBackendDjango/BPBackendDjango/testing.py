@@ -419,6 +419,8 @@ class TestProfileOfFriends(TestCase):
         self.token1 = JwToken.create_session_token(trainer.username, 'trainer')
         self.token2 = JwToken.create_session_token(user1.username, 'user')
         self.token3 = JwToken.create_session_token(user2.username, 'user')
+        achievement:Achievement = Achievement.objects.create(name='streak', description='{"en": "get a streak"}')
+        UserAchievedAchievement.objects.create(achievement=achievement, level=1, user=user1, date=time.time())
 
     def test(self):
         #valid
@@ -431,7 +433,11 @@ class TestProfileOfFriends(TestCase):
             'level_progress': calc_level(5000)[1],
             'avatar': 2,
             'motivation': 'Gute Tage',
-            'last_login': None
+            'last_login': None,
+            'last_achievements': [{
+                'name': 'streak',
+                'level': 1
+            }]
         })
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'DeadlyFarts'})
         response = GetProfileOfFriendView.post(GetProfileOfFriendView, request)
@@ -442,7 +448,8 @@ class TestProfileOfFriends(TestCase):
             'level_progress': calc_level(20)[1],
             'avatar': 5,
             'motivation': 'Krise',
-            'last_login': None
+            'last_login': None,
+            'last_achievements': []
         })
         #invalid
         #not friends
