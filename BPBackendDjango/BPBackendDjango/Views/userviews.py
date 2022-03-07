@@ -225,17 +225,22 @@ def get_trainer_contact(trainer, as_user):
     else:
         # concatenate location
         location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
-
+    academia = trainer.academia
+    if academia is None or len(academia) == 0:
+        academia = ''
+    else:
+        academia += ' '
+    name = str(academia + ' ' + trainer.first_name + ' ' + trainer.last_name)
     if as_user:
         return {
-            'name': str(trainer.academia + ' ' + trainer.first_name + ' ' + trainer.last_name),
+            'name': name,
             'address': str(location),
             'telephone': trainer.telephone,
             'email': trainer.email_address
         }
     else:
         return {
-            'name': str(trainer.academia + ' ' + trainer.first_name + ' ' + trainer.last_name),
+            'name': name,
             'academia': trainer.academia,
             'street': loc.street if loc is not None else "",
             'city': loc.city if loc is not None else "",
