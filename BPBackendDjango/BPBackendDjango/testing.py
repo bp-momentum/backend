@@ -420,7 +420,7 @@ class TestProfileOfFriends(TestCase):
         self.token2 = JwToken.create_session_token(user1.username, 'user')
         self.token3 = JwToken.create_session_token(user2.username, 'user')
         achievement:Achievement = Achievement.objects.create(name='streak', description='{"en": "get a streak"}')
-        UserAchievedAchievement.objects.create(achievement=achievement, level=1, user=user1, date=time.time())
+        UserAchievedAchievement.objects.create(achievement=achievement, level=1, user=user2, date=time.time())
 
     def test(self):
         #valid
