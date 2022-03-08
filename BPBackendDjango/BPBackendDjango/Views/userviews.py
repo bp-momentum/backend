@@ -165,6 +165,7 @@ def last_login(username):
 
 #check streak, not updated if today everything is done
 def check_keep_streak(user:User):
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
     today = datetime.datetime.today()
     #if user never logged in, streak=0
     if user.last_login is None:
@@ -178,7 +179,7 @@ def check_keep_streak(user:User):
     while True:
         count += 1
         day_before = today - datetime.timedelta(days=count)
-        weekday = day_before.strftime('%A')
+        weekday = day_before.strftime('%A').lower()
         exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
         #if there had not to be done any exercises, check if that's last login
         if exips.exists():
