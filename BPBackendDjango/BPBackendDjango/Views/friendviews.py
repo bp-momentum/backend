@@ -63,6 +63,7 @@ def get_profile(user:User):
         'avatar': user.avatar,
         'motivation': user.motivation,
         'last_login': user.last_login,
+        'streak': user.streak,
         'last_achievements': get_newest_achievements(user)
     }
 

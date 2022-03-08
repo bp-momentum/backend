@@ -434,6 +434,7 @@ class TestProfileOfFriends(TestCase):
             'avatar': 2,
             'motivation': 'Gute Tage',
             'last_login': None,
+            'streak': 0,
             'last_achievements': [{
                 'name': 'streak',
                 'level': 1
@@ -449,6 +450,7 @@ class TestProfileOfFriends(TestCase):
             'avatar': 5,
             'motivation': 'Krise',
             'last_login': None,
+            'streak': 0,
             'last_achievements': []
         })
         #invalid
