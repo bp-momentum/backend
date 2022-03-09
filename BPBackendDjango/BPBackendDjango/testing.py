@@ -1,3 +1,4 @@
+from pickle import EXT2
 from urllib import request
 from django.test import TestCase
 
@@ -12,7 +13,7 @@ from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, 
 from .Views.userviews import GetUserLevelView
 from .models import *
 from .Helperclasses.jwttoken import JwToken
-from .Views.achievementviews import GetAchievementsView
+from .Views.achievementviews import GetAchievementsView, GetMedals
 import hashlib
 import time
 import datetime
@@ -485,3 +486,78 @@ class TestResetPassword(TestCase):
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), [])
         self.assertEquals(response.data.get('data').get('data'), ['reset_token', 'new_password'])
+
+
+class TestMedals(TestCase):
+
+    user1_id = 0
+    user2_id = 2
+    trainer_id = 0
+    umixs = []
+    token1 = None
+    token2 = None
+    token3 = None
+
+    def setUp(self) -> None:
+        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        self.trainer_id = trainer.id
+        user1 = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
+        user2 = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
+        self.user1_id = user1.id
+        self.user2_id = user2.id
+        self.token1 = JwToken.create_session_token(trainer.username, 'trainer')
+        self.token2 = JwToken.create_session_token(user1.username, 'user')
+        self.token3 = JwToken.create_session_token(user2.username, 'user')
+        ex1 = Exercise.objects.create(title='Kniebeuge')
+        ex2 = Exercise.objects.create(title='Liegestütze')
+        umix1 = UserMedalInExercise.objects.create(user=user1, gold=2, silver=5, exercise=ex1)
+        umix2 = UserMedalInExercise.objects.create(user=user1, gold=4, bronze=3, exercise=ex2)
+        umix3 = UserMedalInExercise.objects.create(user=user2, gold=6, silver=1, exercise=ex1)
+        umix4 = UserMedalInExercise.objects.create(user=user2, gold=1, silver=2, bronze=4, exercise=ex2)
+        self.umixs = list(UserMedalInExercise.objects.all())
+
+    def test_get(self):
+        #valid
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetMedals.get(GetMedals, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('medals'), [{
+            'exercise': 'Kniebeuge',
+            'gold': 2,
+            'silver': 5,
+            'bronze': 0
+        },{
+            'exercise': 'Liegestütze',
+            'gold': 4,
+            'silver': 0,
+            'bronze': 3
+        }])
+        request = ViewSupport.setup_request({'Session-Token': self.token3},{})
+        response = GetMedals.get(GetMedals, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('medals'), [{
+            'exercise': 'Kniebeuge',
+            'gold': 6,
+            'silver': 1,
+            'bronze': 0
+        },{
+            'exercise': 'Liegestütze',
+            'gold': 1,
+            'silver': 2,
+            'bronze': 4
+        }])
+        #invalid
+        #trainer not allowed
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetMedals.get(GetMedals, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetMedals.get(GetMedals, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetMedals.get(GetMedals, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
