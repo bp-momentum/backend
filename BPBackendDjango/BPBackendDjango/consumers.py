@@ -9,7 +9,7 @@ import random
 import os
 import datetime
 
-from .models import DoneExercises, User, ExerciseInPlan, Leaderboard
+from .models import DoneExercises, User, ExerciseInPlan, Leaderboard, UserMedalInExercise
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
@@ -293,6 +293,19 @@ class SetConsumer(WebsocketConsumer):
             # save in Leaderboard
             self.points = 0 if self.executions_per_set == 0 else int(
                 (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
+
+            #add medal
+            if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
+                UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
+            umix = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
+            if self.points >= 90: #gold
+                umix.gold += 1
+            elif self.points >= 75: #silver
+                umix.silver += 1
+            elif self.points >= 50: #bronze
+                umix.bronze += 1
+            umix.save(force_update=True)
+
 
             p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
             leaderboard_entry = Leaderboard.objects.get(user=self.user.id)
