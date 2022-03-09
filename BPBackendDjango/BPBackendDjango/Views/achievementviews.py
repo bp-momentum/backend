@@ -427,3 +427,55 @@ class GetAchievementsView(APIView):
                 }
             }
         return Response(data)
+
+
+class GetMedals(APIView):
+
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+        #check if user
+        if not info['account_type'] == 'user':
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+                }
+            return Response(data)
+
+        user = User.objects.get(username=info['username'])
+        medals = UserMedalInExercise.objects.filter(user=user)
+        output = []
+        for mex in medals:
+            output.append({
+                'exercise': mex.exercise.title,
+                'gold': mex.gold,
+                'silver': mex.silver,
+                'bronze': mex.bronze
+            })
+        data = {
+            'success': True,
+            'description': 'returning medals',
+            'data': {
+                'medals': output
+            }
+        }
+        return Response(data)
