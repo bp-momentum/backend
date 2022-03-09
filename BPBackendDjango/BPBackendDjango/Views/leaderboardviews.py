@@ -10,9 +10,9 @@ from ..Helperclasses.handlers import ErrorHandler
 
 def build_entry(index, leaderboard, rank, is_trainer, username):
     exs_to_do = 0
-    user = leaderboard[index]
+    user = leaderboard[index].user
     if user.plan is not None:
-        plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[index].user.plan.id)
+        plan_data = ExerciseInPlan.objects.filter(plan=user.plan.id)
         for ex in plan_data:
             exs_to_do += ex.repeats_per_set * ex.sets
     execs_done = leaderboard[index].executions
