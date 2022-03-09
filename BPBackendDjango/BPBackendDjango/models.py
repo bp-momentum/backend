@@ -110,7 +110,10 @@ class UserAchievedAchievement(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     level = models.IntegerField(default=1)
-    #date = models.BigIntegerField(default=0) #not useful at the moment
+    date = models.BigIntegerField(default=0)
+
+    class Meta:
+        indexes = [models.Index(fields=["-date"])]
 
 class Leaderboard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
