@@ -131,5 +131,10 @@ class OpenToken(models.Model):
     creator = models.CharField(max_length=50)
 
 
-
+class UserMedalInExercise(models.Model):
+    user = models.ForeignKey(User, on_delete=CASCADE)
+    gold = models.IntegerField(default=0)
+    silver = models.IntegerField(default=0)
+    bronze = models.IntegerField(default=0)
+    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
 
