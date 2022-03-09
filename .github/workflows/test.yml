@@ -8,7 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: 3.8
-  SETTINGS_PATH: /home/github/bachelor-praktikum/api/store/settings.json
+  SETTINGS_PATH: /home/github/bachelor-praktikum/api/store/test-settings.json
   NEW_MIGRATIONS_PATH: ./BPBackendDjango/BPBackendDjango/migrations/
   OLD_MIGRATIONS_PATH: /home/github/bachelor-praktikum/api/test-migrations/
   SERVER_PATH: /home/github/bachelor-praktikum/api/test-server/
