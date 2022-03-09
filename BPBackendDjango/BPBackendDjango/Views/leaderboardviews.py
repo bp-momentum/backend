@@ -10,7 +10,8 @@ from ..Helperclasses.handlers import ErrorHandler
 
 def build_entry(index, leaderboard, rank, is_trainer, username):
     exs_to_do = 0
-    if leaderboard[index].user.plan is not None:
+    user = leaderboard[index]
+    if user.plan is not None:
         plan_data = ExerciseInPlan.objects.filter(plan=leaderboard[index].user.plan.id)
         for ex in plan_data:
             exs_to_do += ex.repeats_per_set * ex.sets
@@ -20,8 +21,9 @@ def build_entry(index, leaderboard, rank, is_trainer, username):
     speed = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[index].speed / execs_done
     intensity = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[index].intensity / execs_done
     cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[index].cleanliness / execs_done
+    show_real_name = is_trainer and username == user.trainer.username
 
-    return {"rank": rank, "username": leaderboard[index].user.username,
+    return {"rank": rank, "username": user.first_name + " " + user.last_name if show_real_name else user.username,
             "score": score,
             "speed": speed,
             "intensity": intensity,
