@@ -1,8 +1,6 @@
 import math
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
