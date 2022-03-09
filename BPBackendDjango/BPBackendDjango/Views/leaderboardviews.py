@@ -57,8 +57,8 @@ class ListLeaderboardView(APIView):
         count_of_entries = req_data['count']
         count_entries = len(leaderboard)
         user_index = 0
-        is_trainer = token["account_type"] == "trainer"
-        username = token["username"]
+        is_trainer = info["account_type"] == "trainer"
+        username = info["username"]
 
         if not info['account_type'] == "user":
             for i in range(0, count_of_entries):
