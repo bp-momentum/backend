@@ -1,3 +1,4 @@
+import collections
 from multiprocessing.connection import wait
 from pickle import TRUE
 from django.http import request
@@ -348,7 +349,7 @@ class AchievementTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('achievements'), [{
+        expected = [{
             'name': 'doneExercises',
             'description': "Do exercises top get/level this achievement",
             'level': 0,
@@ -376,7 +377,10 @@ class AchievementTestCase(TestCase):
             'progress': '0/1',
             'hidden': False,
             'icon': ""
-        }])
+        }]
+        actual = response.data.get('data').get('achievements')
+        self.assertEquals(len(actual), len(expected))
+        self.assertEquals(collections.Counter(expected), collections.Counter(actual))
         self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 2)
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
