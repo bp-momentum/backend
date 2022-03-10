@@ -106,7 +106,7 @@ class GetAchievementsView(APIView):
         if not Achievement.objects.filter(name='doneExercises').exists():
             Achievement.objects.create(name='doneExercises', description='{"en": "Do exercises top get/level this achievement", "de": "Mache Übungen um dieses Achievemnet zu bekommen beziehungsweise hoch zu leveln"}')
         if not Achievement.objects.filter(name='havingFriends').exists():
-            Achievement.objects.create(name='havingFriends', description='{"en": "Become friends with another user." "de": "Sei mit einem Spieler befreundet"}')
+            Achievement.objects.create(name='havingFriends', description='{"en": "Become friends with another user.", "de": "Sei mit einem Spieler befreundet"}')
         if not Achievement.objects.filter(name='streak').exists():
             Achievement.objects.create(name='streak', description='{"en": "Reach a streak", "de": "Erreiche eine Streak"}')
         if not Achievement.objects.filter(name='perfectExercise').exists():
@@ -500,7 +500,7 @@ class ReloadFriendAchievementView(APIView):
 
         #can not be achieved
         if not Achievement.objects.filter(name='havingFriends').exists():
-            Achievement.objects.create(name='havingFriends', description='{"en": "Become friends with another user." "de": "Sei mit einem Spieler befreundet"}')
+            Achievement.objects.create(name='havingFriends', description='{"en": "Become friends with another user.", "de": "Sei mit einem Spieler befreundet"}')
 
         achievement = Achievement.objects.get(name='havingFriends')
 
