@@ -224,26 +224,27 @@ class DoneExerciseView(APIView):
             return Response(data)
 
         info = token['info']
-        user = User.objects.get(username=info['username'])
         #check if is user/user exists
-        if user == None:
+        if not User.objects.filter(username=info['username']).exists():
             data = {
                 'success': False,
                 'description': 'Not a user',
                 'data': {}
             }
             return Response(data)
-        eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
+        user = User.objects.get(username=info['username'])
 
-        if eip == None:
+        #check if exercise in plan with given id exists
+        if not ExerciseInPlan.objects.filter(id=req_data['exercise_plan_id']).exists():
             data = {
                 'success': False,
                 'description': 'Exercise in plan id does not exists',
                 'data': {}
             }
             return Response(data)
+        eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
 
-        # check if its alrady done this week
+        # check if its already done this week
         done = DoneExercises.objects.filter(exercise=eip, user=user)
         for d in done:
             # calculate the timespan and if its already done done
@@ -360,7 +361,7 @@ class GetDoneExercisesView(APIView):
             return Response(data)
 
         #create data in form of get plan
-        data = self.GetDone(user)
+        data = self.GetDone(user=user)
         return Response(data)
 
     def post(self, request, *args, **kwargs):
@@ -394,7 +395,7 @@ class GetDoneExercisesView(APIView):
             return Response(data)
 
         user = User.objects.get(username=req_data['user'])
-        data = self.GetDone(user)
+        data = self.GetDone(user=user)
         return Response(data)
 
 
