@@ -309,7 +309,7 @@ class SetConsumer(WebsocketConsumer):
             leaderboard_entry.score = (leaderboard_entry.speed + leaderboard_entry.intensity + leaderboard_entry.cleanliness) / (3 * exs_to_do)
 
             leaderboard_entry.save(force_update=True)
-            add_xp(self.username, leaderboard_entry.score*((self.user.streak if self.user.streak < 10 else 10)+1))
+            add_xp(self.username, ((self.speed + self.intensity + self.cleanliness) / (3* self.executions_done))((self.user.streak if self.user.streak < 10 else 10)+1))
 
 
 
