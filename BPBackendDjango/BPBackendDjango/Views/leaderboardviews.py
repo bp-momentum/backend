@@ -14,8 +14,7 @@ def build_entry(index, leaderboard, rank, is_trainer, username):
         for ex in plan_data:
             exs_to_do += ex.repeats_per_set * ex.sets
     execs_done = leaderboard[index].executions
-    score = 0 if execs_done == 0 or exs_to_do == 0 else (leaderboard[index].speed + leaderboard[index].intensity +
-                                                         leaderboard[index].cleanliness) / (3 * exs_to_do)
+    score = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[index].score
     speed = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[index].speed / execs_done
     intensity = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[index].intensity / execs_done
     cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else leaderboard[index].cleanliness / execs_done
@@ -115,6 +114,7 @@ class ListLeaderboardView(APIView):
 
         else:
             for i in range(user_index - math.floor(count_of_entries / 2), user_index + math.ceil(count_of_entries / 2)):
+                rank += 1
                 entry = build_entry(index=i, leaderboard=leaderboard, rank=rank, is_trainer=is_trainer,
                                     username=username)
                 out.append(entry)
