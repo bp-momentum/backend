@@ -114,6 +114,7 @@ class ListLeaderboardView(APIView):
 
         else:
             for i in range(user_index - math.floor(count_of_entries / 2), user_index + math.ceil(count_of_entries / 2)):
+                rank += 1
                 entry = build_entry(index=i, leaderboard=leaderboard, rank=rank, is_trainer=is_trainer,
                                     username=username)
                 out.append(entry)
