@@ -171,6 +171,7 @@ def check_keep_streak(user:User):
     if user.last_login is None:
         user.streak = 0
         user.save(force_update=True)
+        return
     #if user already logged in today return
     if user.last_login == get_string_of_date(today.day, today.month, today.year):
         return
