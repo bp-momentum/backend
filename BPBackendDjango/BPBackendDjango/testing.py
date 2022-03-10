@@ -380,7 +380,10 @@ class AchievementTestCase(TestCase):
         }]
         actual = response.data.get('data').get('achievements')
         self.assertEquals(len(actual), len(expected))
-        self.assertEquals(collections.Counter(expected), collections.Counter(actual))
+        for i in actual:
+            self.assertTrue(expected.__contains__(i))
+        for i in expected:
+            self.assertTrue(actual.__contains__(i))
         self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 2)
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
