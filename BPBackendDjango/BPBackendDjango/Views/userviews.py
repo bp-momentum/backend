@@ -1760,7 +1760,7 @@ class GetStreakView(APIView):
             'data': {
                 'days': user.streak,
                 'flame_glow': user.streak > FULL_COMBO,
-                'flame_hight': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0
+                'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0
             }
         }
         return Response(data)
