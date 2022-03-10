@@ -28,6 +28,8 @@ MAX_LEVEL = 200
 MULT_PER_LVL = 1.25
 FIRST_LVL = 300
 
+FULL_COMBO = 10
+
 #creating random password
 from ..settings import EMAIL_HOST_USER, INTERN_SETTINGS
 
@@ -1750,13 +1752,15 @@ class GetStreakView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         data = {
             'success': True,
             'description': 'returning streak',
             'data': {
-                'streak': user.streak
+                'days': user.streak,
+                'flame_glow': user.streak > FULL_COMBO,
+                'flame_hight': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0
             }
         }
         return Response(data)
