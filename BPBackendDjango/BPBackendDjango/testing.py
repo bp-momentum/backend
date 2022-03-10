@@ -1479,11 +1479,11 @@ class TestLeaderboardView(TestCase):
         self.assertTrue(response.data.get('success'))
         leaderboard = []
         entry = Leaderboard.objects.get(score=100)
-        leaderboard.append({"rank": 1, "username": entry.user.username, "score": 100.0})
+        leaderboard.append({"rank": 1, "username": entry.user.username, "score": 100})
         entry = Leaderboard.objects.get(score=90)
-        leaderboard.append({"rank": 2, "username": entry.user.username, "score": 90.0})
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": 90})
         entry = Leaderboard.objects.get(score=80)
-        leaderboard.append({"rank": 3, "username": entry.user.username, "score": 80.0})
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": 80})
 
         get_response = []
         for ent in response.data.get('data').get('leaderboard'):
