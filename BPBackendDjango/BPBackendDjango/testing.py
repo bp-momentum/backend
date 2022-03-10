@@ -345,7 +345,7 @@ class AchievementTestCase(TestCase):
         self.achievement1:Achievement = Achievement.objects.create(name='streak', description='{"en": "get a streak", "de": "sammel eine Streak"}', icon="www.test.de/streak")
         self.achievement2:Achievement = Achievement.objects.create(name='havingFriends', description='{"en": "add a friend", "de": "habe einen Freund"}', icon="www.test.de/friends")
 
-    def test_get_achievements_empty(self):
+    def test_get_achievements(self):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertTrue(response.data.get('success'))
@@ -489,7 +489,9 @@ class AchievementTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetStreakView.get(GetStreakView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('streak'), self.user1.streak)
+        self.assertEquals(response.data.get('data').get('days'), self.user1.streak)
+        self.assertFalse(response.data.get('data').get('flame_glow'))
+        self.assertEquals(response.data.get('data').get('flame_height'), 0.7)
         #invalid
         #as Trainer not possible
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
