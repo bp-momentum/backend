@@ -146,7 +146,6 @@ def get_invited_data(open_tokens):
 
 #set last login
 def last_login(username):
-    check_keep_streak()
     now = datetime.datetime.now()
     year = now.year
     month = now.month
@@ -160,6 +159,7 @@ def last_login(username):
             username = Trainer.objects.get(username=username)
     else:
         username = User.objects.get(username=username)
+        check_keep_streak(username)
     username.last_login = today
     username.save(force_update=True)
 
