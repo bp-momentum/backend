@@ -365,7 +365,7 @@ class AchievementTestCase(TestCase):
             'icon': "www.test.de/friends"
         }, {
             'name': 'streak',
-            'description': "Reach a streak",
+            'description': "get a streak",
             'level': 1,
             'progress': '3/7',
             'hidden': False,
