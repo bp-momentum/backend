@@ -972,7 +972,7 @@ class TestUserViews(TestCase):
         response = CreateUserView.post(CreateUserView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['first_name', 'last_name', 'email_address'])
+        self.assertEquals(response.data.get('data').get('data'), ['first_name', 'last_name', 'email_address', 'url'])
 
     def test_auth(self):
         #correct
