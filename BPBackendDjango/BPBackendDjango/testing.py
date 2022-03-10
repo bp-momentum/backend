@@ -9,7 +9,7 @@ from .Views.leaderboardviews import ListLeaderboardView
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
 from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetStreakView, GetUsersOfTrainerView, GetTrainersView, calc_level, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetStreakView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, SetPasswordResetEmailView, calc_level, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
 from .Views.userviews import ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
@@ -1060,7 +1060,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
             'first_name': 'Jannis',
             'last_name': 'Bauer',
-            'email_address': 'bptestmail52@gmail.com'
+            'email_address': 'bptestmail52@gmail.com',
+            'url': 'bptest.com'
         })
         response = CreateUserView.post(CreateUserView, request)
         self.assertTrue(response.data.get('success'))
@@ -1069,7 +1070,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {
             'first_name': 'Jannis',
             'last_name': 'Bauer',
-            'email_address': 'bptestmail52@gmail.com'
+            'email_address': 'bptestmail52@gmail.com',
+            'url': 'bptest.com'
         })
         response = CreateUserView.post(CreateUserView, request)
         self.assertTrue(response.data.get('success'))
@@ -1079,7 +1081,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {
             'first_name': 'Jannis',
             'last_name': 'Bauer',
-            'email_address': 'bptestmail52@gmail.com'
+            'email_address': 'bptestmail52@gmail.com',
+            'url': 'bptest.com'
         })
         response = CreateUserView.post(CreateUserView, request)
         self.assertFalse(response.data.get('success'))
@@ -1087,7 +1090,8 @@ class TestUserViews(TestCase):
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
             'first_name': 'Jannis',
             'last_name': 'Bauer',
-            'email_address': 'bptestmail52@gmail.com'
+            'email_address': 'bptestmail52@gmail.com',
+            'url': 'bptest.com'
         })
         response = CreateUserView.post(CreateUserView, request)
         self.assertFalse(response.data.get('success'))
@@ -1096,7 +1100,7 @@ class TestUserViews(TestCase):
         response = CreateUserView.post(CreateUserView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['first_name', 'last_name', 'email_address'])
+        self.assertEquals(response.data.get('data').get('data'), ['first_name', 'last_name', 'email_address', 'url'])
 
     def test_auth(self):
         #correct
@@ -2046,6 +2050,90 @@ class TestFriendSystem(TestCase):
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
+
+
+class TestResetPassword(TestCase):
+
+    token2 = None
+    token3 = None
+    user_id = 0
+    trainer_id = 0
+
+    def setUp(self) -> None:
+        trainer = Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerTrainer", email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        self.trainer_id = trainer.id
+        user = User.objects.create(first_name="Jannis", last_name="Bauer", username="derNutzer", trainer=trainer, email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
+        self.user_id = user.id
+        self.token2 = JwToken.create_reset_password_token('DerTrainer')
+        self.token3 = JwToken.create_reset_password_token('derNutzer')
+
+    def test_send(self):
+        #valid
+        #user
+        request = ViewSupport.setup_request({}, {
+            'username': 'derNutzer',
+            'url': 'www.test/#/'
+        })
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        '''not implemented yet
+        #trainer
+        request = ViewSupport.setup_request({}, {
+            'username': 'DerTrainer',
+            'url': 'www.test/#/'
+        })
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))'''
+        #invalid
+        #invalid username
+        request = ViewSupport.setup_request({}, {
+            'username': 'invalid',
+            'url': 'www.test/#/'
+        })
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetPasswordResetEmailView.post(GetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['username', 'url'])
+
+    def test_change(self):
+        #valid
+        #user
+        request = ViewSupport.setup_request({}, {
+            'reset_token': self.token3,
+            'new_password': 'newFancy'
+        })
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        user = User.objects.get(id=self.user_id)
+        self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))
+        '''not implemented yet
+        #trainer
+        request = ViewSupport.setup_request({}, {
+            'reset_token': self.token2,
+            'new_password': 'newFancy'
+        })
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertTrue(response.data.get('success'))
+        user = Trainer.objects.get(id=self.trainer_id)
+        self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))'''
+        #invalid
+        #invalid token
+        request = ViewSupport.setup_request({}, {
+            'reset_token': 'invalid',
+            'new_password': 'newFancy'
+        })
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), [])
+        self.assertEquals(response.data.get('data').get('data'), ['reset_token', 'new_password'])
 
 
 class TestMedals(TestCase):

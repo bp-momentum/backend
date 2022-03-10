@@ -414,7 +414,7 @@ class RegisterView(APIView):
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
-        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['first_name', 'last_name', 'email_address'], request.data)
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['first_name', 'last_name', 'email_address', 'url'], request.data)
         if not check.get('valid'):
             data = {
                 'success': False,
@@ -461,7 +461,7 @@ class CreateUserView(APIView):
         OpenToken.objects.create(token=new_user_token, email=req_data['email_address'], first_name=req_data['first_name'], last_name=req_data['last_name'], creator=info['username'])
         #create and send mail
         url = INTERN_SETTINGS['website_url']
-        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'{url}/#/?new_user_token={new_user_token}'})
+        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'{req_data["url"]}/#/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         addon = " "
         try:
@@ -1757,5 +1757,107 @@ class GetStreakView(APIView):
             'data': {
                 'streak': user.streak
             }
+        }
+        return Response(data)
+
+class GetPasswordResetEmailView(APIView):
+    def post(self, request, *args, **kwargs):
+        # checking if it contains all arguments
+        check = ErrorHandler.check_arguments([], request.headers, ['username', 'url'], request.data)
+        req_data = request.data
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+
+        # get user from database
+        user = None
+        if User.objects.filter(username=req_data['username']).exists():
+            user = User.objects.get(username=req_data['username'])
+        else:
+            data = {
+                'success': False,
+                'description': 'Username is not used',
+                'data': {}
+            }
+            return Response(data)
+
+        # get url from frontend and style email
+        url = req_data["url"]
+
+        #create the reset token
+        reset_token = JwToken.create_reset_password_token(user.username)
+        html_message = render_to_string('BPBackendDjango/resetEmail.html',
+                                        {'full_name': f' {user.first_name} {user.last_name}',
+                                         "link": f'{url}/?reset_token={reset_token}'})
+        plain_message = strip_tags(html_message)
+
+        # send email
+        try:
+            send_mail("BachelorPraktikum Passwort",
+                    plain_message,
+                     EMAIL_HOST_USER,
+                     [user.email_address], html_message=html_message)
+            data = {
+                    'success': True,
+                    'description': 'email with invite was sent',
+                    'data': {}
+                }
+        except Exception as e:
+            data = {
+                    'success': False,
+                    'description': 'email with invite was not sent',
+                    'data': {e}
+                }
+
+        return Response(data)
+
+class SetPasswordResetEmailView(APIView):
+    def post(self, request, *args, **kwargs):
+        # check if all arguments are there
+        check = ErrorHandler.check_arguments([], request.headers, ['reset_token', 'new_password'], request.data)
+        req_data = request.data
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+
+        # check the reset_token
+        reset_token = JwToken.check_reset_password_token(req_data["reset_token"])
+
+        if not reset_token['valid']:
+            data = {
+                'success': False,
+                'description': 'Reset token is not valid',
+                'data': {}
+            }
+            return Response(data)
+        info = reset_token['info']
+        user = None
+        if User.objects.filter(username=info['username']).exists():
+            user = User.objects.get(username=info['username'])
+        else:
+            data = {
+                'success': False,
+                'description': 'Username is not used',
+                'data': {}
+            }
+            return Response(data)
+
+        # update the password
+        user.password = str(hashlib.sha3_256(req_data["new_password"].encode('utf8')).hexdigest())
+        user.save(force_update=True)
+
+
+        data = {
+            'success': True,
+            'description': 'Password got reset',
+            'data': {}
         }
         return Response(data)
