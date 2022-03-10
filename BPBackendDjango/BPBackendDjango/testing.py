@@ -349,20 +349,35 @@ class AchievementTestCase(TestCase):
         response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('achievements'), [{
+            'name': 'doneExercises',
+            'description': "Do exercises top get/level this achievement",
+            'level': 0,
+            'progress': '0/10',
+            'hidden': False,
+            'icon': ""
+        }, {
+            'name': 'havingFriends',
+            'description': "add a friend",
+            'level': 0,
+            'progress': '0/1',
+            'hidden': False,
+            'icon': "www.test.de/friends"
+        }, {
             'name': 'streak',
-            'description': "get a streak",
+            'description': "Reach a streak",
             'level': 1,
             'progress': '3/7',
             'hidden': False,
             'icon': "www.test.de/streak"
         }, {
-            'name': 'havingFriends', 
-            'description': 'add a friend', 
-            'level': 0, 
-            'progress': '0/1', 
-            'hidden': False, 
-            'icon': 'www.test.de/friends'}])
-        self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 0)
+            'name': 'perfectExercise',
+            'description': "Reach 100 percent at one exercise",
+            'level': 0,
+            'progress': '0/1',
+            'hidden': False,
+            'icon': ""
+        }])
+        self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 2)
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
