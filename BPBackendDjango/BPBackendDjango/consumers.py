@@ -297,8 +297,16 @@ class SetConsumer(WebsocketConsumer):
             leaderboard_entry.speed += self.speed
             leaderboard_entry.intensity += self.intensity
             leaderboard_entry.cleanliness += self.cleanliness
-            leaderboard_entry.score = (leaderboard_entry.score * leaderboard_entry.executions + p)/(self.executions_done + leaderboard_entry.executions)
             leaderboard_entry.executions += self.executions_done
+
+            exs_to_do = 0
+            if self.user.plan is not None:
+                plan_data = ExerciseInPlan.objects.filter(plan=self.user.plan.id)
+                for ex in plan_data:
+                    exs_to_do += ex.repeats_per_set * ex.sets
+
+            leaderboard_entry.score = (leaderboard_entry.speed + leaderboard_entry.intensity + leaderboard_entry.cleanliness) / (3 * exs_to_do)
+
             leaderboard_entry.save(force_update=True)
 
 
