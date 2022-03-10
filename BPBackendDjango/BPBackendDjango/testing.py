@@ -1479,12 +1479,17 @@ class TestLeaderboardView(TestCase):
         self.assertTrue(response.data.get('success'))
         leaderboard = []
         entry = Leaderboard.objects.get(score=100)
-        leaderboard.append({"rank": 1, "username": entry.user.username, "score": 100.0, "cleanliness": 100.0, "intensity": 100.0, "speed": 100.0})
+        leaderboard.append({"rank": 1, "username": entry.user.username, "score": 100.0})
         entry = Leaderboard.objects.get(score=90)
-        leaderboard.append({"rank": 2, "username": entry.user.username, "score": 90.0, "cleanliness": 90.0, "intensity": 90.0, "speed": 90.0})
+        leaderboard.append({"rank": 2, "username": entry.user.username, "score": 90.0})
         entry = Leaderboard.objects.get(score=80)
-        leaderboard.append({"rank": 3, "username": entry.user.username, "score": 80.0, "cleanliness": 80.0, "intensity": 80.0, "speed": 80.0})
-        self.assertEquals(response.data.get('data').get('leaderboard'), leaderboard)
+        leaderboard.append({"rank": 3, "username": entry.user.username, "score": 80.0})
+
+        get_response = []
+        for ent in response.data.get('data').get('leaderboard'):
+            get_response.append({"rank": ent.get('rank'), "username": ent.get('username'), "score": ent.get('score')})
+
+        self.assertEquals(get_response, leaderboard)
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'count': 3})
         response = ListLeaderboardView.post(ListLeaderboardView, request)
