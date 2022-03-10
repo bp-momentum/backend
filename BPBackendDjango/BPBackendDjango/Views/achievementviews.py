@@ -104,17 +104,17 @@ class GetAchievementsView(APIView):
 
         #create non existing achievements (#TODO add icon path)
         if not Achievement.objects.filter(name='doneExercises').exists():
-            Achievement.objects.create(name='doneExercises', description='{"en": "Do exercises top get/level this achievement", "de": "Mache Übungen um dieses Achievemnet zu bekommen beziehungsweise hoch zu leveln"}')
+            Achievement.objects.create(name='doneExercises', description='{"en":"Do exercises top get/level this achievement","de":"Mache Übungen um dieses Achievemnet zu bekommen beziehungsweise hoch zu leveln"}')
         if not Achievement.objects.filter(name='havingFriends').exists():
-            Achievement.objects.create(name='havingFriends', description='{"en": "Become friends with another user.", "de": "Sei mit einem Spieler befreundet"}')
+            Achievement.objects.create(name='havingFriends', description='{"en":"Become friends with another user.","de":"Sei mit einem Spieler befreundet"}')
         if not Achievement.objects.filter(name='streak').exists():
-            Achievement.objects.create(name='streak', description='{"en": "Reach a streak", "de": "Erreiche eine Streak"}')
+            Achievement.objects.create(name='streak', description='{"en":"Reach a streak","de":"Erreiche eine Streak"}')
         if not Achievement.objects.filter(name='perfectExercise').exists():
-            Achievement.objects.create(name='perfectExercise', description='{"en": "Reach 100 percent at one exercise", "de": Erreiche 100 Prozent bei einer Übung"}')
+            Achievement.objects.create(name='perfectExercise', description='{"en":"Reach 100 percent at one exercise","de":"Erreiche 100 Prozent bei einer Übung"}')
         if not Achievement.objects.filter(name='nightOwl').exists():
-            Achievement.objects.create(name='nightOwl', description='{"en": "Do an exercise between 10 PM to 6 AM", "de": "Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"}', hidden= True)
+            Achievement.objects.create(name='nightOwl', description='{"en":"Do an exercise between 10 PM to 6 AM","de":"Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"}', hidden= True)
         if not Achievement.objects.filter(name='earlyBird').exists():
-            Achievement.objects.create(name='earlyBird', description='{"en": "Do an exercise early in the morning (between 6 AM and 8 AM)", "de": "Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"}', hidden=True)
+            Achievement.objects.create(name='earlyBird', description='{"en":"Do an exercise early in the morning (between 6 AM and 8 AM)","de":"Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"}', hidden=True)
         #iterate over all existing achievements
         for achievement in Achievement.objects.all():
             #do excersises
