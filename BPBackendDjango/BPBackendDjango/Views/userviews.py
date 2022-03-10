@@ -480,7 +480,6 @@ class LoginView(APIView):
             }
             return Response(data)
         req_data = dict(request.data)
-        print(req_data)
         #check password
         passcheck = check_password(req_data['username'], req_data['password'])
         if passcheck == "invalid":

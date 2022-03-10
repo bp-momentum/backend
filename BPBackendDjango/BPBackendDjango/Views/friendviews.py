@@ -1,10 +1,13 @@
+from multiprocessing.managers import BaseManager
 from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from .userviews import calc_level
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
-from ..models import Friends
+from ..models import Achievement, Friends, UserAchievedAchievement
 from ..models import User
 from ..serializers import CreateFriends
 
@@ -49,6 +52,39 @@ def get_pending_requests(user):
 #checks if already friends or already requested
 def already_friends(user1, user2):
     return Friends.objects.filter(friend1=user1, friend2=user2).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
+
+#only method must be changed to get more/less data
+def get_profile(user:User):
+    lvl_info = calc_level(user.xp)
+    return {
+        'username': user.username,
+        'level': lvl_info[0],
+        'level_progress': lvl_info[1],
+        'avatar': user.avatar,
+        'motivation': user.motivation,
+        'last_login': user.last_login,
+        'streak': user.streak,
+        'last_achievements': get_newest_achievements(user)
+    }
+
+def get_newest_achievements(user:User):
+    new_achieved = []
+    count = 0
+    uaas = UserAchievedAchievement.objects.filter(user=user).order_by('-date')
+    for uaa in uaas:
+        if count >= 3:
+            break
+        achievement:Achievement = uaa.achievement
+        #only not hidden achievements are shown
+        if not achievement.hidden:
+            new_achieved.append({
+                    'name': achievement.name,
+                    'level': uaa.level,
+                    #'icon': achievement.icon #not implemented yet on this branch
+            })
+            count += 1
+    return new_achieved
+
 
 class GetMyFriendsView(APIView):
 
@@ -437,4 +473,66 @@ class DeleteFriendView(APIView):
                     'removed_friend': removed_friend.username
                 }
             }
+        return Response(data)
+
+
+class GetProfileOfFriendView(APIView):
+
+    def post(self, request, *args, **kwargs):
+         #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['username'], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #must be user
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                    'success': False,
+                    'description': 'Not a user',
+                    'data': {}
+                }
+            return Response(data)
+        user1 = User.objects.get(username=info['username'])
+
+        #valid user
+        if not User.objects.filter(username=req_data['username']).exists():
+            data = {
+                    'success': False,
+                    'description': 'User does not exist',
+                    'data': {}
+                }
+            return Response(data)
+        user2 = User.objects.get(username=req_data['username'])
+
+        #are friends
+        if not (Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists() or Friends.objects.filter(friend1=user2, friend2=user1, accepted=True).exists()):
+            data = {
+                'success': False,
+                'description': 'Not a friend',
+                'data': {}
+            }
+            return Response(data)
+
+        data = {
+            'success': True,
+            'description': 'Returning profile',
+            'data': get_profile(user2)
+        }
         return Response(data)

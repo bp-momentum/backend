@@ -73,6 +73,7 @@ urlpatterns = [
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #achievements
     path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
+    path('api/getmedals', GetMedals.as_view(), name='getMedals'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
     path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),
@@ -80,5 +81,6 @@ urlpatterns = [
     path('api/addFriend', AddFriendView.as_view(), name='addFriend'),
     path('api/acceptfriendrequest', AcceptRequestView.as_view(), name='acceptFriendRequest'),
     path('api/declinefriendrequest', DeclineRequestView.as_view(), name='declineFriendRequest'),
-    path('api/removefriend', DeleteFriendView.as_view(), name='removeFriend')
+    path('api/removefriend', DeleteFriendView.as_view(), name='removeFriend'),
+    path('api/getprofileoffriend', GetProfileOfFriendView.as_view(), name='getProfileOfFriend')
 ]
