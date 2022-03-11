@@ -15,12 +15,12 @@ NIGHT_START = 22*84600
 NIGHT_END = 6*84600
 EARLY_END = 8*84600
 
-def achieve_achievement(user, achievement):
+def achieve_achievement(user:User, achievement:Achievement):
     #set up data for new achievement
     data = {
         'achievement': achievement,
         'user': user,
-        'date': time.time()
+        'date': int(time.time())
     }
     #if already achieved do nothing
     if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
