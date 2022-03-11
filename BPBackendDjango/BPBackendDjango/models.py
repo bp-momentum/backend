@@ -103,7 +103,7 @@ class Achievement(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(default="")
     hidden = models.BooleanField(default=False)
-    icon = models.URLField(default='')
+    icon = models.TextField(default='{ }')
     
 
 class UserAchievedAchievement(models.Model):

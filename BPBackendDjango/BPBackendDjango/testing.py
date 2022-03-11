@@ -342,8 +342,8 @@ class AchievementTestCase(TestCase):
         self.token1 = JwToken.create_session_token(admin.username, 'admin')
         self.token2 = JwToken.create_session_token(self.trainer.username, 'trainer')
         self.token3 = JwToken.create_session_token(self.user1.username, 'user')
-        self.achievement1:Achievement = Achievement.objects.create(name='streak', description='{"en": "get a streak", "de": "sammel eine Streak"}', icon="www.test.de/streak")
-        self.achievement2:Achievement = Achievement.objects.create(name='havingFriends', description='{"en": "add a friend", "de": "habe einen Freund"}', icon="www.test.de/friends")
+        self.achievement1:Achievement = Achievement.objects.create(name='streak', description='{"en": "get a streak", "de": "sammel eine Streak"}', icon='{"4":"www.test.de/streak4","3":"www.test.de/streak3","2":"www.test.de/streak2","1":"www.test.de/streak1","0":"www.test.de/streak0"}')
+        self.achievement2:Achievement = Achievement.objects.create(name='havingFriends', description='{"en": "add a friend", "de": "habe einen Freund"}', icon='{"1":"www.test.de/friends1","0":"www.test.de/friends0"}')
 
     def test_get_achievements(self):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
@@ -355,28 +355,28 @@ class AchievementTestCase(TestCase):
             'level': 0,
             'progress': '0/10',
             'hidden': False,
-            'icon': ""
+            'icon': None
         }, {
             'name': 'havingFriends',
             'description': "add a friend",
             'level': 0,
             'progress': '0/1',
             'hidden': False,
-            'icon': "www.test.de/friends"
+            'icon': "www.test.de/friends0"
         }, {
             'name': 'streak',
             'description': "get a streak",
             'level': 1,
             'progress': '3/7',
             'hidden': False,
-            'icon': "www.test.de/streak"
+            'icon': "www.test.de/streak1"
         }, {
             'name': 'perfectExercise',
             'description': "Reach 100 percent at one exercise",
             'level': 0,
             'progress': '0/1',
             'hidden': False,
-            'icon': ""
+            'icon': None
         }]
         actual = response.data.get('data').get('achievements')
         self.assertEquals(len(actual), len(expected))
@@ -413,7 +413,7 @@ class AchievementTestCase(TestCase):
             'level': 1,
             'progress': 'done',
             'hidden': False,
-            'icon': "www.test.de/friends"
+            'icon': "www.test.de/friends1"
         })
         #nothing changed
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
@@ -457,7 +457,7 @@ class AchievementTestCase(TestCase):
             'level': 2,
             'progress': '7/30',
             'hidden': False,
-            'icon': "www.test.de/streak"
+            'icon': "www.test.de/streak2"
         }])
         #no change
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})

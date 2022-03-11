@@ -55,6 +55,11 @@ def get_correct_description(username, description):
         return "description not available in "+lang
     return res
 
+def get_icon(level, icon_text):
+    dict = json.loads(icon_text)
+    return dict.get(str(level))
+    
+
 
 class GetAchievementsView(APIView):
     def get(self, request, *args, **kwargs):
@@ -130,7 +135,7 @@ class GetAchievementsView(APIView):
                         'level': 3,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(3, achievement.icon)
                     }) 
                 elif nr_of_exs >= 50:
                     res = upgrade_level(user, achievement, 2)
@@ -150,7 +155,7 @@ class GetAchievementsView(APIView):
                         'level': 2,
                         'progress': str(nr_of_exs)+'/100',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(2, achievement.icon)
                     }) 
                 elif nr_of_exs >= 10:
                     res = achieve_achievement(user, achievement)
@@ -170,7 +175,7 @@ class GetAchievementsView(APIView):
                         'level': 1,
                         'progress': str(nr_of_exs)+'/50',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(2, achievement.icon)
                     }) 
                 elif not achievement.hidden:
                     achieved.append({
@@ -179,7 +184,7 @@ class GetAchievementsView(APIView):
                         'level': 0,
                         'progress': str(nr_of_exs)+'/10',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -206,7 +211,7 @@ class GetAchievementsView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     }) 
                 elif not achievement.hidden:
                     achieved.append({
@@ -215,7 +220,7 @@ class GetAchievementsView(APIView):
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(0, achievement.icon)
                     }) 
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -242,7 +247,7 @@ class GetAchievementsView(APIView):
                         'level': 4,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(4, achievement.icon)
                     }) 
                 elif streak >= 30:
                     res = upgrade_level(user, achievement, 3)
@@ -262,7 +267,7 @@ class GetAchievementsView(APIView):
                         'level': 3,
                         'progress': str(streak)+'/90',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(3, achievement.icon)
                     }) 
                 elif streak >= 7:
                     res = upgrade_level(user, achievement, 2)
@@ -282,7 +287,7 @@ class GetAchievementsView(APIView):
                         'level': 2,
                         'progress': str(streak)+'/30',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(2, achievement.icon)
                     }) 
                 elif streak >= 3:
                     res = achieve_achievement(user, achievement)
@@ -302,7 +307,7 @@ class GetAchievementsView(APIView):
                         'level': 1,
                         'progress': str(streak)+'/7',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     }) 
                 elif not achievement.hidden:
                     achieved.append({
@@ -311,7 +316,7 @@ class GetAchievementsView(APIView):
                         'level': 0,
                         'progress': str(streak)+'/3',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(0, achievement.icon)
                     }) 
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -344,7 +349,7 @@ class GetAchievementsView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     })
                 elif not achievement.hidden:
                     achieved.append({
@@ -353,7 +358,7 @@ class GetAchievementsView(APIView):
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -386,7 +391,7 @@ class GetAchievementsView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     })
                 elif not achievement.hidden:
                     achieved.append({
@@ -395,7 +400,7 @@ class GetAchievementsView(APIView):
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -428,7 +433,7 @@ class GetAchievementsView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     })
                 elif not achievement.hidden:
                     achieved.append({
@@ -437,7 +442,7 @@ class GetAchievementsView(APIView):
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -528,7 +533,7 @@ class ReloadFriendAchievementView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     }
                 }
             }
@@ -604,7 +609,7 @@ class ReloadAfterExerciseView(APIView):
                     'level': 3,
                     'progress': 'done',
                     'hidden': achievement.hidden,
-                    'icon': achievement.icon
+                    'icon': get_icon(3, achievement.icon)
                 }) 
             elif nr_of_exs >= 50:
                 res = upgrade_level(user, achievement, 2)
@@ -625,7 +630,7 @@ class ReloadAfterExerciseView(APIView):
                     'level': 2,
                     'progress': str(nr_of_exs)+'/100',
                     'hidden': achievement.hidden,
-                    'icon': achievement.icon
+                    'icon': get_icon(2, achievement.icon)
                 }) 
             elif nr_of_exs >= 10:
                 res = achieve_achievement(user, achievement)
@@ -646,7 +651,7 @@ class ReloadAfterExerciseView(APIView):
                     'level': 1,
                     'progress': str(nr_of_exs)+'/50',
                     'hidden': achievement.hidden,
-                    'icon': achievement.icon
+                    'icon': get_icon(1, achievement.icon)
                 }) 
         #perfectExercise
         if not Achievement.objects.filter(name='perfectExercise').exists():
@@ -682,7 +687,7 @@ class ReloadAfterExerciseView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     })
         #night owl
         if not Achievement.objects.filter(name='nightOwl').exists():
@@ -718,7 +723,7 @@ class ReloadAfterExerciseView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': achievement.iconget_icon(1, achievement.icon)
                     })
         #earlyBird
         if not Achievement.objects.filter(name='earlyBird').exists():
@@ -754,7 +759,7 @@ class ReloadAfterExerciseView(APIView):
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon':get_icon(1, achievement.icon)
                     })
         #streak
         if not Achievement.objects.filter(name='streak').exists():
@@ -784,7 +789,7 @@ class ReloadAfterExerciseView(APIView):
                         'level': 4,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(4, achievement.icon)
                     }) 
             elif streak >= 30:
                 res = upgrade_level(user, achievement, 3)
@@ -805,7 +810,7 @@ class ReloadAfterExerciseView(APIView):
                         'level': 3,
                         'progress': str(streak)+'/90',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(3, achievement.icon)
                     }) 
             elif streak >= 7:
                 res = upgrade_level(user, achievement, 2)
@@ -826,7 +831,7 @@ class ReloadAfterExerciseView(APIView):
                         'level': 2,
                         'progress': str(streak)+'/30',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(2, achievement.icon)
                     }) 
             elif streak >= 3:
                 res = achieve_achievement(user, achievement)
@@ -847,7 +852,7 @@ class ReloadAfterExerciseView(APIView):
                         'level': 1,
                         'progress': str(streak)+'/7',
                         'hidden': achievement.hidden,
-                        'icon': achievement.icon
+                        'icon': get_icon(1, achievement.icon)
                     }) 
         #check if new achieved
         if len(achieved) == 0:
