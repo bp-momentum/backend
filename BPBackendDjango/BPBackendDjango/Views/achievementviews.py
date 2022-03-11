@@ -23,7 +23,7 @@ def achieve_achievement(user, achievement):
         'date': time.time()
     }
     #if already achieved do nothing
-    if UserAchievedAchievement.objects.filter(achievement=achievement.id, user=user.id).exists():
+    if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
         return True, 'achievement already achieved'
     serializer = AchieveAchievement(data=data)
     #if data not valid do nothing
