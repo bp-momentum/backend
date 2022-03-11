@@ -16,21 +16,11 @@ NIGHT_END = 6*84600
 EARLY_END = 8*84600
 
 def achieve_achievement(user:User, achievement:Achievement):
-    #set up data for new achievement
-    data = {
-        'achievement': achievement,
-        'user': user,
-        'date': int(time.time())
-    }
     #if already achieved do nothing
     if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
         return True, 'achievement already achieved'
-    serializer = AchieveAchievement(data=data)
-    #if data not valid do nothing
-    if not serializer.is_valid():
-        return False, 'new data not valid'
     #save completed achievement
-    serializer.save()
+    UserAchievedAchievement.objects.create(achievement=achievement, user=user, date=int(time.time()))
     return True, 'user achieved achievement'
 
 def upgrade_level(user, achievement, level):
@@ -40,7 +30,7 @@ def upgrade_level(user, achievement, level):
         if not res[0]:
             return res
     #update level
-    uaa:UserAchievedAchievement = UserAchievedAchievement.objects.get(achievement=achievement.id,user=user.id)
+    uaa:UserAchievedAchievement = UserAchievedAchievement.objects.get(achievement=achievement.id, user=user.id)
     #only update if new level is higher
     if level <= uaa.level:
         return True, 'user already achieved (higher) level'
