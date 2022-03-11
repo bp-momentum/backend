@@ -3,6 +3,8 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from BPBackendDjango.BPBackendDjango.Views.achievementviews import get_icon
+
 from .userviews import calc_level
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
@@ -79,8 +81,7 @@ def get_newest_achievements(user:User):
         if not achievement.hidden:
             new_achieved.append({
                     'name': achievement.name,
-                    'level': uaa.level,
-                    #'icon': achievement.icon #not implemented yet on this branch
+                    'icon': get_icon(uaa.level, achievement.icon)
             })
             count += 1
     return new_achieved

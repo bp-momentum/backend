@@ -2269,7 +2269,7 @@ class TestProfileOfFriends(TestCase):
             'streak': 0,
             'last_achievements': [{
                 'name': 'streak',
-                'level': 1
+                'icon': None
             }]
         })
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'DeadlyFarts'})
