@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from BPBackendDjango.BPBackendDjango.Views.achievementviews import get_icon
+from .achievementviews import get_icon
 
 from .userviews import calc_level
 from ..Helperclasses.jwttoken import JwToken
