@@ -489,9 +489,9 @@ class AchievementTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetStreakView.get(GetStreakView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('days'), self.user1.streak)
+        self.assertEquals(response.data.get('data').get('days'), 3)
         self.assertFalse(response.data.get('data').get('flame_glow'))
-        self.assertEquals(response.data.get('data').get('flame_height'), 0.7)
+        self.assertEquals(response.data.get('data').get('flame_height'), 0.3)
         #invalid
         #as Trainer not possible
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
