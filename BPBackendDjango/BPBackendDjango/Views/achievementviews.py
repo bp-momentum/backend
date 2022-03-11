@@ -18,8 +18,8 @@ EARLY_END = 8*84600
 def achieve_achievement(user, achievement):
     #set up data for new achievement
     data = {
-        'achievement': achievement.id,
-        'user': user.id,
+        'achievement': achievement,
+        'user': user,
         'date': time.time()
     }
     #if already achieved do nothing
