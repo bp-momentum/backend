@@ -45,7 +45,7 @@ def upgrade_level(user, achievement, level):
     if level <= uaa.level:
         return True, 'user already achieved (higher) level'
     uaa.level = level
-    uaa.date = time.time()
+    uaa.date = int(time.time())
     uaa.save(force_update=True)
     return True, 'level upgraded'
 
