@@ -61,9 +61,10 @@ def get_correct_description(username, description):
 def get_icon(level, icon_text):
     try:
         dict = json.loads(icon_text)
+        return dict.get(str(level))
     except:
-        dict = icon_text
-    return dict.get(str(level))
+        return icon_text
+    
     
 
 
