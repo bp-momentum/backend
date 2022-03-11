@@ -49,14 +49,20 @@ def get_correct_description(username, description):
     else:
         return "invalid user"
     lang = user.language
-    desc = json.loads(description)
-    res = desc.get(lang)
+    try:
+        desc = json.loads(description)
+        res = desc.get(lang)
+    except:
+        res = 'description not available'
     if res == None:
         return "description not available in "+lang
     return res
 
 def get_icon(level, icon_text):
-    dict = json.loads(icon_text)
+    try:
+        dict = json.loads(icon_text)
+    except:
+        dict = icon_text
     return dict.get(str(level))
     
 
