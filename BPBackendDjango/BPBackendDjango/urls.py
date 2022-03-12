@@ -77,7 +77,7 @@ urlpatterns = [
     #achievements
     path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
     path('api/loadfriendachievements', ReloadFriendAchievementView.as_view(), name='loadFriendAchievements'),
-    path('api/loadexerciseachievements', ReloadAfterExerciseView.as_view, name='loadExerciseAchievements'),
+    path('api/loadexerciseachievements', ReloadAfterExerciseView.as_view(), name='loadExerciseAchievements'),
     path('api/getmedals', GetMedals.as_view(), name='getMedals'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
