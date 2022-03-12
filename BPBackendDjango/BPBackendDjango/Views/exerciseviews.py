@@ -87,7 +87,7 @@ def get_done_exercises_of_month(month, year, user:User):
         if first_seen_plan is None:
             not_checked.append(i)
         else:
-            exips = ExerciseInPlan(plan=plan, date=weekday)
+            exips = ExerciseInPlan.objects.filter(plan=plan, date=weekday)
             for exip in exips:
                 if not done_day.filter(exercise=exip).exists():
                     out.append({
@@ -105,7 +105,7 @@ def get_done_exercises_of_month(month, year, user:User):
     for i in not_checked:
         date:datetime = datetime(month=month, year=year, day=i)
         weekday = date.strftime('%A').lower()
-        exips = ExerciseInPlan(plan=plan, date=weekday)
+        exips = ExerciseInPlan.objects.filter(plan=plan, date=weekday)
         for exip in exips:
             out.append({
                 "exercise_plan_id": exip.id,
