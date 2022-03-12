@@ -83,9 +83,10 @@ def add_xp(username, xp):
 
 def calc_level(xp):
     for i in range(MAX_LEVEL):
-        nxt_lvl = FIRST_LVL * MULT_PER_LVL ** (i + 1)
+        nxt_lvl = math.ceil(FIRST_LVL * MULT_PER_LVL ** (i))
         if xp < nxt_lvl:
             return i, str(xp)+'/'+str(nxt_lvl)
+        xp -= nxt_lvl
     return MAX_LEVEL, 'max level reached'
 
 #only method needs to be changed to get different information about users

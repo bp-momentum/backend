@@ -1,4 +1,5 @@
 import errno
+from .Views.userviews import add_xp
 
 from channels.generic.websocket import WebsocketConsumer
 import time
@@ -308,6 +309,7 @@ class SetConsumer(WebsocketConsumer):
             leaderboard_entry.score = (leaderboard_entry.speed + leaderboard_entry.intensity + leaderboard_entry.cleanliness) / (3 * exs_to_do)
 
             leaderboard_entry.save(force_update=True)
+            add_xp(self.username, ((self.speed + self.intensity + self.cleanliness) / (3* self.executions_done)) * ((self.user.streak if self.user.streak < 10 else 10)+1))
 
 
 
