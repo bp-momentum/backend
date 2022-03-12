@@ -28,7 +28,7 @@ MAX_LEVEL = 200
 MULT_PER_LVL = 1.25
 FIRST_LVL = 300
 
-FULL_COMBO = 10
+FULL_COMBO = 10.0
 
 #creating random password
 from ..settings import EMAIL_HOST_USER, INTERN_SETTINGS
@@ -149,11 +149,13 @@ def get_invited_data(open_tokens):
 
 #set last login
 def last_login(username):
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
     now = datetime.datetime.now()
     year = now.year
     month = now.month
     day = now.day
     today = get_string_of_date(day, month, year)
+    weekday = now.strftime('%A').lower()
     if not User.objects.filter(username=username).exists():
         #if its trainer only set last login
         if not Trainer.objects.filter(username=username).exists():
@@ -163,6 +165,13 @@ def last_login(username):
     else:
         username = User.objects.get(username=username)
         check_keep_streak(username)
+        if username.last_login != today:
+            if username.plan is None:
+                username.all_done = True
+            elif ExerciseInPlan.objects.filter(plan=username.plan, date=weekday):
+                username.all_done = False
+            else:
+                username.all_done = True
     username.last_login = today
     username.save(force_update=True)
 
@@ -1759,7 +1768,7 @@ class GetStreakView(APIView):
             'description': 'returning streak',
             'data': {
                 'days': user.streak,
-                'flame_glow': user.streak > FULL_COMBO,
+                'flame_glow': user.all_done,
                 'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0
             }
         }

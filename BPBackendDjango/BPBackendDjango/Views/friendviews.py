@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from .achievementviews import get_icon
 
-from .userviews import calc_level
+from .userviews import FULL_COMBO, calc_level
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
@@ -65,7 +65,8 @@ def get_profile(user:User):
         'avatar': user.avatar,
         'motivation': user.motivation,
         'last_login': user.last_login,
-        'streak': user.streak,
+        'days': user.streak,
+        'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0,
         'last_achievements': get_newest_achievements(user)
     }
 
