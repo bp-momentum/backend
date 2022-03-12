@@ -58,7 +58,6 @@ def get_done_exercises_of_month(month:int, year:int, user:User)->list:
     locale.setlocale(locale.LC_ALL, 'en_US.utf8')
     now = datetime.datetime.now()
     if (now.month < month and now.year == year) or now.year < year:
-        print('future')
         return []
     init:datetime.datetime = datetime.datetime(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
     offset_gt = int(init.timestamp())
@@ -69,7 +68,7 @@ def get_done_exercises_of_month(month:int, year:int, user:User)->list:
         weekday = init.strftime('%A').lower()
         init += datetime.timedelta(days=1)
         offset_lt = int(init.timestamp())
-        print(offset_lt)
+        print(offset_lt-offset_gt)
         done_day = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True)
         for d in done_day:
             plan = d.exercise.plan
