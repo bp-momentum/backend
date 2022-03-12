@@ -897,24 +897,31 @@ class ProfileTestCase(TestCase):
 
     def test_done_exercises_of_month(self):
         #additional setup
-        ex = Exercise.objects.create(title='Kniebeuge')
+        ex = Exercise.objects.create(title='Kniebeuge', date='saturday')
         trainer = Trainer.objects.get(id=self.trainer_id)
         plan = TrainingSchedule.objects.create(trainer=trainer)
         exip = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan)
-        user = User.objects.get(id=self.user1_id)
-        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
-        now = datetime.datetime.now()
+        user:User = User.objects.get(id=self.user1_id)
+        user.plan = plan
+        user.save(force_update=True)
+        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(datetime.datetime(year=2022, month=3, day=12, hour=21, minute=53, second=47).timestamp()))
         #valid
-        result = get_done_exercises_of_month(now.month, now.year, user)
-        '''[{
+        result = [{
             "exercise_plan_id": dex.exercise.id,
             "id": dex.exercise.exercise.id,
             "date": dex.date,
-            "points": dex.points
-        }]'''
+            "points": dex.points,
+            "done": True
+        }, {
+            "exercise_plan_id": ex.id,
+            "id": ex.exercise.id,
+            "date": int(datetime.datetime(year=2022, month=3, day=5, hour=12).timestamp()),
+            "points": None,
+            "done": True
+        }]
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
-            'year': now.year,
-            'month': now.month
+            'year': 2022,
+            'month': 3
         })
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertTrue(response.data.get('success'))
