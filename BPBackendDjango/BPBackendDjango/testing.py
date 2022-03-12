@@ -490,7 +490,7 @@ class AchievementTestCase(TestCase):
         response = GetStreakView.get(GetStreakView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('days'), 3)
-        self.assertFalse(response.data.get('data').get('flame_glow'))
+        self.assertTrue(response.data.get('data').get('flame_glow'))
         self.assertEquals(response.data.get('data').get('flame_height'), 0.3)
         #invalid
         #as Trainer not possible
@@ -2266,7 +2266,8 @@ class TestProfileOfFriends(TestCase):
             'avatar': 2,
             'motivation': 'Gute Tage',
             'last_login': None,
-            'streak': 0,
+            'days': 0,
+            'flame_height': 0.0,
             'last_achievements': [{
                 'name': 'streak',
                 'icon': None
@@ -2282,7 +2283,8 @@ class TestProfileOfFriends(TestCase):
             'avatar': 5,
             'motivation': 'Krise',
             'last_login': None,
-            'streak': 0,
+            'days': 0,
+            'flame_height': 0.0,
             'last_achievements': []
         })
         #invalid
