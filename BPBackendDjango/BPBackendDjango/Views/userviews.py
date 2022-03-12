@@ -1,4 +1,7 @@
+from calendar import weekday
 import email
+import locale
+from re import A
 from django.db.models.query_utils import refs_expression
 from django.shortcuts import render
 from rest_framework.views import APIView
@@ -24,6 +27,8 @@ from BPBackendDjango.settings import *
 MAX_LEVEL = 200
 MULT_PER_LVL = 1.25
 FIRST_LVL = 300
+
+FULL_COMBO = 10.0
 
 #creating random password
 from ..settings import EMAIL_HOST_USER, INTERN_SETTINGS
@@ -142,43 +147,67 @@ def get_invited_data(open_tokens):
         })
     return data
 
-def streak(user):
+#set last login
+def last_login(username):
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
     now = datetime.datetime.now()
     year = now.year
     month = now.month
     day = now.day
     today = get_string_of_date(day, month, year)
-    if day == 1:
-        if month == 1:
-            month = 12
-            year = year - 1
-            day = 31
-        else:
-            month = month - 1
-            day = get_lastday_of_month(month, year)
-    yesterday = get_string_of_date(day, month, year)
-    if not User.objects.filter(username=user).exists():
+    weekday = now.strftime('%A').lower()
+    if not User.objects.filter(username=username).exists():
         #if its trainer only set last login
-        if not Trainer.objects.filter(username=user).exists():
+        if not Trainer.objects.filter(username=username).exists():
             return
         else:
-            t = Trainer.objects.get(username=user)
-            t.last_login = today
-            t.save(force_update=True)
-            return
-    u = User.objects.get(username=user)
-    last_login = u.last_login
-    if last_login == today:
-        return
-    elif last_login == yesterday:
-        old = u.streak
-        u.streak = old + 1
-        u.last_login = today
-        u.save()
+            username = Trainer.objects.get(username=username)
     else:
-        u.streak = 1
-        u.last_login = today
-        u.save()
+        username = User.objects.get(username=username)
+        check_keep_streak(username)
+        if username.last_login != today:
+            if username.plan is None:
+                username.all_done = True
+            elif ExerciseInPlan.objects.filter(plan=username.plan, date=weekday):
+                username.all_done = False
+            else:
+                username.all_done = True
+    username.last_login = today
+    username.save(force_update=True)
+
+#check streak, not updated if today everything is done
+def check_keep_streak(user:User):
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+    today = datetime.datetime.today()
+    #if user never logged in, streak=0
+    if user.last_login is None:
+        user.streak = 0
+        user.save(force_update=True)
+        return
+    #if user already logged in today return
+    if user.last_login == get_string_of_date(today.day, today.month, today.year):
+        return
+    count = 0
+    #until the last login check for every day if every exercise has been done
+    while True:
+        count += 1
+        day_before = today - datetime.timedelta(days=count)
+        weekday = day_before.strftime('%A').lower()
+        exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+        #if there had not to be done any exercises, check if that's last login
+        if exips.exists():
+            for exip in exips:
+                #calculate period in which exercise had to be done
+                if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - (count * 86400) - time.time() % 86400, date__lt=time.time() - ((count-1) * 86400) - time.time() % 86400 ).exists():
+                    #if in this period no exercise has been done
+                    user.streak = 0
+                    user.save(force_update=True)
+                    return
+                #if all exercises had been done return, because after every exercise increasing streak is checked
+                return
+        #check if that's last login, else check next day
+        if user.last_login == get_string_of_date(day_before.day, day_before.month, day_before.year):
+            return
 
 def get_lastday_of_month(m, y):
     if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
@@ -380,7 +409,7 @@ class RegisterView(APIView):
                     }
 
                 OpenToken.objects.filter(token=req_data['new_user_token']).delete()
-                streak(req_data['username'])
+                last_login(req_data['username'])
 
                 return Response(data)
             else:
@@ -502,7 +531,7 @@ class LoginView(APIView):
                 }
             }
 
-        streak(req_data['username'])
+        last_login(req_data['username'])
 
         return Response(data)
         
@@ -582,7 +611,7 @@ class AuthView(APIView):
                 }
             }
 
-        streak(info['info']['username'])
+        last_login(info['info']['username'])
 
         return Response(data)
 
@@ -1698,6 +1727,52 @@ class GetListOfUsers(APIView):
             }
         return Response(data)
 
+
+class GetStreakView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        #checking if it contains all arguments
+        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, [], request.data)
+        if not check.get('valid'):
+            data = {
+                'success': False,
+                'description': 'Missing arguments',
+                'data': check.get('missing')
+            }
+            return Response(data)
+        token = JwToken.check_session_token(request.headers['Session-Token'])
+        #check if token is valid
+        if not token["valid"]:
+            data = {
+                'success': False,
+                'description': 'Token is not valid',
+                'data': {}
+                }
+            return Response(data)
+
+        info = token['info']
+
+        #only users can get their own achievements
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+                }
+            return Response(data)
+
+        user:User = User.objects.get(username=info['username'])
+
+        data = {
+            'success': True,
+            'description': 'returning streak',
+            'data': {
+                'days': user.streak,
+                'flame_glow': user.all_done,
+                'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0
+            }
+        }
+        return Response(data)
 
 class GetPasswordResetEmailView(APIView):
     def post(self, request, *args, **kwargs):

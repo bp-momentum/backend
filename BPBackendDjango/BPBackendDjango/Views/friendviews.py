@@ -3,7 +3,9 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .userviews import calc_level
+from .achievementviews import get_icon
+
+from .userviews import FULL_COMBO, calc_level
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
@@ -63,7 +65,8 @@ def get_profile(user:User):
         'avatar': user.avatar,
         'motivation': user.motivation,
         'last_login': user.last_login,
-        'streak': user.streak,
+        'days': user.streak,
+        'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0,
         'last_achievements': get_newest_achievements(user)
     }
 
@@ -79,8 +82,7 @@ def get_newest_achievements(user:User):
         if not achievement.hidden:
             new_achieved.append({
                     'name': achievement.name,
-                    'level': uaa.level,
-                    #'icon': achievement.icon #not implemented yet on this branch
+                    'icon': get_icon(uaa.level, achievement.icon)
             })
             count += 1
     return new_achieved
