@@ -1,4 +1,6 @@
 import errno
+
+from .Views.leaderboardviews import reset_leaderboard
 from .Views.userviews import add_xp
 
 from channels.generic.websocket import WebsocketConsumer
@@ -335,6 +337,7 @@ class SetConsumer(WebsocketConsumer):
 
     # On Connect
     def connect(self):
+        reset_leaderboard()
         self.filename = None
         self.doing_set = False
         self.accept()

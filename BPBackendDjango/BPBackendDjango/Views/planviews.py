@@ -525,6 +525,11 @@ class DeletePlanView(APIView):
                 }
             return Response(data)
 
+        users_affected = User.objects.filter(plan=req_data['id'])
+
+        for u in users_affected:
+            reset_leaderboard_entry(u.username)
+
         #delete plan
         TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).delete()
         data = {
@@ -532,6 +537,7 @@ class DeletePlanView(APIView):
                 'description': 'plan deleted',
                 'data': {}
             }
+
         return Response(data)
         
 

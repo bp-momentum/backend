@@ -35,6 +35,16 @@ def build_entry(index, leaderboard, rank, is_trainer, username):
 
 
 def reset_leaderboard():
+    last_reset = datetime.fromtimestamp(INTERN_SETTINGS['last_leaderboard_reset'])
+    today = datetime.fromtimestamp(time.time())
+    already_reset = last_reset.isocalendar()[1] == today.isocalendar()[1] and last_reset.year == today.year
+
+    if already_reset:
+        return
+
+    INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
+    json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
+
     all_entries = Leaderboard.objects.filter()
     for entry in all_entries:
         entry.score = 0
@@ -69,14 +79,7 @@ class ListLeaderboardView(APIView):
 
         # check if leaderboard already got resetted in this week
 
-        last_reset = datetime.fromtimestamp(INTERN_SETTINGS['last_leaderboard_reset'])
-        today = datetime.fromtimestamp(time.time())
-        already_reset = last_reset.isocalendar()[1] == today.isocalendar()[1] and last_reset.year == today.year
-
-        if not already_reset:
-            reset_leaderboard()
-            INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
-            json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
+        reset_leaderboard()
 
 
         # checking if it contains all arguments
