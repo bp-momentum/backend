@@ -1412,6 +1412,7 @@ class TestPlanView(TestCase):
         self.assertEquals(response.data.get('data').get('data'), ['name', 'exercise'])
 
     def test_add_user(self):
+        INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
         TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
         self.ts_id = TrainingSchedule.objects.get(name='addtouser_plan').id
         User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=Trainer.objects.get(id=self.trainer_id), email_address="fake@web.de", password="Password1234")
@@ -1628,6 +1629,7 @@ class TestLeaderboardView(TestCase):
             score+=10
 
     def test_get(self):
+        INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
         self.maxDiff = None
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'count': 3})

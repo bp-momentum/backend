@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from .userviews import check_input_length, length_wrong_response
 
+from .leaderboardviews import reset_leaderboard_entry
 from ..models import *
 from ..serializers import *
 from ..Helperclasses.jwttoken import JwToken
@@ -25,6 +26,8 @@ def add_plan_to_user(username, plan):
         ts = TrainingSchedule.objects.get(id=int(plan))
     user.plan = ts
     user.save(force_update=True)
+
+    reset_leaderboard_entry(username)
     return "success"
 
 def create_plan(trainer, name):
@@ -541,6 +544,11 @@ class DeletePlanView(APIView):
                 }
             return Response(data)
 
+        users_affected = User.objects.filter(plan=req_data['id'])
+
+        for u in users_affected:
+            reset_leaderboard_entry(u.username)
+
         #delete plan/keep it, but unaccessable
         needed = False
         ts = TrainingSchedule.objects.get(id=int(req_data['id']), trainer=trainer.id)
@@ -562,6 +570,7 @@ class DeletePlanView(APIView):
                 'description': 'plan deleted',
                 'data': {}
             }
+
         return Response(data)
         
 
