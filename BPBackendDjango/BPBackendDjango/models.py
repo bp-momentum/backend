@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
+from django.forms import BooleanField
 
 class Location(models.Model):
     street = models.CharField(max_length=128)
@@ -29,6 +30,7 @@ class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField(null=True)
+    visable = models.BooleanField(default=True)
 
 
 class Exercise(models.Model):
@@ -67,10 +69,11 @@ class User(models.Model):
     xp = models.BigIntegerField(default=0)
     avatar = models.IntegerField(max_length=5, default=0)
     motivation = models.TextField(max_length=1000, default='')
+    all_done = models.BooleanField(default=False)
 
 
 class DoneExercises(models.Model):
-    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.BigIntegerField(default=0)
@@ -103,6 +106,7 @@ class Achievement(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(default="")
     hidden = models.BooleanField(default=False)
+    icon = models.TextField(default='{ }')
     
 
 class UserAchievedAchievement(models.Model):

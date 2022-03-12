@@ -55,6 +55,7 @@ urlpatterns = [
     path('api/changeacademia', ChangeTrainerAcademiaView.as_view(), name='setTrainerAcademia'),
     path('api/searchuser', SearchUserView.as_view(), name='searchUser'),
     path('api/getlistofusers', GetListOfUsers.as_view(), name='getListOfUsers'),
+    path('api/getstreak', GetStreakView.as_view(), name='getStreak'),
     #exercises
     path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
@@ -75,6 +76,8 @@ urlpatterns = [
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #achievements
     path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
+    path('api/loadfriendachievements', ReloadFriendAchievementView.as_view(), name='loadFriendAchievements'),
+    path('api/loadexerciseachievements', ReloadAfterExerciseView.as_view(), name='loadExerciseAchievements'),
     path('api/getmedals', GetMedals.as_view(), name='getMedals'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
