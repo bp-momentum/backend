@@ -904,7 +904,7 @@ class ProfileTestCase(TestCase):
         user:User = User.objects.get(id=self.user1_id)
         user.plan = plan
         user.save(force_update=True)
-        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, completed=True, date=int(datetime.datetime(year=2022, month=3, day=12, hour=21, minute=53, second=47).timestamp()))
+        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, completed=True, date=int(datetime.datetime(year=2022, month=2, day=12, hour=21, minute=53, second=47).timestamp()))
         #valid
         result = [{
             "exercise_plan_id": dex.exercise.id,
@@ -915,13 +915,19 @@ class ProfileTestCase(TestCase):
         }, {
             "exercise_plan_id": exip.id,
             "id": exip.exercise.id,
-            "date": int(datetime.datetime(year=2022, month=3, day=5, hour=12).timestamp()),
+            "date": int(datetime.datetime(year=2022, month=2, day=19, hour=12).timestamp()),
+            "points": None,
+            "done": True
+        }, {
+            "exercise_plan_id": exip.id,
+            "id": exip.exercise.id,
+            "date": int(datetime.datetime(year=2022, month=2, day=26, hour=12).timestamp()),
             "points": None,
             "done": True
         }]
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
             'year': 2022,
-            'month': 3
+            'month': 2
         })
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertTrue(response.data.get('success'))
