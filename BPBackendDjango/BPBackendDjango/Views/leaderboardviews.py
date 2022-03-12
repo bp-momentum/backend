@@ -50,10 +50,12 @@ def reset_leaderboard_entry(username):
     if not user_exists:
         return
     user = User.objects.get(username=username)
-    l_exists = Leaderboard.objects.filter(user=user).exists()
-    if not l_exists:
+
+    l_2 = Leaderboard.objects.filter(user=user.id).exists()
+    if not l_2:
+        print("BIG F")
         return
-    entry = Leaderboard.object.get(user=user)
+    entry = Leaderboard.object.get(user=user.id)
     entry.score = 0
     entry.executions = 0
     entry.cleanliness = 0
