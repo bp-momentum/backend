@@ -50,7 +50,7 @@ def reset_leaderboard_entry(username):
     if not user_exists:
         return
     user = User.objects.get(username=username)
-    entry = Leaderboard.objects.get(user=user)
+    entry = Leaderboard.objects.get(user=user.id)
 
     entry.score = 0
     entry.executions = 0
