@@ -69,10 +69,8 @@ def get_done_exercises_of_month(month:int, year:int, user:User)->list:
         init += datetime.timedelta(days=1)
         offset_lt = int(init.timestamp())
         done_day = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True)
-        print(len(done_day))
         for d in done_day:
             plan = d.exercise.plan
-            print('add')
             out.append({
                 "exercise_plan_id": d.exercise.id,
                 "id": d.exercise.exercise.id,
