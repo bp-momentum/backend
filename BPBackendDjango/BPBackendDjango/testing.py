@@ -1476,6 +1476,7 @@ class TestLeaderboardView(TestCase):
             score+=10
 
     def test_get(self):
+        INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
         self.maxDiff = None
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'count': 3})
