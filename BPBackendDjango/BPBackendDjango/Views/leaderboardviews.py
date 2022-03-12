@@ -1,9 +1,16 @@
+import json
 import math
+import time
+from datetime import datetime
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from .. import INTERN_SETTINGS
 from ..models import *
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
+from ..settings import SETTINGS_JSON
 
 
 def build_entry(index, leaderboard, rank, is_trainer, username):
@@ -27,9 +34,47 @@ def build_entry(index, leaderboard, rank, is_trainer, username):
             "cleanliness": cleanliness}
 
 
+def reset_leaderboard():
+    all_entries = Leaderboard.objects.filter()
+    for entry in all_entries:
+        entry.score = 0
+        entry.executions = 0
+        entry.cleanliness = 0
+        entry.speed = 0
+        entry.intensity = 0
+        entry.save(force_update=True)
+
+
+def reset_leaderboard_entry(username):
+    user_exists = User.objects.filter(username=username).exists()
+    if not user_exists:
+        return
+    user = User.objects.get(username=username)
+    entry = Leaderboard.objects.get(user=user)
+
+    entry.score = 0
+    entry.executions = 0
+    entry.cleanliness = 0
+    entry.speed = 0
+    entry.intensity = 0
+    entry.save(force_update=True)
+
 class ListLeaderboardView(APIView):
 
     def post(self, request, *args, **kwargs):
+
+        # check if leaderboard already got resetted in this week
+
+        last_reset = datetime.fromtimestamp(INTERN_SETTINGS['last_leaderboard_reset'])
+        today = datetime.fromtimestamp(time.time())
+        already_reset = last_reset.isocalendar()[1] == today.isocalendar()[1] and last_reset.year == today.year
+
+        if not already_reset:
+            reset_leaderboard()
+            INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
+            json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
+
+
         # checking if it contains all arguments
         check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['count'], request.data)
         if not check.get('valid'):

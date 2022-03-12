@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from .userviews import check_input_length, length_wrong_response
 
+from .leaderboardviews import reset_leaderboard_entry
 from ..models import *
 from ..serializers import *
 from ..Helperclasses.jwttoken import JwToken
@@ -25,6 +26,8 @@ def add_plan_to_user(username, plan):
         ts = TrainingSchedule.objects.get(id=int(plan))
     user.plan = ts
     user.save(force_update=True)
+
+    reset_leaderboard_entry(username)
     return "success"
 
 def create_plan(trainer, name):

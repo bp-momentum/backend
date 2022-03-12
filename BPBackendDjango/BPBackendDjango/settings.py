@@ -36,7 +36,8 @@ INTERN_SETTINGS = {
     "video_dir": "videos/",
     "secret_key": "",
     "allowed_origins": ["localhost:80", "localhost:81"],
-    "website_url": "https://my_url.de"
+    "website_url": "https://my_url.de",
+    "last_leaderboard_reset": 0
 }
 try:
     with open(SETTINGS_JSON) as json_file:
