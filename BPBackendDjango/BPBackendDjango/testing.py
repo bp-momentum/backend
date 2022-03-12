@@ -913,8 +913,8 @@ class ProfileTestCase(TestCase):
             "points": dex.points,
             "done": True
         }, {
-            "exercise_plan_id": ex.id,
-            "id": ex.exercise.id,
+            "exercise_plan_id": exip.id,
+            "id": exip.exercise.id,
             "date": int(datetime.datetime(year=2022, month=3, day=5, hour=12).timestamp()),
             "points": None,
             "done": True
