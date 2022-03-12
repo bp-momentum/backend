@@ -1,3 +1,4 @@
+import collections
 from multiprocessing.connection import wait
 from pickle import TRUE
 from django.http import request
@@ -9,7 +10,7 @@ from .Views.leaderboardviews import ListLeaderboardView
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
 from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, SetPasswordResetEmailView, calc_level, get_trainers_data, get_users_data_for_upper
+from .Views.userviews import DeleteTrainerView, DeleteUserView, GetStreakView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, SetPasswordResetEmailView, calc_level, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
 from .Views.userviews import ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
 from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
@@ -18,7 +19,7 @@ from rest_framework import response
 from django.test.utils import setup_test_environment
 from .models import *
 from .Helperclasses.jwttoken import JwToken
-from .Views.achievementviews import GetAchievementsView, GetMedals
+from .Views.achievementviews import GetAchievementsView, ReloadAfterExerciseView, ReloadFriendAchievementView, GetMedals
 from .Views.userviews import *
 from .Views.exerciseviews import *
 from .Views.planviews import *
@@ -324,27 +325,66 @@ class getUsersAndTrainersTestCase(TestCase):
 
 class AchievementTestCase(TestCase):
 
-    trainer = None
-    user1 = None
-    user2 = None
+    trainer:Trainer = None
+    user1:User = None
+    user2:User = None
+    token1 = None
+    token2 = None
+    token3 = None
+    achievement1 = None
+    achievement2 = None
 
     def setUp(self) -> None:
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
-        self.trainer = trainer
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
-        user1 = User.objects.get(first_name='Erik')
-        user2 = User.objects.get(first_name='Jannis')
-        self.user1 = user1
-        self.user2 = user2
+        admin:Admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", password="Password1234")
+        self.trainer:User = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.user1:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=self.trainer, email_address="prescher-erik@web.de", password="Password1234", streak=3)
+        self.user2:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=self.trainer, email_address="test@bla.de", password="Password1234")
+        self.token1 = JwToken.create_session_token(admin.username, 'admin')
+        self.token2 = JwToken.create_session_token(self.trainer.username, 'trainer')
+        self.token3 = JwToken.create_session_token(self.user1.username, 'user')
+        self.achievement1:Achievement = Achievement.objects.create(name='streak', description='{"en": "get a streak", "de": "sammel eine Streak"}', icon='{"4":"www.test.de/streak4","3":"www.test.de/streak3","2":"www.test.de/streak2","1":"www.test.de/streak1","0":"www.test.de/streak0"}')
+        self.achievement2:Achievement = Achievement.objects.create(name='havingFriends', description='{"en": "add a friend", "de": "habe einen Freund"}', icon='{"1":"www.test.de/friends1","0":"www.test.de/friends0"}')
 
-    def test_get_achievements_empty(self):
-        request = ViewSupport.setup_request({'Session-Token': JwToken.create_session_token(self.user1.username, 'user')}, {})
+    def test_get_achievements(self):
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('achievements'), [])
-        self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 0)
+        expected = [{
+            'name': 'doneExercises',
+            'description': "Do exercises top get/level this achievement",
+            'level': 0,
+            'progress': '0/10',
+            'hidden': False,
+            'icon': 'https://cdn.geoscribble.de/achievements/doneExercises_0.png'
+        }, {
+            'name': 'havingFriends',
+            'description': "add a friend",
+            'level': 0,
+            'progress': '0/1',
+            'hidden': False,
+            'icon': "www.test.de/friends0"
+        }, {
+            'name': 'streak',
+            'description': "get a streak",
+            'level': 1,
+            'progress': '3/7',
+            'hidden': False,
+            'icon': "www.test.de/streak1"
+        }, {
+            'name': 'perfectExercise',
+            'description': "Reach 100 percent at one exercise",
+            'level': 0,
+            'progress': '0/1',
+            'hidden': False,
+            'icon': 'https://cdn.geoscribble.de/achievements/perfectExercise_0.png'
+        }]
+        actual = response.data.get('data').get('achievements')
+        self.assertEquals(len(actual), len(expected))
+        for i in actual:
+            self.assertTrue(expected.__contains__(i))
+        for i in expected:
+            self.assertTrue(actual.__contains__(i))
+        self.assertEquals(response.data.get('data').get('nr_unachieved_hidden'), 2)
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
@@ -356,6 +396,118 @@ class AchievementTestCase(TestCase):
         #missing arguments
         request = ViewSupport.setup_request({}, {})
         response = GetAchievementsView.get(GetAchievementsView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
+
+    def test_reload_friends(self):
+        Friends.objects.create(friend1=self.user1, friend2=self.user2, accepted=True)
+        #valid
+        #changed
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('achievements'), {
+            'name': 'havingFriends',
+            'description': "add a friend",
+            'level': 1,
+            'progress': 'done',
+            'hidden': False,
+            'icon': "www.test.de/friends1"
+        })
+        #nothing changed
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data'), {})
+        #invalid
+        #as Trainer not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
+        self.assertFalse(response.data.get('success'))
+        #as Admin not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetAchievementsView.get(GetAchievementsView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ReloadFriendAchievementView.get(ReloadFriendAchievementView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
+        #delete Friends again
+        Friends.objects.all().delete()
+
+    def test_reload_exercise(self):
+        #valid
+        #change
+        self.user1.streak = 7
+        self.user1.save(force_update=True)
+        self.user1:User = User.objects.get(username=self.user1.username)
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('achievements'), [{
+            'name': 'streak',
+            'description': "get a streak",
+            'level': 2,
+            'progress': '7/30',
+            'hidden': False,
+            'icon': "www.test.de/streak2"
+        }])
+        #no change
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data'), {})
+        #invalid
+        #as Trainer not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
+        #as Admin not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = ReloadAfterExerciseView.get(ReloadAfterExerciseView, request)
+        self.assertFalse(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
+        self.assertEquals(response.data.get('data').get('data'), [])
+
+    def test_streak(self):
+        #valid
+        request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertTrue(response.data.get('success'))
+        self.assertEquals(response.data.get('data').get('days'), 3)
+        self.assertFalse(response.data.get('data').get('flame_glow'))
+        self.assertEquals(response.data.get('data').get('flame_height'), 0.3)
+        #invalid
+        #as Trainer not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertFalse(response.data.get('success'))
+        #as Admin not possible
+        request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertFalse(response.data.get('success'))
+        #invalid token
+        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
+        response = GetStreakView.get(GetStreakView, request)
+        self.assertFalse(response.data.get('success'))
+        #missing arguments
+        request = ViewSupport.setup_request({}, {})
+        response = GetStreakView.get(GetStreakView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
@@ -2114,10 +2266,11 @@ class TestProfileOfFriends(TestCase):
             'avatar': 2,
             'motivation': 'Gute Tage',
             'last_login': None,
-            'streak': 0,
+            'days': 0,
+            'flame_height': 0.0,
             'last_achievements': [{
                 'name': 'streak',
-                'level': 1
+                'icon': None
             }]
         })
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'DeadlyFarts'})
@@ -2130,7 +2283,8 @@ class TestProfileOfFriends(TestCase):
             'avatar': 5,
             'motivation': 'Krise',
             'last_login': None,
-            'streak': 0,
+            'days': 0,
+            'flame_height': 0.0,
             'last_achievements': []
         })
         #invalid

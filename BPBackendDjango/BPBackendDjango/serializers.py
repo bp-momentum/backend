@@ -61,7 +61,7 @@ class AchieveAchievement(serializers.ModelSerializer):
     class Meta:
         model = UserAchievedAchievement
         fields = (
-            'achievement', 'user'
+            'achievement', 'user', 'date'
         )
 class CreateFriends(serializers.ModelSerializer):
     class Meta:
