@@ -549,8 +549,6 @@ class DeletePlanView(APIView):
         for u in users_affected:
             reset_leaderboard_entry(u.username)
 
-        #delete plan
-        TrainingSchedule.objects.filter(id=int(req_data['id']),trainer=trainer.id).delete()
         #delete plan/keep it, but unaccessable
         needed = False
         ts = TrainingSchedule.objects.get(id=int(req_data['id']), trainer=trainer.id)
