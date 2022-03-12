@@ -56,6 +56,9 @@ def get_lastday_of_month(m, y):
 
 def get_done_exercises_of_month(month:int, year:int, user:User)->list:
     locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+    now = datetime.datetime.now()
+    if (now.month < month and now.year == year) or now.year < year:
+        return []
     init:datetime.datetime = datetime.datetime(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
     offset_gt = int(init.timestamp())
     out = []
@@ -87,6 +90,9 @@ def get_done_exercises_of_month(month:int, year:int, user:User)->list:
                         "done": False
                     })
         offset_gt = offset_lt
+        #only check until today
+        if now.month == month and now.day == i:
+            break
     return out
 
 def valid_month(month):
