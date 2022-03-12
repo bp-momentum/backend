@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 import locale
 import math
 import time
@@ -54,29 +54,20 @@ def get_lastday_of_month(m, y):
     else:
         return 0
 
-def get_done_exercises_of_month(month, year, user:User):
+def get_done_exercises_of_month(month:int, year:int, user:User)->list:
     locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-    year_offset = (year-1970)*SECS_PER_YEAR
-    month_offset = 0
-    for i in range(1, month):
-        month_offset += get_lastday_of_month(i, year)*SECS_PER_DAY
-    nr_days = get_lastday_of_month(month, year)
-    offset_gt = year_offset + month_offset
+    init:datetime.datetime = datetime.datetime(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
+    offset_gt = int(init.timestamp())
     out = []
-    #if none save days for which it was none and check afterwards
     plan:TrainingSchedule = None
-    first_seen_plan:TrainingSchedule = None
-    not_checked = []
-    for i in range(1, nr_days):
-        next_month_until_day_offset = month_offset + i * SECS_PER_DAY
-        offset_lt = year_offset + next_month_until_day_offset
-        date:datetime = datetime(month=month, year=year, day=i)
-        weekday = date.strftime('%A').lower()
+    nr_days = get_lastday_of_month(month, year)
+    for i in range(1, nr_days+1):
+        weekday = init.strftime('%A').lower()
+        init += datetime.timedelta(days=1)
+        offset_lt = int(init.timestamp())
         done_day = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True)
         for d in done_day:
             plan = d.exercise.plan
-            if first_seen_plan is None:
-                first_seen_plan = d.exercise.plan
             out.append({
                 "exercise_plan_id": d.exercise.id,
                 "id": d.exercise.exercise.id,
@@ -84,36 +75,18 @@ def get_done_exercises_of_month(month, year, user:User):
                 "points": d.points,
                 "done": True
             })
-        if first_seen_plan is None:
-            not_checked.append(i)
-        else:
+        if not plan is None:
             exips = ExerciseInPlan.objects.filter(plan=plan, date=weekday)
             for exip in exips:
                 if not done_day.filter(exercise=exip).exists():
                     out.append({
                         "exercise_plan_id": exip.id,
                         "id": exip.exercise.id,
-                        "date": int(offset_gt + SECS_PER_DAY / 2),
+                        "date": int(datetime.datetime(year=year, month=month, day=i, hour=12).timestamp()),
                         "points": None,
                         "done": False
                     })
         offset_gt = offset_lt
-    if first_seen_plan is None:
-        if user.plan is None:
-            return out
-        first_seen_plan = user.plan
-    for i in not_checked:
-        date:datetime = datetime(month=month, year=year, day=i)
-        weekday = date.strftime('%A').lower()
-        exips = ExerciseInPlan.objects.filter(plan=plan, date=weekday)
-        for exip in exips:
-            out.append({
-                "exercise_plan_id": exip.id,
-                "id": exip.exercise.id,
-                "date": int(offset_gt + SECS_PER_DAY / 2),
-                "points": None,
-                "done": False
-            })
     return out
 
 def valid_month(month):
