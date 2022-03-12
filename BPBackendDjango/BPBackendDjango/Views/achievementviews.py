@@ -15,6 +15,8 @@ NIGHT_START = 22*84600
 NIGHT_END = 6*84600
 EARLY_END = 8*84600
 
+ROOT_PATH = 'https://cdn.geoscribble.de/achievements/'
+
 def achieve_achievement(user:User, achievement:Achievement):
     #if already achieved do nothing
     if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
@@ -106,17 +108,23 @@ class GetAchievementsView(APIView):
 
         #create non existing achievements (#TODO add icon path)
         if not Achievement.objects.filter(name='doneExercises').exists():
-            Achievement.objects.create(name='doneExercises', description='{"en":"Do exercises top get/level this achievement","de":"Mache Übungen um dieses Achievemnet zu bekommen beziehungsweise hoch zu leveln"}')
+            icon_dict = '{"0":"' + ROOT_PATH + 'doneExercises_0.png","1":"' + ROOT_PATH + 'doneExercises_1.png","2":"' + ROOT_PATH + 'doneExercises_2.png","3":"' + ROOT_PATH + 'doneExercises_3.png"}'
+            Achievement.objects.create(name='doneExercises', description='{"en":"Do exercises top get/level this achievement","de":"Mache Übungen um dieses Achievemnet zu bekommen beziehungsweise hoch zu leveln"}', icon=icon_dict)
         if not Achievement.objects.filter(name='havingFriends').exists():
-            Achievement.objects.create(name='havingFriends', description='{"en":"Become friends with another user.","de":"Sei mit einem Spieler befreundet"}')
+            icon_dict = '{"0":"' + ROOT_PATH + 'friends_0.png","1":"' + ROOT_PATH + 'friends_1.png"}'
+            Achievement.objects.create(name='havingFriends', description='{"en":"Become friends with another user.","de":"Sei mit einem Spieler befreundet"}', icon=icon_dict)
         if not Achievement.objects.filter(name='streak').exists():
-            Achievement.objects.create(name='streak', description='{"en":"Reach a streak","de":"Erreiche eine Streak"}')
+            icon_dict = '{"0":"' + ROOT_PATH + 'streak_0.png","1":"' + ROOT_PATH + 'streak_1.png","2":"' + ROOT_PATH + 'streak_2.png","3":"' + ROOT_PATH + 'streak_3.png","4":"' + ROOT_PATH + 'streak_4.png"}'
+            Achievement.objects.create(name='streak', description='{"en":"Reach a streak","de":"Erreiche eine Streak"}', icon=icon_dict)
         if not Achievement.objects.filter(name='perfectExercise').exists():
-            Achievement.objects.create(name='perfectExercise', description='{"en":"Reach 100 percent at one exercise","de":"Erreiche 100 Prozent bei einer Übung"}')
+            icon_dict = '{"0":"' + ROOT_PATH + 'perfectExercise_0.png","1":"' + ROOT_PATH + 'perfectExercise_1.png"}'
+            Achievement.objects.create(name='perfectExercise', description='{"en":"Reach 100 percent at one exercise","de":"Erreiche 100 Prozent bei einer Übung"}', icon=icon_dict)
         if not Achievement.objects.filter(name='nightOwl').exists():
-            Achievement.objects.create(name='nightOwl', description='{"en":"Do an exercise between 10 PM to 6 AM","de":"Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"}', hidden= True)
+            icon_dict = '{"0":"' + ROOT_PATH + 'nightOwl_0.png","1":"' + ROOT_PATH + 'nightOwl_1.png"}'
+            Achievement.objects.create(name='nightOwl', description='{"en":"Do an exercise between 10 PM to 6 AM","de":"Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"}', hidden= True, icon=icon_dict)
         if not Achievement.objects.filter(name='earlyBird').exists():
-            Achievement.objects.create(name='earlyBird', description='{"en":"Do an exercise early in the morning (between 6 AM and 8 AM)","de":"Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"}', hidden=True)
+            icon_dict = '{"0":"' + ROOT_PATH + 'earlyBird_0.png","1":"' + ROOT_PATH + 'earlyBird_1.png"}'
+            Achievement.objects.create(name='earlyBird', description='{"en":"Do an exercise early in the morning (between 6 AM and 8 AM)","de":"Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"}', hidden=True, icon=icon_dict)
         #iterate over all existing achievements
         for achievement in Achievement.objects.all():
             #do excersises
