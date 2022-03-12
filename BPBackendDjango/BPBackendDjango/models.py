@@ -111,7 +111,10 @@ class UserAchievedAchievement(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     level = models.IntegerField(default=1)
-    #date = models.BigIntegerField(default=0) #not useful at the moment
+    date = models.BigIntegerField(default=0)
+
+    class Meta:
+        indexes = [models.Index(fields=["-date"])]
 
 class Leaderboard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
@@ -133,5 +136,10 @@ class OpenToken(models.Model):
     creator = models.CharField(max_length=50)
 
 
-
+class UserMedalInExercise(models.Model):
+    user = models.ForeignKey(User, on_delete=CASCADE)
+    gold = models.IntegerField(default=0)
+    silver = models.IntegerField(default=0)
+    bronze = models.IntegerField(default=0)
+    exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
 

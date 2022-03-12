@@ -76,7 +76,7 @@ class JwToken(object):
         try:
             ST = jwt.JWT(key=key, jwt = token)
         except:
-            print("Signature is not valid")
+            #print("Signature is not valid")
             return {"valid": False, "info": {}}
         #check if the token is still valid (1 day) and of right type
         info = json.loads(str(ST.claims))
@@ -135,7 +135,7 @@ class JwToken(object):
         try:
             ST = jwt.JWT(key=key, jwt = token)
         except:
-            print("Signature is not valid")
+            #print("Signature is not valid")
             return {"valid": False, "info": {}}
         #check if the token is still valid (14 day)
         info = json.loads(str(ST.claims))
@@ -171,7 +171,7 @@ class JwToken(object):
         try:
             ST = jwt.JWT(key=key, jwt = token)
         except:
-            print("Signature is not valid")
+            #print("Signature is not valid")
             return {"valid": False, "info": {}}
         #check if the token is still valid (30 days), of right type and pswd is valid
         info = json.loads(str(ST.claims))
@@ -220,9 +220,44 @@ class JwToken(object):
         user.token_date = int(time.time())-10
         user.save(force_update=True)
 
+    @staticmethod
+    def create_reset_password_token(username):
+        key = jwk.JWK(**TOKEN_KEY)
 
+        # sign token
+        signed_token = jwt.JWT(header={"alg": "HS256"}, claims={"tokentime": int(time.time()),
+                                                                "token_type": "reset_password",
+                                                                "username": username})
 
+        signed_token.make_signed_token(key)
+        return signed_token.serialize()
 
+    @staticmethod
+    def check_reset_password_token(token):
+        key = jwk.JWK(**TOKEN_KEY)
+
+        # decrypt token
+        # try:
+        #     ET = jwt.JWT(key=key, jwt = token)
+        # except:
+        #     print("Decryption failed")
+        #     return False, ""
+
+        # check validation
+        try:
+            ST = jwt.JWT(key=key, jwt=token)
+        except:
+            return {"valid": False, "info": {}}
+        # check if the token is still valid (14 day)
+        info = json.loads(str(ST.claims))
+
+        if not check_tokentime(info['tokentime'], 600):
+            return {"valid": False, "info": {}}
+
+        if not check_tokentype(info['token_type'], "reset_password"):
+            return {"valid": False, "info": {}}
+
+        return {"valid": True, "info": {"username": info["username"]}}
 
 
 
