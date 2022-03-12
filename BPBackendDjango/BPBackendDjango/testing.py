@@ -897,10 +897,10 @@ class ProfileTestCase(TestCase):
 
     def test_done_exercises_of_month(self):
         #additional setup
-        ex = Exercise.objects.create(title='Kniebeuge', date='saturday')
+        ex = Exercise.objects.create(title='Kniebeuge')
         trainer = Trainer.objects.get(id=self.trainer_id)
         plan = TrainingSchedule.objects.create(trainer=trainer)
-        exip = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan)
+        exip = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=, date='saturday')
         user:User = User.objects.get(id=self.user1_id)
         user.plan = plan
         user.save(force_update=True)
