@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
+from django.forms import BooleanField
 
 class Location(models.Model):
     street = models.CharField(max_length=128)
@@ -29,6 +30,7 @@ class TrainingSchedule(models.Model):
     name = models.CharField(default="plan", max_length=50)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE)
     plan_data = models.FileField(null=True)
+    visable = models.BooleanField(default=True)
 
 
 class Exercise(models.Model):
@@ -70,7 +72,7 @@ class User(models.Model):
 
 
 class DoneExercises(models.Model):
-    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.BigIntegerField(default=0)
