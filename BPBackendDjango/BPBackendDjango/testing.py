@@ -490,7 +490,7 @@ class AchievementTestCase(TestCase):
         response = GetStreakView.get(GetStreakView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('days'), 3)
-        self.assertTrue(response.data.get('data').get('flame_glow'))
+        self.assertFalse(response.data.get('data').get('flame_glow'))
         self.assertEquals(response.data.get('data').get('flame_height'), 0.3)
         #invalid
         #as Trainer not possible
