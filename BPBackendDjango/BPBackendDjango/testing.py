@@ -929,15 +929,15 @@ class ProfileTestCase(TestCase):
         #invalid
         #trainer not able to
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {
-            'year': now.year,
-            'month': now.month
+            'year': 2022,
+            'month': 3
         })
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertFalse(response.data.get('success'))
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
-            'year': now.year,
-            'month': now.month
+            'year': 2022,
+            'month': 3
         })
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertFalse(response.data.get('success'))
