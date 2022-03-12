@@ -917,13 +917,13 @@ class ProfileTestCase(TestCase):
             "id": exip.exercise.id,
             "date": int(datetime.datetime(year=2022, month=2, day=19, hour=12).timestamp()),
             "points": None,
-            "done": True
+            "done": False
         }, {
             "exercise_plan_id": exip.id,
             "id": exip.exercise.id,
             "date": int(datetime.datetime(year=2022, month=2, day=26, hour=12).timestamp()),
             "points": None,
-            "done": True
+            "done": False
         }]
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
             'year': 2022,
