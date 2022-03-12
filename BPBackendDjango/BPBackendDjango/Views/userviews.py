@@ -463,8 +463,7 @@ class CreateUserView(APIView):
         #create data base entry
         OpenToken.objects.create(token=new_user_token, email=req_data['email_address'], first_name=req_data['first_name'], last_name=req_data['last_name'], creator=info['username'])
         #create and send mail
-        url = INTERN_SETTINGS['website_url']
-        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'{req_data["url"]}/#/?new_user_token={new_user_token}'})
+        html_message = render_to_string('BPBackendDjango/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'{req_data["url"]}/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         addon = " "
         try:
