@@ -55,7 +55,7 @@ def reset_leaderboard_entry(username):
     if not l_2:
         print("BIG F")
         return
-    entry = Leaderboard.object.get(user=user.id)
+    entry = Leaderboard.objects.get(user=user.id)
     entry.score = 0
     entry.executions = 0
     entry.cleanliness = 0
