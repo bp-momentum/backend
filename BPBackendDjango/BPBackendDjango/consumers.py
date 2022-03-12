@@ -8,7 +8,7 @@ from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
 
-from .models import DoneExercises, User, ExerciseInPlan, Leaderboard
+from .models import DoneExercises, User, ExerciseInPlan, Leaderboard, UserMedalInExercise
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
@@ -278,14 +278,35 @@ class SetConsumer(WebsocketConsumer):
             self.points = 0 if self.executions_per_set == 0 else int(
                 (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
 
+            #add medal
+            if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
+                UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
+            umix = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
+            if self.points >= 90: #gold
+                umix.gold += 1
+            elif self.points >= 75: #silver
+                umix.silver += 1
+            elif self.points >= 50: #bronze
+                umix.bronze += 1
+            umix.save(force_update=True)
+
+
             p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
             leaderboard_entry = Leaderboard.objects.get(user=self.user.id)
 
             leaderboard_entry.speed += self.speed
             leaderboard_entry.intensity += self.intensity
             leaderboard_entry.cleanliness += self.cleanliness
-            leaderboard_entry.score = (leaderboard_entry.score * leaderboard_entry.executions + p)/(self.executions_done + leaderboard_entry.executions)
             leaderboard_entry.executions += self.executions_done
+
+            exs_to_do = 0
+            if self.user.plan is not None:
+                plan_data = ExerciseInPlan.objects.filter(plan=self.user.plan.id)
+                for ex in plan_data:
+                    exs_to_do += ex.repeats_per_set * ex.sets
+
+            leaderboard_entry.score = (leaderboard_entry.speed + leaderboard_entry.intensity + leaderboard_entry.cleanliness) / (3 * exs_to_do)
+
             leaderboard_entry.save(force_update=True)
 
 

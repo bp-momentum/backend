@@ -44,6 +44,8 @@ urlpatterns = [
     path('api/invalidateinvite', InvalidateInviteView.as_view(), name='invalidateInvite'),
     path('api/changeusername', ChangeUsernameView.as_view(), name='changeUsername'),
     path('api/changepassword', ChangePasswordView.as_view(), name='changePassword'),
+    path('api/getresetpasswordemail', GetPasswordResetEmailView.as_view(), name='getResetEmail'),
+    path('api/resetpassword', SetPasswordResetEmailView.as_view(), name='resetPassword'),
     path('api/changeavatar', ChangeAvatarView.as_view(), name='changeAvatar'),
     path('api/changemotivation', ChangeMotivationView.as_view(), name='changeMotivation'),
     path('api/getprofile', GetProfileView.as_view(), name='getProfile'),
@@ -73,6 +75,7 @@ urlpatterns = [
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #achievements
     path('api/getachievements', GetAchievementsView.as_view(), name='getAchievements'),
+    path('api/getmedals', GetMedals.as_view(), name='getMedals'),
     #friends
     path('api/getfriends', GetMyFriendsView.as_view(), name='getMyFriends'),
     path('api/getpendingfriendrequests', GetPendingRequestView.as_view(), name='getPendingFriendRequests'),
@@ -80,5 +83,6 @@ urlpatterns = [
     path('api/addFriend', AddFriendView.as_view(), name='addFriend'),
     path('api/acceptfriendrequest', AcceptRequestView.as_view(), name='acceptFriendRequest'),
     path('api/declinefriendrequest', DeclineRequestView.as_view(), name='declineFriendRequest'),
-    path('api/removefriend', DeleteFriendView.as_view(), name='removeFriend')
+    path('api/removefriend', DeleteFriendView.as_view(), name='removeFriend'),
+    path('api/getprofileoffriend', GetProfileOfFriendView.as_view(), name='getProfileOfFriend')
 ]
