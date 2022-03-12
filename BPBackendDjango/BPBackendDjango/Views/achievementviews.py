@@ -865,7 +865,7 @@ class ReloadAfterExerciseView(APIView):
         if len(achieved) == 0:
             data = {
                 'success': True,
-                'description': 'no new achieved',
+                'description': 'Not achieved',
                 'data': {}
             }
         else:
