@@ -1,5 +1,5 @@
 import errno
-from BPBackendDjango.BPBackendDjango.Views.userviews import add_xp
+from .Views.userviews import add_xp
 
 from channels.generic.websocket import WebsocketConsumer
 import time
