@@ -108,22 +108,22 @@ class GetAchievementsView(APIView):
 
         #create non existing achievements (#TODO add icon path)
         if not Achievement.objects.filter(name='doneExercises').exists():
-            icon_dict = '{"0":"' + ROOT_PATH + 'doneExercises_0.png","1":"' + ROOT_PATH + 'doneExercises_1.png","2":"' + ROOT_PATH + 'doneExercises_2.png","3":"' + ROOT_PATH + 'doneExercises_3.png"}'
+            icon_dict = '{"0":"' + ROOT_PATH + 'doneExercises_0.svg","1":"' + ROOT_PATH + 'doneExercises_1.svg","2":"' + ROOT_PATH + 'doneExercises_2.svg","3":"' + ROOT_PATH + 'doneExercises_3.svg"}'
             Achievement.objects.create(name='doneExercises', description='{"en":"Do exercises top get/level this achievement","de":"Mache Übungen um dieses Achievemnet zu bekommen beziehungsweise hoch zu leveln"}', icon=icon_dict)
         if not Achievement.objects.filter(name='havingFriends').exists():
-            icon_dict = '{"0":"' + ROOT_PATH + 'friends_0.png","1":"' + ROOT_PATH + 'friends_1.png"}'
+            icon_dict = '{"0":"' + ROOT_PATH + 'friends_0.svg","1":"' + ROOT_PATH + 'friends_1.svg"}'
             Achievement.objects.create(name='havingFriends', description='{"en":"Become friends with another user.","de":"Sei mit einem Spieler befreundet"}', icon=icon_dict)
         if not Achievement.objects.filter(name='streak').exists():
-            icon_dict = '{"0":"' + ROOT_PATH + 'streak_0.png","1":"' + ROOT_PATH + 'streak_1.png","2":"' + ROOT_PATH + 'streak_2.png","3":"' + ROOT_PATH + 'streak_3.png","4":"' + ROOT_PATH + 'streak_4.png"}'
+            icon_dict = '{"0":"' + ROOT_PATH + 'streak_0.svg","1":"' + ROOT_PATH + 'streak_1.svg","2":"' + ROOT_PATH + 'streak_2.svg","3":"' + ROOT_PATH + 'streak_3.svg","4":"' + ROOT_PATH + 'streak_4.svg"}'
             Achievement.objects.create(name='streak', description='{"en":"Reach a streak","de":"Erreiche eine Streak"}', icon=icon_dict)
         if not Achievement.objects.filter(name='perfectExercise').exists():
-            icon_dict = '{"0":"' + ROOT_PATH + 'perfectExercise_0.png","1":"' + ROOT_PATH + 'perfectExercise_1.png"}'
+            icon_dict = '{"0":"' + ROOT_PATH + 'perfectExercise_0.svg","1":"' + ROOT_PATH + 'perfectExercise_1.svg"}'
             Achievement.objects.create(name='perfectExercise', description='{"en":"Reach 100 percent at one exercise","de":"Erreiche 100 Prozent bei einer Übung"}', icon=icon_dict)
         if not Achievement.objects.filter(name='nightOwl').exists():
-            icon_dict = '{"0":"' + ROOT_PATH + 'nightOwl_0.png","1":"' + ROOT_PATH + 'nightOwl_1.png"}'
+            icon_dict = '{"0":"' + ROOT_PATH + 'nightOwl_0.svg","1":"' + ROOT_PATH + 'nightOwl_1.svg"}'
             Achievement.objects.create(name='nightOwl', description='{"en":"Do an exercise between 10 PM to 6 AM","de":"Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"}', hidden= True, icon=icon_dict)
         if not Achievement.objects.filter(name='earlyBird').exists():
-            icon_dict = '{"0":"' + ROOT_PATH + 'earlyBird_0.png","1":"' + ROOT_PATH + 'earlyBird_1.png"}'
+            icon_dict = '{"0":"' + ROOT_PATH + 'earlyBird_0.svg","1":"' + ROOT_PATH + 'earlyBird_1.svg"}'
             Achievement.objects.create(name='earlyBird', description='{"en":"Do an exercise early in the morning (between 6 AM and 8 AM)","de":"Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"}', hidden=True, icon=icon_dict)
         #iterate over all existing achievements
         for achievement in Achievement.objects.all():
