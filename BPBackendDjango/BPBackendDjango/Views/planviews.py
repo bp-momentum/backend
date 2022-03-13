@@ -1,4 +1,5 @@
-from os import name
+import datetime
+import locale
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -11,6 +12,8 @@ from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
 def add_plan_to_user(username, plan):
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+    weekday = datetime.datetime.now().strftime('%A').lower()
     #checks if user exists
     if not User.objects.filter(username=username).exists():
         return "user_invalid"
@@ -22,8 +25,10 @@ def add_plan_to_user(username, plan):
     user = User.objects.get(username=username)
     if plan == None:
         ts = None
+        user.all_done = True
     else:
         ts = TrainingSchedule.objects.get(id=int(plan))
+        user.all_done = not ExerciseInPlan.objects.filter(plan=ts, date=weekday).exists()
     user.plan = ts
     user.save(force_update=True)
 
@@ -548,6 +553,8 @@ class DeletePlanView(APIView):
 
         for u in users_affected:
             reset_leaderboard_entry(u.username)
+            u.all_done = True
+            u.save(force_update=True)
 
         #delete plan/keep it, but unaccessable
         needed = False
