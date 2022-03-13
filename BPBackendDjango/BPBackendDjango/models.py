@@ -104,7 +104,8 @@ class Friends(models.Model):
 
 class Achievement(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    description = models.TextField(default="")
+    title = models.TextField(default="{ }")
+    description = models.TextField(default="{ }")
     hidden = models.BooleanField(default=False)
     icon = models.TextField(default='{ }')
     
