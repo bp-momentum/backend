@@ -299,7 +299,7 @@ def length_wrong_response(argument):
     }
     return Response(data)
 
-def check_if_last_exercise(user:User):
+def check_flame_glow(user:User):
     today = datetime.datetime.now()
     weekday = today.strftime('%A').lower()
     exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
@@ -310,10 +310,10 @@ def check_if_last_exercise(user:User):
             if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - time.time() % 86400).exists():
                 #if in this period no exercise has been done
                 return False
-            #if all exercises had been done return, because after every exercise increasing streak is checked
-            return True
+        #if all exercises had been done return, because after every exercise increasing streak is checked
+        return True
     #should not happen, if no exercises -> not last
-    return False
+    return True
 
 USERNAME_LENGTH = 50
 FIRST_NAME_LENGTH = 50
@@ -1777,7 +1777,7 @@ class GetStreakView(APIView):
             'description': 'returning streak',
             'data': {
                 'days': user.streak,
-                'flame_glow': check_if_last_exercise(user),
+                'flame_glow': check_flame_glow(user),
                 'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0
             }
         }
