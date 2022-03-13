@@ -638,6 +638,7 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'level upgraded':
                     achieved.append({
                     'name': achievement.name,
+                    'title': get_correct_description(user.username, achievement.title),
                     'description': get_correct_description(user.username, achievement.description),
                     'level': 3,
                     'progress': 'done',
@@ -659,6 +660,7 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'level upgraded':
                     achieved.append({
                     'name': achievement.name,
+                    'title': get_correct_description(user.username, achievement.title),
                     'description': get_correct_description(user.username, achievement.description),
                     'level': 2,
                     'progress': str(nr_of_exs)+'/100',
@@ -680,6 +682,7 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'user achieved achievement':
                     achieved.append({
                     'name': achievement.name,
+                    'title': get_correct_description(user.username, achievement.title),
                     'description': get_correct_description(user.username, achievement.description),
                     'level': 1,
                     'progress': str(nr_of_exs)+'/50',
