@@ -206,7 +206,7 @@ class GetAchievementsView(APIView):
             #make a friend
             elif achievement.name == 'havingFriends':
                 #get number of friends
-                nr_of_friends = len(Friends.objects.filter(friend1=user.id).union(Friends.objects.filter(friend2=user.id)))
+                nr_of_friends = len(Friends.objects.filter(friend1=user.id, accepted=True).union(Friends.objects.filter(friend2=user.id, accepted=True)))
                 #check which level is reached
                 if nr_of_friends >= 1:
                     res = achieve_achievement(user, achievement)
@@ -524,7 +524,7 @@ class ReloadFriendAchievementView(APIView):
             return Response(data)
 
         #get number of friends
-        nr_of_friends = len(Friends.objects.filter(friend1=user.id).union(Friends.objects.filter(friend2=user.id)))
+        nr_of_friends = len(Friends.objects.filter(friend1=user.id, accepted=True).union(Friends.objects.filter(friend2=user.id, accepted=True)))
         #check which level is reached
         if nr_of_friends >= 1:
             res = achieve_achievement(user, achievement)
