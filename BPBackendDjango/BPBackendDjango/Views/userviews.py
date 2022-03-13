@@ -1,27 +1,18 @@
-from calendar import weekday
-import email
-import locale
-from re import A
-from django.db.models.query_utils import refs_expression
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from .exerciseviews import GetDoneExercisesView
+from BPBackendDjango.BPBackendDjango.serializers import CreateTrainerSerializer, CreateUserSerializer
+
 from ..Helperclasses.jwttoken import JwToken
-from ..Helperclasses.handlers import ErrorHandler
-import string
-import random
+from ..Helperclasses.handlers import DateHandler, ErrorHandler, InvitationsHandler, PasswordHandler, TrainerHandler, UserHandler
 import hashlib
-import time
-import math
 import datetime
 
-from ..serializers import *
-from ..models import *
+from ..serializers import CreateTrainerSerializer,  CreateUserSerializer
+from ..models import Leaderboard, Location, OpenToken, User, Trainer, Admin
 from BPBackendDjango.settings import *
 
 MAX_LEVEL = 200
@@ -31,280 +22,7 @@ FIRST_LVL = 300
 FULL_COMBO = 10.0
 
 #creating random password
-from ..settings import EMAIL_HOST_USER, INTERN_SETTINGS
-
-
-def get_random_password(length):
-    letters = string.ascii_lowercase
-    letters += string.ascii_uppercase
-    letters += "0123456789"
-    out = ''.join(random.choice(letters) for i in range(length))
-    return out
-
-def check_password(username, passwd):
-    passwd = str(hashlib.sha3_256(passwd.encode('utf8')).hexdigest())
-    if User.objects.filter(username=username, password=passwd).exists():
-        return "user"
-    elif Trainer.objects.filter(username=username, password=passwd).exists():
-        return "trainer"
-    elif Admin.objects.filter(username=username, password=passwd).exists():
-        return "admin"
-    else:
-        return "invalid"
-
-def set_user_language(username, language):
-    if LANGUAGE_LENGTH < len(language):
-        return False
-    if User.objects.filter(username=username).exists():
-        user = User.objects.get(username=username)
-    elif Trainer.objects.filter(username=username).exists():
-        user = Trainer.objects.get(username=username)
-    elif Admin.objects.filter(username=username).exists():
-        user = Admin.objects.get(username=username)
-    else:
-        return False
-    user.language = language
-    user.save()
-    return True
-
-def get_user_language(username):
-    if User.objects.filter(username=username).exists():
-        user = User.objects.get(username=username)
-    elif Trainer.objects.filter(username=username).exists():
-        user = Trainer.objects.get(username=username)
-    elif Admin.objects.filter(username=username).exists():
-        user = Admin.objects.get(username=username)
-    else:
-        return None
-    return user.language
-
-def add_xp(username, xp):
-    if not User.objects.filter(username=username).exists():
-        return False
-    user = User.objects.get(username=username)
-    user.xp = user.xp + xp
-    user.save(force_update=True)
-    return True
-
-def calc_level(xp):
-    for i in range(MAX_LEVEL):
-        nxt_lvl = math.ceil(FIRST_LVL * MULT_PER_LVL ** (i))
-        if xp < nxt_lvl:
-            return i, str(xp)+'/'+str(nxt_lvl)
-        xp -= nxt_lvl
-    return MAX_LEVEL, 'max level reached'
-
-#only method needs to be changed to get different information about users
-def get_users_data_for_upper(users):
-    data = []
-    for user in users:
-        #getting plan id
-        if user.plan == None:
-            plan_id = None
-            perc_done = None
-        else:
-            plan_id = user.plan.id
-            #getting weekly progress
-            done = GetDoneExercisesView.GetDone(GetDoneExercisesView, user)
-            if done.get('success'):
-                exs = done.get('data').get('exercises')
-                nr_of_done = 0
-                for ex in exs:
-                    if ex.get('done'):
-                        nr_of_done += 1
-                all = len(exs)
-                perc_done = math.ceil((nr_of_done/all)*10000)/10000
-            else:
-                perc_done = None
-        data.append({
-            'id': user.id,
-            'username': user.username,
-            'plan': plan_id,
-            'done_exercises': perc_done,
-            'last_login': user.last_login
-        })
-    return data
-
-#only method needs to be changed to get different information about users
-def get_trainers_data(trainers):
-    data = []
-    for trainer in trainers:
-        data.append({
-            'id': trainer.id,
-            'username': trainer.username,
-            'last_login': trainer.last_login
-        })
-    return data
-
-def get_invited_data(open_tokens):
-    data = []
-    for ot in open_tokens:
-        data.append({
-            'id': ot.id,
-            'first_name': ot.first_name,
-            'last_name': ot.last_name,
-            'email': ot.email
-        })
-    return data
-
-#set last login
-def last_login(username):
-    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-    now = datetime.datetime.now()
-    year = now.year
-    month = now.month
-    day = now.day
-    today = get_string_of_date(day, month, year)
-    weekday = now.strftime('%A').lower()
-    if not User.objects.filter(username=username).exists():
-        #if its trainer only set last login
-        if not Trainer.objects.filter(username=username).exists():
-            return
-        else:
-            username = Trainer.objects.get(username=username)
-    else:
-        username = User.objects.get(username=username)
-        check_keep_streak(username)
-        if username.last_login != today:
-            if username.plan is None:
-                username.all_done = True
-            elif ExerciseInPlan.objects.filter(plan=username.plan, date=weekday):
-                username.all_done = False
-            else:
-                username.all_done = True
-    username.last_login = today
-    username.save(force_update=True)
-
-#check streak, not updated if today everything is done
-def check_keep_streak(user:User):
-    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-    today = datetime.datetime.today()
-    #if user never logged in, streak=0
-    if user.last_login is None:
-        user.streak = 0
-        user.save(force_update=True)
-        return
-    #if user already logged in today return
-    if user.last_login == get_string_of_date(today.day, today.month, today.year):
-        return
-    count = 0
-    #until the last login check for every day if every exercise has been done
-    while True:
-        count += 1
-        day_before = today - datetime.timedelta(days=count)
-        weekday = day_before.strftime('%A').lower()
-        exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
-        #if there had not to be done any exercises, check if that's last login
-        if exips.exists():
-            for exip in exips:
-                #calculate period in which exercise had to be done
-                if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - (count * 86400) - time.time() % 86400, date__lt=time.time() - ((count-1) * 86400) - time.time() % 86400 ).exists():
-                    #if in this period no exercise has been done
-                    user.streak = 0
-                    user.save(force_update=True)
-                    return
-                #if all exercises had been done return, because after every exercise increasing streak is checked
-                return
-        #check if that's last login, else check next day
-        if user.last_login == get_string_of_date(day_before.day, day_before.month, day_before.year):
-            return
-
-def get_lastday_of_month(m, y):
-    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
-        return 31
-    elif m == 4 or m == 6 or m == 9 or m == 11:
-        return 30
-    elif m == 2:
-        if y % 400 == 0:
-            return 29
-        elif y % 100 == 0:
-            return 28
-        elif y % 4 == 0:
-            return 29
-        else:
-            return 28
-    else:
-        return -1
-
-def get_string_of_date(d, m, y):
-    if d < 10:
-        day = '0'+str(d)
-    else:
-        day = str(d)
-    if m < 10:
-        month = '0'+str(m)
-    else:
-        month = str(m)
-    return str(y)+'-'+str(month)+'-'+str(day)
-
-#just this method has to be changed to get more information for profile
-def get_profile_data(user):
-    return {
-        'username': user.username,
-        'avatar': user.avatar,
-        'first_login': user.first_login,
-        'motivation': user.motivation
-    }
-
-#just this method has to be changed to get more contact information for trainers
-def get_trainer_contact(trainer, as_user):
-    loc = trainer.location
-    # check if trainer has location
-    if loc is None:
-        location = None
-    else:
-        # concatenate location
-        location = loc.street + ' ' + loc.house_nr + loc.address_addition + ', ' + loc.postal_code + ' ' + loc.city + ', ' + loc.country
-    academia = trainer.academia
-    if academia is None or len(academia) == 0:
-        academia = ''
-    else:
-        academia += ' '
-    name = str(academia + trainer.first_name + ' ' + trainer.last_name)
-    if as_user:
-        return {
-            'name': name,
-            'address': str(location),
-            'telephone': trainer.telephone,
-            'email': trainer.email_address
-        }
-    else:
-        return {
-            'name': name,
-            'academia': trainer.academia,
-            'street': loc.street if loc is not None else "",
-            'city': loc.city if loc is not None else "",
-            'country': loc.country if loc is not None else "",
-            'address_addition': loc.address_addition if loc is not None else "",
-            'postal_code': loc.postal_code if loc is not None else "",
-            'house_nr': loc.house_nr if loc is not None else "",
-            'telephone': trainer.telephone,
-            'email': trainer.email_address
-        }
-
-
-#only method needs to be changed to get different information about users
-def get_users_data(users):
-    data = []
-    for user in users:
-        data.append({
-            'id': user.id,
-            'username': user.username
-        })
-    return data
-
-#check length of input
-def check_input_length(input, length):
-    return len(input)<length
-
-#return data for length
-def length_wrong_response(argument):
-    data = {
-        'success': False,
-        'description': str(argument) + ' is too long',
-        'data': {}
-    }
-    return Response(data)
+from ..settings import EMAIL_HOST_USER
 
 USERNAME_LENGTH = 50
 FIRST_NAME_LENGTH = 50
@@ -337,7 +55,7 @@ class RegisterView(APIView):
             return Response(data)
         req_data = dict(request.data)
         req_data['password'] = str(hashlib.sha3_256(req_data["password"].encode('utf8')).hexdigest())
-        token = JwToken.check_new_user_token(request.data['new_user_token'])
+        token = JwToken.check_new_user_token(req_data['new_user_token'])
         #check if token is valid
         if (not token["valid"]) or (not OpenToken.objects.filter(token=req_data['new_user_token']).exists()):
             data = {
@@ -364,7 +82,7 @@ class RegisterView(APIView):
             trainer_id = Trainer.objects.get(username=token["info"]["initiator"]).id
             req_data["trainer"] = trainer_id
             today = datetime.datetime.now()
-            first_login = get_string_of_date(today.day, today.month, today.year)
+            first_login = DateHandler.get_string_of_date(today.day, today.month, today.year)
             req_data['first_login'] = first_login
             serializer = CreateUserSerializer(data=req_data)
         
@@ -409,7 +127,7 @@ class RegisterView(APIView):
                     }
 
                 OpenToken.objects.filter(token=req_data['new_user_token']).delete()
-                last_login(req_data['username'])
+                UserHandler.last_login(req_data['username'])
 
                 return Response(data)
             else:
@@ -448,12 +166,12 @@ class CreateUserView(APIView):
             return Response(data)
 
         #check if arguments are fine
-        if not check_input_length(req_data['first_name'], FIRST_NAME_LENGTH):
-            return length_wrong_response('first name')
-        if not check_input_length(req_data['last_name'], LAST_NAME_LENGTH):
-            return length_wrong_response('last name')
-        if not check_input_length(req_data['email_address'], EMAIL_LENGTH):
-            return length_wrong_response('email address')
+        if not ErrorHandler.check_input_length(req_data['first_name'], FIRST_NAME_LENGTH):
+            return ErrorHandler.length_wrong_response('first name')
+        if not ErrorHandler.check_input_length(req_data['last_name'], LAST_NAME_LENGTH):
+            return ErrorHandler.length_wrong_response('last name')
+        if not ErrorHandler.check_input_length(req_data['email_address'], EMAIL_LENGTH):
+            return ErrorHandler.length_wrong_response('email address')
 
         info = token["info"]
         
@@ -509,7 +227,7 @@ class LoginView(APIView):
             return Response(data)
         req_data = dict(request.data)
         #check password
-        passcheck = check_password(req_data['username'], req_data['password'])
+        passcheck = PasswordHandler.check_password(req_data['username'], req_data['password'])
         if passcheck == "invalid":
             data = {
             'success': False,
@@ -531,7 +249,7 @@ class LoginView(APIView):
                 }
             }
 
-        last_login(req_data['username'])
+        UserHandler.last_login(req_data['username'])
 
         return Response(data)
         
@@ -611,7 +329,7 @@ class AuthView(APIView):
                 }
             }
 
-        last_login(info['info']['username'])
+        UserHandler.last_login(info['info']['username'])
 
         return Response(data)
 
@@ -698,7 +416,7 @@ class ChangeLanguageView(APIView):
         info = token_data['info']
 
         #change language
-        if not set_user_language(info['username'], req_data['language']):
+        if not UserHandler.set_user_language(info['username'], req_data['language'], LANGUAGE_LENGTH):
             data = {
                 'success': False,
                 'description': 'language could not be changed',
@@ -713,8 +431,6 @@ class ChangeLanguageView(APIView):
 
         return Response(data)
 
-        users = User.objects.all()
-        users_data = get_users_data(users)  
 
 class GetLanguageView(APIView):
     def get(self, request, *args, **kwargs):
@@ -742,7 +458,7 @@ class GetLanguageView(APIView):
         info = token_data['info']
 
         #get language
-        res = get_user_language(info['username'])
+        res = UserHandler.get_user_language(info['username'])
         #check if valid
         if res == None:
             data = {
@@ -798,7 +514,7 @@ class GetUsersOfTrainerView(APIView):
         #get users of trainer
         trainer = Trainer.objects.get(username=info['username'])
         users = User.objects.filter(trainer=trainer)
-        users_data = get_users_data_for_upper(users)
+        users_data = UserHandler.get_users_data_for_upper(users)
         data = {
             'success': True,
             'description': 'Returning users',
@@ -853,7 +569,7 @@ class GetUsersOfTrainerView(APIView):
         #get users of requested trainer
         trainer = Trainer.objects.get(id=req_data['id'])
         users = User.objects.filter(trainer=trainer)
-        users_data = get_users_data_for_upper(users)
+        users_data = UserHandler.get_users_data_for_upper(users)
 
         data = {
             'success': True,
@@ -900,7 +616,7 @@ class GetTrainersView(APIView):
 
         #get all trainers
         trainers = Trainer.objects.all()
-        trainers_data = get_trainers_data(trainers)
+        trainers_data = TrainerHandler.get_trainers_data(trainers)
 
         data = {
             'success': True,
@@ -1010,7 +726,7 @@ class DeleteUserView(APIView):
 
         #check if trainer is allowed to delete this user
         if info['account_type'] == 'trainer':
-            trainer = Trainer.objects.get(username=info['username'])
+            trainer:Trainer = Trainer.objects.get(username=info['username'])
             if not User.objects.filter(id=req_data['id'], trainer=trainer).exists():
                 data = {
                     'success': False,
@@ -1061,8 +777,8 @@ class GetUserLevelView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=req_data['username'])
-        res = calc_level(user.xp)
+        user:User = User.objects.get(username=req_data['username'])
+        res = UserHandler.calc_level(user.xp, MAX_LEVEL)
         data = {
                 'success': True,
                 'description': 'returning level and progress of next level',
@@ -1098,7 +814,7 @@ class GetInvitedView(APIView):
         info = token['info']
 
         open_tokens = OpenToken.objects.filter(creator=info['username'])
-        invites = get_invited_data(open_tokens)
+        invites = InvitationsHandler.get_invited_data(open_tokens)
         data = {
             'success': True,
             'description': 'Returning created invites',
@@ -1175,7 +891,7 @@ class ChangeUsernameView(APIView):
             return Response(data)
 
         #check if length is fine
-        if not check_input_length(req_data['username'], USERNAME_LENGTH) or (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
+        if not ErrorHandler.check_input_length(req_data['username'], USERNAME_LENGTH) or (not all(c in ALLOWED for c in req_data['username'])) or len(req_data['username']) < MIN_USERNAME_LENGTH or str(req_data['username']).startswith(' '):
             data = {
                     'success': False,
                     'description': 'username invalid',
@@ -1196,11 +912,11 @@ class ChangeUsernameView(APIView):
 
         #get correct user
         if info['account_type'] == 'user':
-            user = User.objects.get(username=info['username'])
+            user:User = User.objects.get(username=info['username'])
         elif info['account_type'] == 'trainer':
-            user = Trainer.objects.get(username=info['username'])
+            user:Trainer = Trainer.objects.get(username=info['username'])
         elif info['account_type'] == 'admin':
-            user = Admin.objects.get(username=info['username'])
+            user:Admin = Admin.objects.get(username=info['username'])
 
         #check if username is not already uesd
         if (User.objects.filter(username=req_data['username']).exists() or
@@ -1256,11 +972,11 @@ class ChangePasswordView(APIView):
         info = token['info']
         #get correct user
         if info['account_type'] == 'user':
-            user = User.objects.get(username=info['username'])
+            user:User = User.objects.get(username=info['username'])
         elif info['account_type'] == 'trainer':
-            user = Trainer.objects.get(username=info['username'])
+            user:Trainer = Trainer.objects.get(username=info['username'])
         elif info['account_type'] == 'admin':
-            user = Admin.objects.get(username=info['username'])
+            user:Admin = Admin.objects.get(username=info['username'])
 
         #logout on all devices
         response = LogoutAllDevicesView.post(LogoutAllDevicesView, request)
@@ -1268,7 +984,7 @@ class ChangePasswordView(APIView):
             return response
 
         #check password
-        if not check_password(user.username, req_data['password']) == info['account_type']:
+        if PasswordHandler.check_password(user.username, req_data['password']) != info['account_type']:
             data = {
                 'success': False,
                 'description': 'incorrect password',
@@ -1327,7 +1043,7 @@ class ChangeAvatarView(APIView):
             }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         a = int(req_data['avatar'])
         #checking if number is small enough to fit in data base
@@ -1381,12 +1097,12 @@ class GetProfileView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
         #get profile data
         data = {
             'success': True,
             'description': 'Returning profile data',
-            'data': get_profile_data(user)
+            'data': UserHandler.get_profile_data(user)
         }
         return Response(data)
 
@@ -1424,9 +1140,9 @@ class GetTrainerContactView(APIView):
             }
             return Response(data)
         if info['account_type'] == 'user':
-            user = User.objects.get(username=info['username'])
+            user:User = User.objects.get(username=info['username'])
             #get trainer of user
-            trainer = user.trainer
+            trainer:Trainer = user.trainer
             description = 'Returning contact data of trainer'
         elif info['account_type'] == 'trainer':
             trainer = Trainer.objects.get(username=info['username'])
@@ -1435,7 +1151,7 @@ class GetTrainerContactView(APIView):
         data = {
             'success': True,
             'description': description,
-            'data': get_trainer_contact(trainer, info['account_type'] == 'user')
+            'data': TrainerHandler.get_trainer_contact(trainer, info['account_type'] == 'user')
         }
         return Response(data)
 
@@ -1452,7 +1168,7 @@ class SetTrainerLocationView(APIView):
                 'data': check.get('missing')
             }
             return Response(data)
-        req_data = request.data
+        req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -1464,18 +1180,18 @@ class SetTrainerLocationView(APIView):
             return Response(data)
 
         #check length
-        if not check_input_length(req_data['street'], STREET_LENGTH):
-            return length_wrong_response('Name of street')
-        if not check_input_length(req_data['postal_code'], POSTAL_CODE_LENGTH):
-            return length_wrong_response('postal code')
-        if not check_input_length(req_data['country'], COUNTRY_LENGTH):
-            return length_wrong_response('Name of country')
-        if not check_input_length(req_data['city'], CITY_LENGTH):
-            return length_wrong_response('Name of city')
-        if not check_input_length(req_data['house_nr'], H_NR_LENGTH):
-            return length_wrong_response('house number')
-        if not check_input_length(req_data['address_add'], ADDRESS_ADD_LENGTH):
-            return length_wrong_response('Address addition')
+        if not ErrorHandler.check_input_length(req_data['street'], STREET_LENGTH):
+            return ErrorHandler.length_wrong_response('Name of street')
+        if not ErrorHandler.check_input_length(req_data['postal_code'], POSTAL_CODE_LENGTH):
+            return ErrorHandler.length_wrong_response('postal code')
+        if not ErrorHandler.check_input_length(req_data['country'], COUNTRY_LENGTH):
+            return ErrorHandler.length_wrong_response('Name of country')
+        if not ErrorHandler.check_input_length(req_data['city'], CITY_LENGTH):
+            return ErrorHandler.length_wrong_response('Name of city')
+        if not ErrorHandler.check_input_length(req_data['house_nr'], H_NR_LENGTH):
+            return ErrorHandler.length_wrong_response('house number')
+        if not ErrorHandler.check_input_length(req_data['address_add'], ADDRESS_ADD_LENGTH):
+            return ErrorHandler.length_wrong_response('Address addition')
         
         info = token['info']
 
@@ -1488,12 +1204,12 @@ class SetTrainerLocationView(APIView):
             }
             return Response(data)
 
-        trainer = Trainer.objects.get(username=info['username'])
+        trainer:Trainer = Trainer.objects.get(username=info['username'])
         #create or get location
         if not Location.objects.filter(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add']).exists():
-            loc = Location.objects.create(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
+            loc:Location = Location.objects.create(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
         else:
-            loc = Location.objects.get(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
+            loc:Location = Location.objects.get(street=req_data['street'], postal_code=req_data['postal_code'], country=req_data['country'], city=req_data['city'], house_nr=req_data['house_nr'], address_addition=req_data['address_add'])
         #change location
         trainer.location = loc
         trainer.save(force_update=True)
@@ -1517,7 +1233,7 @@ class ChangeTrainerTelephoneView(APIView):
                 'data': check.get('missing')
             }
             return Response(data)
-        req_data = request.data
+        req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -1529,8 +1245,8 @@ class ChangeTrainerTelephoneView(APIView):
             return Response(data)
 
         #check length
-        if not check_input_length(req_data['telephone'], TELEPHONE_LENGTH):
-            return length_wrong_response('telephone numer')
+        if not ErrorHandler.check_input_length(req_data['telephone'], TELEPHONE_LENGTH):
+            return ErrorHandler.length_wrong_response('telephone numer')
 
         info = token['info']
 
@@ -1543,7 +1259,7 @@ class ChangeTrainerTelephoneView(APIView):
             }
             return Response(data)
             
-        trainer = Trainer.objects.get(username=info['username'])
+        trainer:Trainer = Trainer.objects.get(username=info['username'])
         #change telephone number
         trainer.telephone = req_data['telephone']
         trainer.save(force_update=True)
@@ -1567,7 +1283,7 @@ class ChangeTrainerAcademiaView(APIView):
                 'data': check.get('missing')
             }
             return Response(data)
-        req_data = request.data
+        req_data = dict(request.data)
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -1579,8 +1295,8 @@ class ChangeTrainerAcademiaView(APIView):
             return Response(data)
 
         #check length
-        if not check_input_length(req_data['academia'], ACADEMIA_LENGTH):
-            return length_wrong_response('academia')
+        if not ErrorHandler.check_input_length(req_data['academia'], ACADEMIA_LENGTH):
+            return ErrorHandler.length_wrong_response('academia')
 
         info = token['info']
 
@@ -1593,7 +1309,7 @@ class ChangeTrainerAcademiaView(APIView):
             }
             return Response(data)
             
-        trainer = Trainer.objects.get(username=info['username'])
+        trainer:Trainer = Trainer.objects.get(username=info['username'])
         #change academia
         trainer.academia = req_data['academia']
         trainer.save(force_update=True)
@@ -1629,8 +1345,8 @@ class ChangeMotivationView(APIView):
             return Response(data)
 
         #check length
-        if not check_input_length(req_data['motivation'], MOTIVATION_LENGTH):
-            return length_wrong_response('Motivation')
+        if not ErrorHandler.check_input_length(req_data['motivation'], MOTIVATION_LENGTH):
+            return ErrorHandler.length_wrong_response('Motivation')
 
         info = token['info']
 
@@ -1643,7 +1359,7 @@ class ChangeMotivationView(APIView):
             }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         #change motivation
         user.motivation = req_data['motivation']
@@ -1657,6 +1373,7 @@ class ChangeMotivationView(APIView):
 
            
 class SearchUserView(APIView):
+
     def post(self, request, *args, **kwargs):
         #checking if it contains all arguments
         check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['search'], request.data)
@@ -1680,7 +1397,7 @@ class SearchUserView(APIView):
 
         info = token['info']
         users = User.objects.filter(username__icontains=req_data['search']).exclude(username=info['username'])
-        users_data = get_users_data(users)
+        users_data = UserHandler.get_users_data(users)
 
         data = {
                 'success': True,
@@ -1716,7 +1433,7 @@ class GetListOfUsers(APIView):
         info = token['info']
 
         users = User.objects.exclude(username=info['username'])
-        users_data = get_users_data(users)  
+        users_data = UserHandler.get_users_data(users)  
 
         data = {
                 'success': True,
@@ -1775,10 +1492,10 @@ class GetStreakView(APIView):
         return Response(data)
 
 class GetPasswordResetEmailView(APIView):
+
     def post(self, request, *args, **kwargs):
         # checking if it contains all arguments
         check = ErrorHandler.check_arguments([], request.headers, ['username', 'url'], request.data)
-        req_data = request.data
         if not check.get('valid'):
             data = {
                 'success': False,
@@ -1787,8 +1504,10 @@ class GetPasswordResetEmailView(APIView):
             }
             return Response(data)
 
+        req_data = dict(request.data)
+
         # get user from database
-        user = None
+        user:User = None
         if User.objects.filter(username=req_data['username']).exists():
             user = User.objects.get(username=req_data['username'])
         else:
@@ -1830,10 +1549,10 @@ class GetPasswordResetEmailView(APIView):
         return Response(data)
 
 class SetPasswordResetEmailView(APIView):
+
     def post(self, request, *args, **kwargs):
         # check if all arguments are there
         check = ErrorHandler.check_arguments([], request.headers, ['reset_token', 'new_password'], request.data)
-        req_data = request.data
         if not check.get('valid'):
             data = {
                 'success': False,
@@ -1841,7 +1560,7 @@ class SetPasswordResetEmailView(APIView):
                 'data': check.get('missing')
             }
             return Response(data)
-
+        req_data = dict(request.data)
         # check the reset_token
         reset_token = JwToken.check_reset_password_token(req_data["reset_token"])
 
@@ -1853,7 +1572,7 @@ class SetPasswordResetEmailView(APIView):
             }
             return Response(data)
         info = reset_token['info']
-        user = None
+        user:User = None
         if User.objects.filter(username=info['username']).exists():
             user = User.objects.get(username=info['username'])
         else:

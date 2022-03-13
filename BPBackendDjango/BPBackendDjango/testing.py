@@ -2020,22 +2020,22 @@ class TestFriendSystem(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'search': 'user1'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'search': 'user1'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'search': 'user1'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user10')]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([User.objects.get(username='user10')]))
         #empty
         request = ViewSupport.setup_request({'Session-Token': self.token4}, {'search': 'del'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([]))
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'search': 'del'})
@@ -2054,17 +2054,17 @@ class TestFriendSystem(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
         response = GetListOfUsers.get(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all()))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data(User.objects.all()))
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
         response = GetListOfUsers.get(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all()))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data(User.objects.all()))
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetListOfUsers.get(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all().exclude(username='user1')))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data(User.objects.all().exclude(username='user1')))
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
