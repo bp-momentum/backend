@@ -1,84 +1,11 @@
-import datetime
-import locale
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .userviews import check_input_length, length_wrong_response
-
 from .leaderboardviews import reset_leaderboard_entry
-from ..models import *
-from ..serializers import *
+from ..models import DoneExercises, Exercise, ExerciseInPlan, Trainer, TrainingSchedule, User
 from ..Helperclasses.jwttoken import JwToken
-from ..Helperclasses.handlers import ErrorHandler
+from ..Helperclasses.handlers import ErrorHandler, PlanHandler
 
-def add_plan_to_user(username, plan):
-    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-    weekday = datetime.datetime.now().strftime('%A').lower()
-    #checks if user exists
-    if not User.objects.filter(username=username).exists():
-        return "user_invalid"
-    #checks if plan exists
-    if plan != None:
-        if not TrainingSchedule.objects.filter(id=int(plan), visable = True).exists():
-                return "plan_invalid"
-    #assign plan to user
-    user = User.objects.get(username=username)
-    if plan == None:
-        ts = None
-    else:
-        ts = TrainingSchedule.objects.get(id=int(plan))
-    user.plan = ts
-    user.save(force_update=True)
-
-    reset_leaderboard_entry(username)
-    return "success"
-
-def create_plan(trainer, name):
-    #create plan
-    data = {
-        'trainer': trainer,
-        'name': name
-    }
-    new_plan = CreatePlan(data=data)
-    #check if plan is valid
-    if new_plan.is_valid():
-        plan = new_plan.save()
-        return "valid", plan
-    else:
-        return "invalid", new_plan.errors
-
-def add_exercise_to_plan(plan, date, sets, rps, exercise):
-    #create plan data
-    data = {
-        'date': date,
-        'sets': sets,
-        'repeats_per_set': rps,
-        'exercise': exercise,
-        'plan': plan.id
-    }
-    new_data = CreateExerciseInPlan(data=data)
-    #check if plan data is valid
-    if new_data.is_valid():
-        data = new_data.save()
-        return "success", data
-    return "invalid", new_data.errors
-
-def getListOfExercises(id):
-    exs = []
-    plan_data = ExerciseInPlan.objects.filter(plan=id)
-    for ex in plan_data:
-        ex_id = ex.exercise.id
-        sets = ex.sets
-        rps = ex.repeats_per_set
-        date = ex.date
-        exs.append({
-            'exercise_plan_id': ex.id,
-            'id': ex_id,
-            'sets': sets,
-            'repeats_per_set': rps,
-            'date': date
-        })
-    return exs
 
 PLAN_LENGTH = 50
 
@@ -105,8 +32,8 @@ class CreatePlanView(APIView):
                 }
             return Response(data)
 
-        if not check_input_length(req_data['name'], PLAN_LENGTH):
-            return length_wrong_response('Plan name')
+        if not ErrorHandler.check_input_length(req_data['name'], PLAN_LENGTH):
+            return ErrorHandler.length_wrong_response('Plan name')
 
         #check if user is allowed to request
         if not token["info"]["account_type"] == "trainer":
@@ -127,10 +54,10 @@ class CreatePlanView(APIView):
 
             return Response(data)
 
-        trainer = Trainer.objects.get(username=token['info']['username']).id
+        trainer:Trainer = Trainer.objects.get(username=token['info']['username'])
 
         #create plan and data
-        plan = create_plan(trainer, req_data['name'])
+        plan = PlanHandler.create_plan(trainer, req_data['name'])
         if plan[0] == "invalid":
             #check if plan was created or changed
             if req_data.get('id') == None:
@@ -145,7 +72,7 @@ class CreatePlanView(APIView):
                         }
                     }
                 return Response(data)
-        plan = plan[1]
+        plan:TrainingSchedule = plan[1]
 
         list_of_exs_in_plan = req_data['exercise']
         ex_in_plans = []
@@ -177,7 +104,7 @@ class CreatePlanView(APIView):
 
                 return Response(data)
             
-            res = add_exercise_to_plan(plan, exs['date'], int(exs['sets']), int(exs['repeats_per_set']), int(exs['id']))
+            res = PlanHandler.add_exercise_to_plan(plan, exs['date'], int(exs['sets']), int(exs['repeats_per_set']), int(exs['id']))
             #check if ExerciseInPlan entry could be created
             if res[0] == "invalid":
                 #if new data could not be created, because it was invalid, delete already created entries
@@ -218,8 +145,8 @@ class CreatePlanView(APIView):
                 return Response(data)
             users = User.objects.filter(plan=req_data['id'])
             for user in users:
-                add_plan_to_user(user.username, plan.id)
-            old_plan = TrainingSchedule.objects.get(id=int(req_data['id']))
+                PlanHandler.add_plan_to_user(user.username, plan.id)
+            old_plan:TrainingSchedule = TrainingSchedule.objects.get(id=int(req_data['id']))
             #check if a doneExercise relates to this plan
             needed = False
             for exip in ExerciseInPlan.objects.filter(plan=old_plan):
@@ -229,6 +156,7 @@ class CreatePlanView(APIView):
             #if yes keep old plan and relate it to new one
             if needed:
                 old_plan.visable = False
+                old_plan.save(force_update=True)
             #else delete old plan
             else:
                 TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
@@ -255,7 +183,6 @@ class AddPlanToUserView(APIView):
             }
             return Response(data)
         req_data = dict(request.data)
-        req_data = request.data
         token = JwToken.check_session_token(request.headers['Session-Token'])
         #check if token is valid
         if not token["valid"]:
@@ -275,7 +202,7 @@ class AddPlanToUserView(APIView):
                 }
             return Response(data)
 
-        res = add_plan_to_user(username=req_data['user'], plan=req_data.get('plan'))
+        res = PlanHandler.add_plan_to_user(username=req_data['user'], plan=req_data.get('plan'))
 
         #checks whether assigning was successful
         if res == "user_invalid":
@@ -342,14 +269,13 @@ class ShowPlanView(APIView):
             return Response(data)
 
         #get exercises of this plan
-        exs = getListOfExercises(int(req_data['plan']))
-        plan = TrainingSchedule.objects.get(id=int(req_data['plan']))
-        name = plan.name
+        exs = PlanHandler.getListOfExercises(int(req_data['plan']))
+        plan:TrainingSchedule = TrainingSchedule.objects.get(id=int(req_data['plan']))
         data = {
                 'success': True,
                 'description': 'returned plan',
                 'data': {
-                    'name': name,
+                    'name': plan.name,
                     'exercises': exs
                 }
         }
@@ -387,9 +313,9 @@ class GetAllPlansView(APIView):
                 }
             return Response(data)
         
-        trainer = Trainer.objects.get(username=info['username'])
+        trainer:Trainer = Trainer.objects.get(username=info['username'])
         #get all plans as list
-        plans = TrainingSchedule.objects.filter(trainer=trainer.id, visable=True)
+        plans = TrainingSchedule.objects.filter(trainer=trainer, visable=True)
         plans_res = []
         #get all ids as list
         for plan in plans:
@@ -397,6 +323,7 @@ class GetAllPlansView(APIView):
                 'id': plan.id,
                 'name': plan.name
                 })
+
         data = {
                 'success': True,
                 'description': 'returning all plans',
@@ -431,7 +358,7 @@ class GetPlanOfUser(APIView):
         info = token['info']
         #user gets own plan
         if info['account_type'] == 'user':
-            user = User.objects.get(username=info['username'])
+            user:User = User.objects.get(username=info['username'])
             #check if user has plan assigned
             if user.plan == None:
                 data = {
@@ -443,7 +370,7 @@ class GetPlanOfUser(APIView):
                 return Response(data)
 
             #get exercise in plan
-            exs = getListOfExercises(user.plan)
+            exs = PlanHandler.getListOfExercises(user.plan)
             data = {
                 'success': True,
                 'description': 'returned plan of this account',
@@ -474,7 +401,7 @@ class GetPlanOfUser(APIView):
                     }
                 return Response(data)
             
-            user = User.objects.get(username=req_data['username'])
+            user:User = User.objects.get(username=req_data['username'])
             #check if user has plan assigned
             if user.plan == None:
                 data = {
@@ -486,7 +413,7 @@ class GetPlanOfUser(APIView):
                 return Response(data)
 
             #get exercises in plan
-            exs = getListOfExercises(user.plan)
+            exs = PlanHandler.getListOfExercises(user.plan)
             data = {
                 'success': True,
                 'description': 'returned plan of user',
@@ -537,7 +464,7 @@ class DeletePlanView(APIView):
                 }
             return Response(data)
 
-        trainer = Trainer.objects.get(username=info['username'])
+        trainer:Trainer = Trainer.objects.get(username=info['username'])
         #check if plan exists and belongs to trainer
         if not TrainingSchedule.objects.filter(id=int(req_data['id']), trainer=trainer.id, visable=True).exists():
             data = {
@@ -554,7 +481,7 @@ class DeletePlanView(APIView):
 
         #delete plan/keep it, but unaccessable
         needed = False
-        ts = TrainingSchedule.objects.get(id=int(req_data['id']), trainer=trainer.id)
+        ts:TrainingSchedule = TrainingSchedule.objects.get(id=int(req_data['id']), trainer=trainer.id)
         for exip in ExerciseInPlan.objects.filter(plan=ts):
             if DoneExercises.objects.filter(exercise=exip).exists():
                 needed = True
@@ -575,5 +502,3 @@ class DeletePlanView(APIView):
             }
 
         return Response(data)
-        
-

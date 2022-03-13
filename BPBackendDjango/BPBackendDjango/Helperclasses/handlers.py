@@ -7,9 +7,12 @@ import string
 import time
 from rest_framework.response import Response
 
+from ..Views.leaderboardviews import reset_leaderboard_entry
+from ..serializers import CreateExerciseInPlan, CreatePlan
+
 from ..Views.exerciseviews import GetDoneExercisesView
 
-from ..models import Admin, DoneExercises, ExerciseInPlan, Location, Trainer, User
+from ..models import Admin, DoneExercises, Exercise, ExerciseInPlan, Location, Trainer, TrainingSchedule, User
 
 
 class ErrorHandler():
@@ -239,6 +242,23 @@ class UserHandler():
             })
         return data
 
+    @staticmethod
+    def check_flame_glow(user:User)->bool:
+        today = datetime.datetime.now()
+        weekday = today.strftime('%A').lower()
+        exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+        #if there had not to be done any exercises, check if that's last login
+        if exips.exists():
+            for exip in exips:
+                #calculate period in which exercise had to be done
+                if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - time.time() % 86400).exists():
+                    #if in this period no exercise has been done
+                    return False
+            #if all exercises had been done return, because after every exercise increasing streak is checked
+            return True
+        #no exercise
+        return True
+
 
 class TrainerHandler():
 
@@ -290,6 +310,83 @@ class TrainerHandler():
                 'telephone': trainer.telephone,
                 'email': trainer.email_address
             }
+
+
+class PlanHandler():
+
+    @staticmethod
+    def add_plan_to_user(username, plan)->string:
+        #checks if user exists
+        if not User.objects.filter(username=username).exists():
+            return "user_invalid"
+        #checks if plan exists
+        if plan != None:
+            if not TrainingSchedule.objects.filter(id=int(plan), visable = True).exists():
+                    return "plan_invalid"
+        #assign plan to user
+        user:User = User.objects.get(username=username)
+        if plan == None:
+            ts = None
+        else:
+            ts:TrainingSchedule = TrainingSchedule.objects.get(id=int(plan))
+        user.plan = ts
+        user.save(force_update=True)
+
+        reset_leaderboard_entry(username)
+        return "success"
+
+    @staticmethod
+    def create_plan(trainer:Trainer, name:string)->tuple:
+        #create plan
+        data = {
+            'trainer': trainer,
+            'name': name
+        }
+        new_plan = CreatePlan(data=data)
+        #check if plan is valid
+        if new_plan.is_valid():
+            plan = new_plan.save()
+            return "valid", plan
+        else:
+            return "invalid", new_plan.errors
+
+    @staticmethod
+    def add_exercise_to_plan(plan:TrainingSchedule, date:string, sets:int, rps:int, exercise:Exercise)->tuple:
+        #create plan data
+        data = {
+            'date': date,
+            'sets': sets,
+            'repeats_per_set': rps,
+            'exercise': exercise,
+            'plan': plan.id
+        }
+        new_data = CreateExerciseInPlan(data=data)
+        #check if plan data is valid
+        if new_data.is_valid():
+            data = new_data.save()
+            return "success", data
+        return "invalid", new_data.errors
+
+    @staticmethod
+    def getListOfExercises(plan:TrainingSchedule)->list:
+        exs = []
+        plan_data = ExerciseInPlan.objects.filter(plan=plan)
+        for ex in plan_data:
+            ex_id = ex.exercise.id
+            sets = ex.sets
+            rps = ex.repeats_per_set
+            date = ex.date
+            exs.append({
+                'exercise_plan_id': ex.id,
+                'id': ex_id,
+                'sets': sets,
+                'repeats_per_set': rps,
+                'date': date
+            })
+        return exs
+
+
+
 
 
 class InvitationsHandler():
