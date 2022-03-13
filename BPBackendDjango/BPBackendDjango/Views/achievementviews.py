@@ -694,7 +694,7 @@ class ReloadAfterExerciseView(APIView):
         #perfectExercise
         if not Achievement.objects.filter(name='perfectExercise').exists():
             icon_dict = '{"0":"' + ROOT_PATH + 'perfectExercise_0.svg","1":"' + ROOT_PATH + 'perfectExercise_1.svg"}'
-            Achievement.objects.create(name='perfectExercise', title='{"en":"Perfect Exercise","de":"Perfekte Übung"}', description='{"en": "Complete an exercise with 100 percent", "de": Erreiche 100 Prozent bei einer Übung"}')
+            Achievement.objects.create(name='perfectExercise', title='{"en":"Perfect Exercise","de":"Perfekte Übung"}', description='{"en": "Complete an exercise with 100 percent", "de": "Erreiche 100 Prozent bei einer Übung"}')
         achievement = Achievement.objects.get(name='perfectExercise')
         #check if achievement already achieved
         if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
