@@ -352,7 +352,7 @@ class AchievementTestCase(TestCase):
         expected = [{
             'name': 'doneExercises',
             'title': 'Done Exercises',
-            'description': "Do exercises top get/level this achievement",
+            'description': "Do exercises to get/level this achievement",
             'level': 0,
             'progress': '0/10',
             'hidden': False,
@@ -376,7 +376,7 @@ class AchievementTestCase(TestCase):
         }, {
             'name': 'perfectExercise',
             'title': 'Perfect Exercise',
-            'description': "Reach 100 percent at one exercise",
+            'description': "Complete an exercise with 100 percent",
             'level': 0,
             'progress': '0/1',
             'hidden': False,
