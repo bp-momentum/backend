@@ -355,7 +355,7 @@ class AchievementTestCase(TestCase):
             'level': 0,
             'progress': '0/10',
             'hidden': False,
-            'icon': 'https://cdn.geoscribble.de/achievements/doneExercises_0.png'
+            'icon': 'https://cdn.geoscribble.de/achievements/doneExercises_0.svg'
         }, {
             'name': 'havingFriends',
             'description': "add a friend",
@@ -376,7 +376,7 @@ class AchievementTestCase(TestCase):
             'level': 0,
             'progress': '0/1',
             'hidden': False,
-            'icon': 'https://cdn.geoscribble.de/achievements/perfectExercise_0.png'
+            'icon': 'https://cdn.geoscribble.de/achievements/perfectExercise_0.svg'
         }]
         actual = response.data.get('data').get('achievements')
         self.assertEquals(len(actual), len(expected))
