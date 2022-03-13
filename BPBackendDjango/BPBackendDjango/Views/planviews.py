@@ -1,4 +1,5 @@
-from os import name
+import datetime
+import locale
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -11,6 +12,8 @@ from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
 def add_plan_to_user(username, plan):
+    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+    weekday = datetime.datetime.now().strftime('%A').lower()
     #checks if user exists
     if not User.objects.filter(username=username).exists():
         return "user_invalid"

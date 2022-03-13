@@ -69,7 +69,6 @@ class User(models.Model):
     xp = models.BigIntegerField(default=0)
     avatar = models.IntegerField(max_length=5, default=0)
     motivation = models.TextField(max_length=1000, default='')
-    all_done = models.BooleanField(default=False)
 
 
 class DoneExercises(models.Model):

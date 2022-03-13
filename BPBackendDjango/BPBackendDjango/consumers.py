@@ -18,7 +18,7 @@ from .Helperclasses.jwttoken import JwToken
 
 def check_if_last_exercise(user:User):
     today = datetime.datetime.now()
-    weekday = today.strftime('%A')
+    weekday = today.strftime('%A').lower()
     exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
     #if there had not to be done any exercises, check if that's last login
     if exips.exists():
