@@ -24,6 +24,7 @@ Parameters:
     "last_name": <str>,
     "username": <str>,
     "email_address": <str>,
+    "url": <str>
 }
 ```
 Success Return 
@@ -90,8 +91,8 @@ Success Return
     "success": true,
     "description": "User was created",
     "data": {
-        "session_token": session_token,
-        "refresh_token": refresh_token
+        "session_token": <str>,
+        "refresh_token": <str>
     }
 }
 ```
@@ -119,7 +120,10 @@ Success Return
 {
     "success": true,
     "description": 'refresh-token changed',
-    "data": {}
+    "data": {
+        "refresh-token": <str>,
+        "session_token": <str>
+    }
 }
 ```
 
@@ -138,6 +142,7 @@ Header:
 Parameters: 
 ```json
 {
+    "refresh_token": <str>
 }
 ```
 Success Return 
@@ -147,8 +152,8 @@ Success Return
     "success": true,
     "description": 'user is now logged in',
     "data": {
-        "session_token": session_token,
-        "refresh-token": refresh_token
+        "session_token": <str>,
+        "refresh-token": <str>
         }
 }
 ```
@@ -177,6 +182,712 @@ Success Return
 {
     "success": true,
     "description": "User was successfully deleted",
+    "data": {}
+}
+```
+
+## Change Language
+
+Type: POST 
+
+Path: /api/changelanguage
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "language": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "language was successfully changed",
+    "data": {}
+}
+```
+
+## Get Language
+
+Type: GET 
+
+Path: /api/getlanguage
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "language returned",
+    "data": {
+        "language": <str>
+    }
+}
+```
+
+## Get Users of Trainer
+
+Type: GET (as trainer) or POST as admin 
+
+Path: /api/gettrainersuser
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "username": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Returned users of trainer",
+    "data": {
+        "users": <list>[{
+            "id": <int>,
+            "username": <str>,
+            "plan": <int>,
+            "done_exercises": <float>,
+            "last_login": <string>
+        }]
+    }
+}
+```
+
+## Get Trainers
+
+Type: GET
+
+Path: /api/gettrainers
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Returning all trainers",
+    "data": {
+        "trainers": <list>[{
+            "id": <int>,
+            "username": <str>,
+            "last_login": <string>
+        }]
+    }
+}
+```
+
+## Delete Trainer
+
+Type: POST
+
+Path: /api/deletetrainer
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "id": <int>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Trainer was deleted",
+    "data": {}
+}
+```
+
+## Delete User
+
+Type: POST
+
+Path: /api/deleteuser
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "id": <int>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "User was deleted",
+    "data": {}
+}
+```
+
+## Get User Level
+
+Type: GET
+
+Path: /api/getuserlevel
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "username": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "returning level and progress of next level",
+    "data": {
+        "level": <int>,
+        "progress": <str>
+    }
+}
+```
+
+## Get Invited User
+
+Type: GET
+
+Path: /api/getinvited
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Returning created invites",
+    "data": {
+        "invited": <list>[{
+            "id": <int>,
+            "first_name": <str>,
+            "last_name": <str>,
+            "email": <str>
+        }]
+    }
+}
+```
+
+## Invalidate Invite
+
+Type: POST
+
+Path: /api/invalidateinvite
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "id": <int>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Token invalidated",
+    "data": {}
+}
+```
+
+## Change Username
+
+Type: POST
+
+Path: /api/changeusername
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "username": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Username changed",
+    "data": {
+        "session_token": <str>,
+        "refresh_token": <str>
+    }
+}
+```
+
+## Change Password
+
+Type: POST
+
+Path: /api/changepassword
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "password": <str>,
+    "new_password": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Password changed",
+    "data": {
+        "session_token": <str>,
+        "refresh_token": <str>
+    }
+}
+```
+
+## Change Avatar
+
+Type: POST
+
+Path: /api/changeavatar
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "avatar": <int>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Avatar changed",
+    "data": {}
+}
+```
+
+## Change Motivation
+
+Type: POST
+
+Path: /api/changemotivation
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "motivation": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Motivation changed",
+    "data": {}
+}
+```
+
+## Get Profil
+
+Type: GET
+
+Path: /api/getprofile
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Returning profile data",
+    "data": {
+        "username": <str>,
+        "avatar": <int>,
+        "first_login": <str>,
+        "motivation": <str>
+    }
+}
+```
+
+## Get Trainer Contact
+
+Type: GET
+
+Path: /api/gettrainercontact
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{}
+```
+Success Return 
+
+```json
+as user:
+{
+    "success": true,
+    "description": "Returning contact data of trainer",
+    "data": {
+        "name": <str>,
+        "address": <str>,
+        "telephone": <str>,
+        "email": <str>
+    }
+}
+as trainer:
+{
+    "success": true,
+    "description": "Returning your contact data",
+    "data": {
+        "name": <str>,
+        "academia": <str>,
+        "street": <str>,
+        "city": <str>,
+        "country": <str>,
+        "address_addition": <str>,
+        "postal_code": <str>,
+        "house_nr": <str>,
+        "telephone": <str>,
+        "email": <str>
+    }
+}
+```
+
+## Set Trainer Location
+
+Type: POST
+
+Path: /api/changelocation
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "street": <str>,
+    "city": <str>,
+    "country": <str>,
+    "address_addition": <str>,
+    "postal_code": <str>,
+    "house_nr": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Location updated",
+    "data": {}
+}
+```
+
+## Set Trainer Telephone Number
+
+Type: POST
+
+Path: /api/changetelephone
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "telephone": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Telephone number updated",
+    "data": {}
+}
+```
+
+## Set Trainer Academia
+
+Type: POST
+
+Path: /api/changeacademia
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "academia": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Academia updated",
+    "data": {}
+}
+```
+
+## Search User
+
+Type: POST
+
+Path: /api/searchuser
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "search": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "returning list of matching users",
+    "data": {
+        "users": <list>[{
+            "id": <int>,
+            "username": <str>
+        }]
+    }
+}
+```
+
+## Get List of Users
+
+Type: GET
+
+Path: /api/getlistofusers
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "returning list of users",
+    "data": {
+        "users": <list>[{
+            "id": <int>,
+            "username": <str>
+        }]
+    }
+}
+```
+
+## Get Reset Password Mail
+
+Type: POST
+
+Path: /api/getresetpasswordemail
+
+Header:
+```json
+{
+    "Session-Token": <str>
+}
+```
+
+Parameters: 
+```json
+{
+    "username": <str>,
+    "url": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "email with invite was sent",
+    "data": {}
+}
+```
+
+## Reset Password
+
+Type: POST
+
+Path: /api/resetpassword
+
+Header:
+```json
+{
+}
+```
+
+Parameters: 
+```json
+{
+    "reset_token": <str>,
+    "new_password": <str>
+}
+```
+Success Return 
+
+```json
+{
+    "success": true,
+    "description": "Password got reset",
     "data": {}
 }
 ```
