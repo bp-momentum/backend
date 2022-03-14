@@ -245,6 +245,10 @@ class SetConsumer(WebsocketConsumer):
             type += 1
             self.current_set -= 1
 
+            # save in Leaderboard
+            self.points = 0 if self.executions_per_set == 0 else int(
+                (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
+
             #add medal
             if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
                 UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
@@ -274,17 +278,11 @@ class SetConsumer(WebsocketConsumer):
                 }
             }))
 
-            # save in Leaderboard
-            self.points = 0 if self.executions_per_set == 0 else int(
-                (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
-
             # add streak when this was the last exercise today
             if ExerciseHandler.check_if_last_exercise(self.user):
                 user:User = User.objects.get(id=self.user.id)
                 user.streak += 1
                 user.save(force_update=True)
-
-
 
             p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
             leaderboard_entry:Leaderboard = Leaderboard.objects.get(user=self.user.id)
