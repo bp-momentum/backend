@@ -21,7 +21,7 @@ class AIInterface:
         if time.time() - last_call > 3:
             last_call = time.time()
             rand = random.random()
-            if rand < 0.95:
+            if rand < 0.85:
 
                 ai_back = {
                     "feedback": "statistics",
