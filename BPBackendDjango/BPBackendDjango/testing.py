@@ -883,11 +883,11 @@ class ProfileTestCase(TestCase):
         ex:Exercise = Exercise.objects.create(title='Kniebeuge')
         trainer:Trainer = Trainer.objects.get(id=self.trainer_id)
         plan:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
-        exip:ExerciseInPlan = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan)
+        exip:ExerciseInPlan = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan, date='saturday')
         user:User = User.objects.get(id=self.user1_id)
         user.plan = plan
         user.save(force_update=True)
-        dex:DoneExercises = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
+        dex:DoneExercises = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(datetime.datetime(2022, 2, 12).timestamp()))
         #valid
         result = [{
             "exercise_plan_id": dex.exercise.id,
