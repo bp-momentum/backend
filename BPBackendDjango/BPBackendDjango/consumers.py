@@ -326,7 +326,8 @@ class SetConsumer(WebsocketConsumer):
                 'description': "The set must be started to send the video Stream",
                 'data': {}
             }))
-        self.save_video(data)
+
+        #self.save_video(data)
         # check stats or info
         feedback = AIInterface.call_ai(self.exercise, data)
 

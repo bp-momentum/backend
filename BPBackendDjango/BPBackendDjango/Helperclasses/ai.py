@@ -17,7 +17,9 @@ class AIInterface:
 
         print("got", time.time() - last_call)
         print(last_call)
-        ai_back = {}
+        ai_back = {
+            "feedback": "None"
+        }
         if time.time() - last_call > 3:
             rand = random.random()
             if rand > 95:
