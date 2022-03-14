@@ -351,16 +351,16 @@ class AchievementTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         expected = [{
             'name': 'doneExercises',
-            'title': 'Done Exercises',
-            'description': "Do exercises to get/level this achievement",
+            'title': 'Abgeschlossene Übungen',
+            'description': "Mache Übungen um diese Errungenschaft zu bekommen beziehungsweise hoch zu leveln",
             'level': 0,
             'progress': '0/10',
             'hidden': False,
             'icon': 'https://cdn.geoscribble.de/achievements/doneExercises_0.svg'
         }, {
             'name': 'havingFriends',
-            'title': 'A Friend!',
-            'description': "add a friend",
+            'title': 'Freundschaft!',
+            'description': "habe einen Freund",
             'level': 0,
             'progress': '0/1',
             'hidden': False,
@@ -368,15 +368,15 @@ class AchievementTestCase(TestCase):
         }, {
             'name': 'streak',
             'title': 'Streak',
-            'description': "get a streak",
+            'description': "sammel eine Streak",
             'level': 1,
             'progress': '3/7',
             'hidden': False,
             'icon': "www.test.de/streak1"
         }, {
             'name': 'perfectExercise',
-            'title': 'Perfect Exercise',
-            'description': "Complete an exercise with 100 percent",
+            'title': 'Perfekte Übung',
+            'description': "Erreiche 100 Prozent bei einer Übung",
             'level': 0,
             'progress': '0/1',
             'hidden': False,
@@ -413,8 +413,8 @@ class AchievementTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('achievements'), {
             'name': 'havingFriends',
-            'title': 'A Friend!',
-            'description': "add a friend",
+            'title': 'Freundschaft!',
+            'description': "habe einen Freund",
             'level': 1,
             'progress': 'done',
             'hidden': False,
@@ -459,7 +459,7 @@ class AchievementTestCase(TestCase):
         self.assertEquals(response.data.get('data').get('achievements'), [{
             'name': 'streak',
             'title': 'Streak',
-            'description': "get a streak",
+            'description': "sammel eine Streak",
             'level': 2,
             'progress': '7/30',
             'hidden': False,
@@ -1213,7 +1213,7 @@ class TestExerciseView(TestCase):
         self.assertTrue(response.data.get('success'))
         data = response.data.get('data')
         self.assertEquals(data.get('title'), 'Kniebeuge')
-        self.assertEquals(data.get('description'), "Do squats...")
+        self.assertEquals(data.get('description'), "Gehe in die Knie, achte...")
         self.assertEquals(data.get('video'), None)
         self.assertEquals(data.get('activated'), True)
         #invalid
