@@ -911,7 +911,7 @@ class ProfileTestCase(TestCase):
         dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
         now = datetime.datetime.now()
         #valid
-        result = get_done_exercises_of_month(now.month, now.year, user)
+        result = ExerciseHandler.get_done_exercises_of_month(now.month, now.year, user)
         '''[{
             "exercise_plan_id": dex.exercise.id,
             "id": dex.exercise.exercise.id,
@@ -1745,17 +1745,17 @@ class TestDoneExercise(TestCase):
         self.assertEquals(response.data.get('data').get('data'), ['exercise_plan_id'])
 
     def test_get_done(self): #not working, issue with method in tests
-        '''#valid
+        #valid
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = GetDoneExercisesView.get(GetDoneExercisesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('exercises'), GetDoneExercisesView.GetDone(GetDoneExercisesView, self.user))
+        self.assertEquals(response.data.get('data').get('exercises'), ExerciseHandler.get_done(self.user))
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'user': self.user.username})
         response = GetDoneExercisesView.post(GetDoneExercisesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('exercises'), GetDoneExercisesView.GetDone(GetDoneExercisesView, self.user))
+        self.assertEquals(response.data.get('data').get('exercises'), ExerciseHandler.get_done(self.user))
         #invalid
         #trainer cant call user method
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
@@ -1796,7 +1796,7 @@ class TestDoneExercise(TestCase):
         response = GetDoneExercisesView.post(GetDoneExercisesView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['user'])'''
+        self.assertEquals(response.data.get('data').get('data'), ['user'])
 
 
 class TestFriendSystem(TestCase):

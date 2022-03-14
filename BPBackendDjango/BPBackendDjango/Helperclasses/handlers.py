@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import json
 import locale
 import math
 import random
@@ -10,10 +11,11 @@ from rest_framework.response import Response
 from ..Views.leaderboardviews import reset_leaderboard_entry
 from ..serializers import CreateExerciseInPlan, CreatePlan
 
-from ..Views.exerciseviews import GetDoneExercisesView
-
 from ..models import Admin, DoneExercises, Exercise, ExerciseInPlan, Location, Trainer, TrainingSchedule, User
 
+
+SECS_PER_YEAR = 31556952
+SECS_PER_DAY = 86400
 
 class ErrorHandler():
 
@@ -137,7 +139,7 @@ class UserHandler():
             else:
                 plan_id = user.plan.id
                 #getting weekly progress
-                done = GetDoneExercisesView.GetDone(GetDoneExercisesView, user)
+                done = ExerciseHandler.get_done(user)
                 if done.get('success'):
                     exs = done.get('data').get('exercises')
                     nr_of_done = 0
@@ -386,7 +388,98 @@ class PlanHandler():
         return exs
 
 
+class LanguageHandler():
 
+    @staticmethod
+    def get_in_correct_language(username:string, description:string)->string:
+        if User.objects.filter(username=username).exists():
+            user:User = User.objects.get(username=username)
+        elif Trainer.objects.filter(username=username).exists():
+            user:Trainer = Trainer.objects.get(username=username)
+        elif Admin.objects.filter(username=username).exists():
+            user:Admin = Admin.objects.get(username=username)
+        else:
+            return "invalid user"
+        lang = user.language
+        desc:dict = json.loads(description.replace("'", "\""))
+        res = desc.get(lang)
+        if res == None:
+            return lang + " is not available"
+        return res
+
+
+class ExerciseHandler():
+
+    @staticmethod
+    def get_done_exercises_of_month(month:int, year:int, user:User)->list:
+        year_offset = (year-1970)*SECS_PER_YEAR
+        month_offset = 0
+        for i in range(1, month):
+            month_offset += DateHandler.get_lastday_of_month(i, year)*SECS_PER_DAY
+        next_month_offset = month_offset + DateHandler.get_lastday_of_month(month, year) * SECS_PER_DAY
+        offset_gt = year_offset + month_offset
+        offset_lt = year_offset + next_month_offset
+        done = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True)
+        # list of all exercises to done
+        all = ExerciseInPlan.objects.filter(plan=user.plan)
+        out = []
+        for d in done:
+            out.append({
+                "exercise_plan_id": d.exercise.id,
+                "id": d.exercise.exercise.id,
+                "date": d.date,
+                "points": d.points
+            })
+        return out
+
+    @staticmethod
+    def get_done(user:User):
+
+        # list of all done in last week
+        # calculation of timespan and filter
+        done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800, completed=True)
+        # list of all exercises to done
+        all = ExerciseInPlan.objects.filter(plan=user.plan)
+        out = []
+        for a in all:
+            done_found = False
+            for d in done:
+                if done_found:
+                    continue
+                if a.id == d.exercise.id:
+                    out.append({"exercise_plan_id": a.id,
+                                "id": a.exercise.id,
+                                "date": a.date,
+                                "sets": a.sets,
+                                "repeats_per_set": a.repeats_per_set,
+                                "done": True
+                                })
+                    done_found = True
+                    break
+            if done_found:
+                continue
+
+            out.append({"exercise_plan_id": a.id,
+                        "id": a.exercise.id,
+                        "date": a.date,
+                        "sets": a.sets,
+                        "repeats_per_set": a.repeats_per_set,
+                        "done": False
+                        })
+
+
+
+        data = {
+            "success": True,
+            "description": "Returned list of Exercises and if its done",
+            "data":
+                {"name": user.plan.name,
+                 "exercises": out
+                 }
+        }
+
+        #returns the data as in the get plan but with a additional var "done"
+        return data
 
 
 class InvitationsHandler():
@@ -435,3 +528,9 @@ class DateHandler():
         else:
             month = str(m)
         return str(y)+'-'+str(month)+'-'+str(day)
+
+    @staticmethod
+    def valid_month(month:int)->bool:
+        if (month < 1) or (month > 12):
+            return False
+        return True
