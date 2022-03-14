@@ -1672,40 +1672,6 @@ class TestDoneExercise(TestCase):
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
         Leaderboard.objects.create(user=User.objects.get(username=self.user.username), score=0)
 
-    def test_do_exercise(self):
-        #valid
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertTrue(response.data.get('success'))
-        self.assertTrue(DoneExercises.objects.all().exists())
-        #invalid
-        #already done
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #invalid exercise in plan
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': 5412654})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #admin not allowed to
-        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #trainer not allowed to
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #invalid token
-        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #missing arguments
-        request = ViewSupport.setup_request({}, {})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['exercise_plan_id'])
-
     def test_get_done(self): #not working, issue with method in tests
         #valid
         #as user
