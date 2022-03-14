@@ -13,8 +13,17 @@ import hashlib
 from pathlib import Path
 import json
 from jwcrypto import jwt, jwk
+import random
+import string
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+def get_random_string(length):
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
 
 SETTINGS_JSON = "settings.json"
 INTERN_SETTINGS = {
@@ -34,7 +43,7 @@ INTERN_SETTINGS = {
         "host": "localhost",
     },
     "video_dir": "videos/",
-    "secret_key": "",
+    "secret_key": get_random_string(16),
     "allowed_origins": ["localhost:80", "localhost:81"],
     "website_url": "https://my_url.de",
     "last_leaderboard_reset": 0
@@ -43,7 +52,7 @@ try:
     with open(SETTINGS_JSON) as json_file:
         INTERN_SETTINGS = json.load(json_file)
 except:
-    json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
+    json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"), indent=4)
     print("Please enter settings at: ", SETTINGS_JSON)
     exit()
 
@@ -54,7 +63,7 @@ except:
     ## token in settings.json speichern
     newSetting = INTERN_SETTINGS
     newSetting["token_key"] = key
-    json.dump(key, open(SETTINGS_JSON, "w"))
+    json.dump(newSetting, open(SETTINGS_JSON, "w"), indent=4)
     
 
 
