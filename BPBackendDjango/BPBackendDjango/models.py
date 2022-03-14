@@ -69,7 +69,6 @@ class User(models.Model):
     xp = models.BigIntegerField(default=0)
     avatar = models.IntegerField(max_length=5, default=0)
     motivation = models.TextField(max_length=1000, default='')
-    all_done = models.BooleanField(default=False)
 
 
 class DoneExercises(models.Model):
@@ -104,7 +103,8 @@ class Friends(models.Model):
 
 class Achievement(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    description = models.TextField(default="")
+    title = models.TextField(default="{ }")
+    description = models.TextField(default="{ }")
     hidden = models.BooleanField(default=False)
     icon = models.TextField(default='{ }')
     

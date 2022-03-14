@@ -342,8 +342,8 @@ class AchievementTestCase(TestCase):
         self.token1 = JwToken.create_session_token(admin.username, 'admin')
         self.token2 = JwToken.create_session_token(self.trainer.username, 'trainer')
         self.token3 = JwToken.create_session_token(self.user1.username, 'user')
-        self.achievement1:Achievement = Achievement.objects.create(name='streak', description='{"en": "get a streak", "de": "sammel eine Streak"}', icon='{"4":"www.test.de/streak4","3":"www.test.de/streak3","2":"www.test.de/streak2","1":"www.test.de/streak1","0":"www.test.de/streak0"}')
-        self.achievement2:Achievement = Achievement.objects.create(name='havingFriends', description='{"en": "add a friend", "de": "habe einen Freund"}', icon='{"1":"www.test.de/friends1","0":"www.test.de/friends0"}')
+        self.achievement1:Achievement = Achievement.objects.create(name='streak', title='{"en":"Streak","de":"Streak"}', description='{"en": "get a streak", "de": "sammel eine Streak"}', icon='{"4":"www.test.de/streak4","3":"www.test.de/streak3","2":"www.test.de/streak2","1":"www.test.de/streak1","0":"www.test.de/streak0"}')
+        self.achievement2:Achievement = Achievement.objects.create(name='havingFriends', title='{"en":"A Friend!","de":"Freundschaft!"}', description='{"en": "add a friend", "de": "habe einen Freund"}', icon='{"1":"www.test.de/friends1","0":"www.test.de/friends0"}')
 
     def test_get_achievements(self):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
@@ -351,13 +351,15 @@ class AchievementTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         expected = [{
             'name': 'doneExercises',
-            'description': "Do exercises top get/level this achievement",
+            'title': 'Done Exercises',
+            'description': "Do exercises to get/level this achievement",
             'level': 0,
             'progress': '0/10',
             'hidden': False,
-            'icon': 'https://cdn.geoscribble.de/achievements/doneExercises_0.png'
+            'icon': 'https://cdn.geoscribble.de/achievements/doneExercises_0.svg'
         }, {
             'name': 'havingFriends',
+            'title': 'A Friend!',
             'description': "add a friend",
             'level': 0,
             'progress': '0/1',
@@ -365,6 +367,7 @@ class AchievementTestCase(TestCase):
             'icon': "www.test.de/friends0"
         }, {
             'name': 'streak',
+            'title': 'Streak',
             'description': "get a streak",
             'level': 1,
             'progress': '3/7',
@@ -372,11 +375,12 @@ class AchievementTestCase(TestCase):
             'icon': "www.test.de/streak1"
         }, {
             'name': 'perfectExercise',
-            'description': "Reach 100 percent at one exercise",
+            'title': 'Perfect Exercise',
+            'description': "Complete an exercise with 100 percent",
             'level': 0,
             'progress': '0/1',
             'hidden': False,
-            'icon': 'https://cdn.geoscribble.de/achievements/perfectExercise_0.png'
+            'icon': 'https://cdn.geoscribble.de/achievements/perfectExercise_0.svg'
         }]
         actual = response.data.get('data').get('achievements')
         self.assertEquals(len(actual), len(expected))
@@ -409,6 +413,7 @@ class AchievementTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('achievements'), {
             'name': 'havingFriends',
+            'title': 'A Friend!',
             'description': "add a friend",
             'level': 1,
             'progress': 'done',
@@ -453,6 +458,7 @@ class AchievementTestCase(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('achievements'), [{
             'name': 'streak',
+            'title': 'Streak',
             'description': "get a streak",
             'level': 2,
             'progress': '7/30',
@@ -490,7 +496,7 @@ class AchievementTestCase(TestCase):
         response = GetStreakView.get(GetStreakView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('days'), 3)
-        self.assertFalse(response.data.get('data').get('flame_glow'))
+        self.assertTrue(response.data.get('data').get('flame_glow'))
         self.assertEquals(response.data.get('data').get('flame_height'), 0.3)
         #invalid
         #as Trainer not possible
