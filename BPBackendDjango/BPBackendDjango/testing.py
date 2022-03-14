@@ -1743,7 +1743,7 @@ class TestDoneExercise(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'user': self.user.username})
         response = GetDoneExercisesView.post(GetDoneExercisesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('exercises'), ExerciseHandler.get_done(self.user))
+        self.assertEquals(response.data, ExerciseHandler.get_done(self.user))
         #invalid
         #trainer cant call user method
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
@@ -2257,8 +2257,8 @@ class TestProfileOfFriends(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data'), {
             'username': 'jbad',
-            'level': UserHandler.calc_level(5000)[0],
-            'level_progress': UserHandler.calc_level(5000)[1],
+            'level': UserHandler.calc_level(5000, 200)[0],
+            'level_progress': UserHandler.calc_level(5000, 200)[1],
             'avatar': 2,
             'motivation': 'Gute Tage',
             'last_login': None,
@@ -2275,7 +2275,7 @@ class TestProfileOfFriends(TestCase):
         self.assertEquals(response.data.get('data'), {
             'username': 'DeadlyFarts',
             'level': 0,
-            'level_progress': UserHandler.calc_level(20)[1],
+            'level_progress': UserHandler.calc_level(20, 200)[1],
             'avatar': 5,
             'motivation': 'Krise',
             'last_login': None,

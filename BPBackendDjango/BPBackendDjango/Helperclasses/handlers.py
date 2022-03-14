@@ -342,7 +342,7 @@ class PlanHandler():
     def create_plan(trainer:Trainer, name:string)->tuple:
         #create plan
         data = {
-            'trainer': trainer,
+            'trainer': trainer.id,
             'name': name
         }
         new_plan = CreatePlan(data=data)
