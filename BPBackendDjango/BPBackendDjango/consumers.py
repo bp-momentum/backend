@@ -23,7 +23,6 @@ class SetConsumer(WebsocketConsumer):
         # initialising the new connection
         self.filename = None
         self.doing_set = False
-        self.f_stop = None
         self.username = ""
         self.user = None
 
@@ -49,7 +48,7 @@ class SetConsumer(WebsocketConsumer):
         self.exinplan = None
 
     # in this method the incoming video stream will be saved
-    def save_video(self, data):
+    def save_video(self, data_bytes):
         if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username)):
             # check if the user folder was already created else mkdir
             try:
@@ -65,7 +64,7 @@ class SetConsumer(WebsocketConsumer):
             mode = 'ab'
 
         with open(os.path.join(INTERN_SETTINGS['video_dir'], self.username, self.filename), mode) as f:
-            f.write(data)
+            f.write(data_bytes)
             f.close()
 
     def authenticate(self, session_token):
@@ -118,9 +117,7 @@ class SetConsumer(WebsocketConsumer):
                 'data': {}
             }))
             self.filename = str(time.time()) + ".webm"
-            self.f_stop = threading.Event()
             self.doing_set = True
-            self.start_ai_call(self.f_stop)
 
         else:
             self.send(text_data=json.dumps({
@@ -133,7 +130,6 @@ class SetConsumer(WebsocketConsumer):
     def end_set(self, data):
         # check if user is doing a set, if so and the set !!! is currently disabled and has to be changed when enabled!!
         if self.doing_set:
-            self.f_stop.set()
             self.doing_set = False
             self.send(text_data=json.dumps({
                 'message_type': 'end_set',
@@ -237,7 +233,6 @@ class SetConsumer(WebsocketConsumer):
 
         # end set when set is done
         if self.current_set_execution == self.executions_per_set:
-            self.f_stop.set()
             self.doing_set = False
             self.current_set_execution = 0
             self.current_set += 1
@@ -246,7 +241,6 @@ class SetConsumer(WebsocketConsumer):
 
         # end exercise when exercise is done
         if self.current_set == self.sets:
-            self.f_stop.set()
             self.doing_set = False
             type += 1
             self.current_set -= 1
@@ -319,7 +313,6 @@ class SetConsumer(WebsocketConsumer):
             }))
 
     def ai_evaluation(self, data):
-        print(data)
 
         if not self.doing_set:
             self.send(text_data=json.dumps({
@@ -355,7 +348,7 @@ class SetConsumer(WebsocketConsumer):
 
     # start new thread
     def start_ai_call(self, data):
-        t = threading.Thread(target=self.ai_evaluation, args=(data,))
+        t = threading.Thread(target=SetConsumer.ai_evaluation, args=(self, data,))
         t.daemon = True
         t.start()
 
@@ -368,10 +361,6 @@ class SetConsumer(WebsocketConsumer):
 
     # On Disconnect
     def disconnect(self, close_code):
-        try:
-            self.f_stop.set()
-        except:
-            pass
         self.doing_set = False
 
         # save current state in database
