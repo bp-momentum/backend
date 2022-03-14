@@ -245,6 +245,22 @@ class SetConsumer(WebsocketConsumer):
             type += 1
             self.current_set -= 1
 
+            #add medal
+            if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
+                UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
+            umix:UserMedalInExercise = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
+            gained_medal = ""
+            if self.points >= 90: #gold
+                umix.gold += 1
+                gained_medal = "gold"
+            elif self.points >= 75: #silver
+                umix.silver += 1
+                gained_medal = "silver"
+            elif self.points >= 50: #bronze
+                umix.bronze += 1
+                gained_medal = "bronze"
+            umix.save(force_update=True)
+
             self.completed = True
             self.send(text_data=json.dumps({
                 'message_type': 'exercise_complete',
@@ -253,7 +269,9 @@ class SetConsumer(WebsocketConsumer):
                 'data': {
                     'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
                     'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
-                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done}
+                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done,
+                    'medal': gained_medal
+                }
             }))
 
             # save in Leaderboard
@@ -266,17 +284,7 @@ class SetConsumer(WebsocketConsumer):
                 user.streak += 1
                 user.save(force_update=True)
 
-            #add medal
-            if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
-                UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
-            umix:UserMedalInExercise = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
-            if self.points >= 90: #gold
-                umix.gold += 1
-            elif self.points >= 75: #silver
-                umix.silver += 1
-            elif self.points >= 50: #bronze
-                umix.bronze += 1
-            umix.save(force_update=True)
+
 
             p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
             leaderboard_entry:Leaderboard = Leaderboard.objects.get(user=self.user.id)
