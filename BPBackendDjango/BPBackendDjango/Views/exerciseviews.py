@@ -350,6 +350,13 @@ class GetDoneExercisesView(APIView):
             return Response(data)
 
         info = token['info']
+        if not User.objects.filter(username=info['username']).exists():
+            data = {
+                'success': False,
+                'description': 'Non existing user',
+                'data': {}
+            }
+            return Response(data)
         user = User.objects.get(username=info['username'])
 
         if user.plan is None:
