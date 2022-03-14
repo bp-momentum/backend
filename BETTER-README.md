@@ -9,8 +9,8 @@ this Django backend server.
 
 #### Configuration
 To create a default configuration, please start the server once, by running `python3 manage.py runserver <host-address>:<port>`.
-After that you will find a newly created `settings.json` file inside the directory. This file contains a newly created JWT Key,
-with which all tokens will be signed, but you can also configure your own. Now you can open the file and enter you configuration.
+After that you will find a newly created `settings.json` file inside the directory. Now you can open the file and enter you configuration.
+You don't have to fill in the `token_key` object inside the json, as it will be created automatically upon the first server start.
 
 #### Starting the Server
 After configuration, please start the server by running `python3 manage.py runserver <host-address>:<port>` again.
