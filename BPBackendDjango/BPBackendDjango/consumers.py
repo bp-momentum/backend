@@ -397,6 +397,8 @@ class SetConsumer(WebsocketConsumer):
     # On Receive
     def receive(self, text_data=None, bytes_data=None):
 
+        print(text_data, bytes_data)
+
         # check if request has bytes_data
         if bytes_data is not None:
             # send bytes to ai

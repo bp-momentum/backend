@@ -10,6 +10,7 @@ class AIInterface:
 
     @staticmethod
     def call_ai(exercise, video) -> dict:
+        print("got")
         global last_call
         ai_back = {}
         if time.time() - last_call > 3:
