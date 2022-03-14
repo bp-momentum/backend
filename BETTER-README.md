@@ -17,7 +17,7 @@ smtp server (for gmail: smtp.gmail.com). Then you can change the standard admin 
 details. These users will created only once when you firstly start the server. 
 
 Now you have to give the database information which you defined while creating 
-the database. "name" is here the database name, which you want to use and must du already created.
+the database. "name" is here the database name, which you want to use and must be already created.
 
 "Video_dir" is the relative path to the video folder, where the videos are stored.
 
@@ -32,9 +32,13 @@ last_leaderboard_reset should not be changed
 
 
 #### Starting the Server
+Before starting the server the database must creating the tables.
+For this type the command "python manage.py makemigrations" and
+"python manage.py migrate". Now the database will be adjusted, and the tables will be created.
+
 After configuration, please start the server by running `python3 manage.py runserver <host-address>:<port>` again.
 If there are any issues with your settings, you will see errors in the output. After successfully starting the server, it will
 be reachable at your `<host-address>:<port>`. The admin panel will be reachable at `<host-address>:<port>/admin`.
 As an example you can type the command "python manage.py runserver 0.0.0.0:8000"
 
-Now the database will be adjusted, and the tables will be created and the server can be reached by the frontend.
+Now the server can be reached by the frontend if the ports are allowed in the firewall.
