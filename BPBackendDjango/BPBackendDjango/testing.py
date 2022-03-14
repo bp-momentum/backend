@@ -1738,7 +1738,7 @@ class TestDoneExercise(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = GetDoneExercisesView.get(GetDoneExercisesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('exercises'), ExerciseHandler.get_done(self.user))
+        self.assertEquals(response.data, ExerciseHandler.get_done(self.user))
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'user': self.user.username})
         response = GetDoneExercisesView.post(GetDoneExercisesView, request)

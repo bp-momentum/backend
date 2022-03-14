@@ -17,6 +17,7 @@ SECS_PER_YEAR = 31556952
 SECS_PER_DAY = 86400
 
 FULL_COMBO = 10.0
+MAX_LEVEL = 200
 
 class ErrorHandler():
 
@@ -533,7 +534,7 @@ class FriendHandler():
     @staticmethod
     #only method must be changed to get more/less data
     def get_profile(user:User)->dict:
-        lvl_info = UserHandler.calc_level(user.xp)
+        lvl_info = UserHandler.calc_level(user.xp , MAX_LEVEL)
         return {
             'username': user.username,
             'level': lvl_info[0],
