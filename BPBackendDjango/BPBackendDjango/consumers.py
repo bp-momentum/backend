@@ -120,7 +120,7 @@ class SetConsumer(WebsocketConsumer):
             self.filename = str(time.time()) + ".webm"
             self.f_stop = threading.Event()
             self.doing_set = True
-            self.f(self.f_stop)
+            self.start_ai_call(self.f_stop)
 
         else:
             self.send(text_data=json.dumps({
@@ -149,16 +149,9 @@ class SetConsumer(WebsocketConsumer):
                 'data': {}
             }))
 
-    def ai_evaluation(self, data):
 
-        if not self.doing_set:
-            self.send(text_data=json.dumps({
-                'success': False,
-                'description': "The set must be started to send the video Stream",
-                'data': {}
-            }))
-        self.save_video(data)
-        AIInterface.call_ai(self.exercise, data, self.username)
+
+
 
     def initiate(self, data):
         # save, which exercise is done
@@ -215,17 +208,11 @@ class SetConsumer(WebsocketConsumer):
             }
         }))
 
-    def send_stats(self, ex_id):
+    def send_stats(self, intensity, speed, cleanliness, coordinates):
         # send stats emulates the ai when sending info after a single execution
         # calculating points
         if not self.doing_set:
             return
-
-        #load ai data
-        a, b, c = DummyAI.dummy_function(ex=ex_id, video=None)
-        intensity = b['intensity']
-        speed = b['speed']
-        cleanliness = b['cleanliness']
 
         self.intensity += intensity
         self.speed += speed
@@ -242,8 +229,7 @@ class SetConsumer(WebsocketConsumer):
                 'intensity': intensity,
                 'speed': speed,
                 'cleanliness': cleanliness,
-                'x': 30,
-                'y': 100,
+                'coordinates': coordinates
             }
         }))
 
@@ -298,7 +284,6 @@ class SetConsumer(WebsocketConsumer):
                 umix.bronze += 1
             umix.save(force_update=True)
 
-
             p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
             leaderboard_entry:Leaderboard = Leaderboard.objects.get(user=self.user.id)
 
@@ -333,12 +318,44 @@ class SetConsumer(WebsocketConsumer):
                 }
             }))
 
+    def ai_evaluation(self, data):
+
+        if not self.doing_set:
+            self.send(text_data=json.dumps({
+                'success': False,
+                'description': "The set must be started to send the video Stream",
+                'data': {}
+            }))
+        self.save_video(data)
+        # check stats or info
+        feedback = AIInterface.call_ai(self.exercise, data)
+
+        if feedback['feedback'] == 'statistics':
+            # load ai data
+            intensity = feedback['stats']['intensity']
+            speed = feedback['stats']['speed']
+            cleanliness = feedback['stats']['cleanliness']
+            coordinates = feedback['coordinates']
+
+            self.send_stats(intensity, speed, cleanliness, coordinates)
+
+
+        elif feedback['feedback'] == 'information':
+            self.send(text_data=json.dumps({
+                'message_type': 'information',
+                'success': True,
+                'description': "This is a information",
+                'data': {
+                    'information': feedback['info'],
+
+                }
+            }))
+
     # start new thread
-    def f(self, f_stop):
-        self.send_stats(1)
-        if not f_stop.is_set():
-            wait = random.randint(2, 4)
-            threading.Timer(wait, self.f, [f_stop]).start()
+    def start_ai_call(self, data):
+        t = threading.Thread(target=self.ai_evaluation, args=(data,))
+        t.daemon = True
+        t.start()
 
     # On Connect
     def connect(self):
@@ -377,17 +394,13 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.completed = self.completed
                 self.done_exercise_entry.save(force_update=True)
 
-
-
-
-
     # On Receive
     def receive(self, text_data=None, bytes_data=None):
 
         # check if request has bytes_data
         if bytes_data is not None:
             # send bytes to ai
-            self.ai_evaluation(bytes_data)
+            self.start_ai_call(bytes_data)
 
         # check if request hast text_data
         if text_data is not None:
