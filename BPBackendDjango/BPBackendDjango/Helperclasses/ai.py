@@ -21,6 +21,7 @@ class AIInterface:
             "feedback": "None"
         }
         if time.time() - last_call > 3:
+            last_call = time.time()
             rand = random.random()
             if rand > 95:
 

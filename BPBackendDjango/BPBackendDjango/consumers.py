@@ -330,6 +330,7 @@ class SetConsumer(WebsocketConsumer):
         #self.save_video(data)
         # check stats or info
         feedback = AIInterface.call_ai(self.exercise, data)
+        feedback['feedback']
 
         if feedback['feedback'] == 'statistics':
             # load ai data
