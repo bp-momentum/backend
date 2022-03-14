@@ -13,7 +13,6 @@ import datetime
 
 from ..serializers import CreateTrainerSerializer,  CreateUserSerializer
 from ..models import Leaderboard, Location, OpenToken, User, Trainer, Admin
-from BPBackendDjango.settings import *
 
 MAX_LEVEL = 200
 MULT_PER_LVL = 1.25

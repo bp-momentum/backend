@@ -1,10 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .leaderboardviews import reset_leaderboard_entry
 from ..models import DoneExercises, Exercise, ExerciseInPlan, Trainer, TrainingSchedule, User
 from ..Helperclasses.jwttoken import JwToken
-from ..Helperclasses.handlers import ErrorHandler, PlanHandler
+from ..Helperclasses.handlers import ErrorHandler, LeaderboardHandler, PlanHandler
 
 
 PLAN_LENGTH = 50
@@ -477,7 +476,7 @@ class DeletePlanView(APIView):
         users_affected = User.objects.filter(plan=req_data['id'])
 
         for u in users_affected:
-            reset_leaderboard_entry(u.username)
+            LeaderboardHandler.reset_leaderboard_entry(u.username)
 
         #delete plan/keep it, but unaccessable
         needed = False

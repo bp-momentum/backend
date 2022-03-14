@@ -1,28 +1,17 @@
-import collections
-from multiprocessing.connection import wait
-from pickle import TRUE
-from django.http import request
-from pickle import EXT2
-from urllib import request
 from django.test import TestCase
 
-from .Views.leaderboardviews import ListLeaderboardView
+from BPBackendDjango.BPBackendDjango.Views.planviews import AddPlanToUserView, CreatePlanView, DeletePlanView, GetAllPlansView, GetPlanOfUser, ShowPlanView
+
+from .models import Achievement, Admin, DoneExercises, Exercise, ExerciseInPlan, Friends, Leaderboard, Location, OpenToken, Trainer, TrainingSchedule, User, UserAchievedAchievement, UserMedalInExercise
+from .settings import INTERN_SETTINGS
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
-from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetStreakView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, SetPasswordResetEmailView, calc_level, get_trainers_data, get_users_data_for_upper
-from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
-from .Views.userviews import ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
-from .Views.userviews import GetUserLevelView
-from rest_framework import response
-from django.test.utils import setup_test_environment
-from .models import *
-from .Helperclasses.jwttoken import JwToken
+from .Helperclasses.handlers import ExerciseHandler, FriendHandler, InvitationsHandler, TrainerHandler, UserHandler
+from .Views.leaderboardviews import ListLeaderboardView
+from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView
+from .Views.userviews import AuthView, ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, CreateUserView, DeleteAccountView, DeleteTrainerView, DeleteUserView, GetInvitedView, GetListOfUsers, GetProfileView, GetStreakView, GetPasswordResetEmailView, GetTrainerContactView, GetUserLevelView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, LoginView, LogoutAllDevicesView, RegisterView, SearchUserView, SetPasswordResetEmailView, SetTrainerLocationView
 from .Views.achievementviews import GetAchievementsView, ReloadAfterExerciseView, ReloadFriendAchievementView, GetMedals
-from .Views.userviews import *
-from .Views.exerciseviews import *
-from .Views.planviews import *
+from .Views.exerciseviews import DoneExerciseView, GetDoneExercisesOfMonthView, GetDoneExercisesView, GetExerciseListView, GetExerciseView
 import hashlib
 import time
 import datetime
@@ -203,17 +192,17 @@ class getUsersAndTrainersTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': token2}, {})
         response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[0])))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data_for_upper(User.objects.filter(trainer=self.trainers[0])))
         #admin getting user of specific trainer
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': self.trainers[1].id})
         response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[1])))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data_for_upper(User.objects.filter(trainer=self.trainers[1])))
         #admin getting trainers
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('trainers'), get_trainers_data(Trainer.objects.all()))
+        self.assertEquals(response.data.get('data').get('trainers'), TrainerHandler.get_trainers_data(Trainer.objects.all()))
         #trainer deleting user
         id = self.users[9].id
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
@@ -584,7 +573,7 @@ class HandlingInvitesTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token}, {})
         response = GetInvitedView.get(GetInvitedView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('invited'), get_invited_data([self.ot1,]))
+        self.assertEquals(response.data.get('data').get('invited'), InvitationsHandler.get_invited_data([self.ot1,]))
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
@@ -977,17 +966,17 @@ class TestUserViews(TestCase):
     def test_delete_account(self):
         #valid token
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
-        response = DeleteAccountView.post(self=APIView, request=request) 
+        response = DeleteAccountView.post(DeleteAccountView, request=request) 
         self.assertTrue(response.data.get('success'))
         self.assertFalse(User.objects.filter(id=self.user_id).exists())
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
-        response = DeleteAccountView.post(self=APIView, request=request) 
+        response = DeleteAccountView.post(DeleteAccountView, request=request) 
         self.assertFalse(response.data.get('success'))
         #missing arguments
         request = ViewSupport.setup_request({}, {})
-        response = DeleteAccountView.post(self=APIView, request=request) 
+        response = DeleteAccountView.post(DeleteAccountView, request=request) 
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
@@ -1855,13 +1844,13 @@ class TestFriendSystem(TestCase):
         response = GetRequestView.get(GetRequestView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('requests')), 1)
-        self.assertEquals(response.data.get('data').get('requests'), get_requests(self.users[0]))
+        self.assertEquals(response.data.get('data').get('requests'), FriendHandler.get_requests(self.users[0]))
         #user1 get pending
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetPendingRequestView.get(GetPendingRequestView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('pending')), 2)
-        self.assertEquals(response.data.get('data').get('pending'), get_pending_requests(self.users[0]))
+        self.assertEquals(response.data.get('data').get('pending'), FriendHandler.get_pending_requests(self.users[0]))
         #user1 accepts from user2
         id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=False).id
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
@@ -1881,7 +1870,7 @@ class TestFriendSystem(TestCase):
         response = GetMyFriendsView.get(GetMyFriendsView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('friends')), 1)
-        self.assertEquals(response.data.get('data').get('friends'), get_friends(self.users[0]))
+        self.assertEquals(response.data.get('data').get('friends'), FriendHandler.get_friends(self.users[0]))
         #user1 delete friend (user2)
         id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=True).id
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
@@ -2269,8 +2258,8 @@ class TestProfileOfFriends(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data'), {
             'username': 'jbad',
-            'level': calc_level(5000)[0],
-            'level_progress': calc_level(5000)[1],
+            'level': UserHandler.calc_level(5000)[0],
+            'level_progress': UserHandler.calc_level(5000)[1],
             'avatar': 2,
             'motivation': 'Gute Tage',
             'last_login': None,
@@ -2287,7 +2276,7 @@ class TestProfileOfFriends(TestCase):
         self.assertEquals(response.data.get('data'), {
             'username': 'DeadlyFarts',
             'level': 0,
-            'level_progress': calc_level(20)[1],
+            'level_progress': UserHandler.calc_level(20)[1],
             'avatar': 5,
             'motivation': 'Krise',
             'last_login': None,

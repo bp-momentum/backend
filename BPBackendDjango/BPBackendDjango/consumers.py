@@ -1,7 +1,5 @@
 import errno
-
-from .Views.leaderboardviews import reset_leaderboard
-from .Views.userviews import add_xp
+from .Helperclasses.handlers import LeaderboardHandler, UserHandler
 
 from channels.generic.websocket import WebsocketConsumer
 import time
@@ -327,7 +325,7 @@ class SetConsumer(WebsocketConsumer):
             leaderboard_entry.score = (leaderboard_entry.speed + leaderboard_entry.intensity + leaderboard_entry.cleanliness) / (3 * exs_to_do)
 
             leaderboard_entry.save(force_update=True)
-            add_xp(self.username, ((self.speed + self.intensity + self.cleanliness) / (3* self.executions_done)) * ((self.user.streak if self.user.streak < 10 else 10)+1))
+            UserHandler.add_xp(self.username, ((self.speed + self.intensity + self.cleanliness) / (3* self.executions_done)) * ((self.user.streak if self.user.streak < 10 else 10)+1))
 
 
 
@@ -353,7 +351,7 @@ class SetConsumer(WebsocketConsumer):
 
     # On Connect
     def connect(self):
-        reset_leaderboard()
+        LeaderboardHandler.reset_leaderboard()
         self.filename = None
         self.doing_set = False
         self.accept()

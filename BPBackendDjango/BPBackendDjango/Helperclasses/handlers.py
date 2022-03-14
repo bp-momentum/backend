@@ -9,7 +9,6 @@ import time
 from rest_framework.response import Response
 
 from ..settings import INTERN_SETTINGS, SETTINGS_JSON
-from ..Views.achievementviews import get_icon
 from ..serializers import CreateExerciseInPlan, CreatePlan
 from ..models import Achievement, Admin, DoneExercises, Exercise, ExerciseInPlan, Friends, Leaderboard, Location, Trainer, TrainingSchedule, User, UserAchievedAchievement
 
@@ -628,10 +627,44 @@ class AchievementHandler():
             if not achievement.hidden:
                 new_achieved.append({
                         'name': achievement.name,
-                        'icon': get_icon(uaa.level, achievement.icon)
+                        'icon': AchievementHandler.get_icon(uaa.level, achievement.icon)
                 })
                 count += 1
         return new_achieved
+
+    @staticmethod
+    def achieve_achievement(user:User, achievement:Achievement)->tuple:
+        #if already achieved do nothing
+        if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
+            return True, 'achievement already achieved'
+        #save completed achievement
+        UserAchievedAchievement.objects.create(achievement=achievement, user=user, date=int(time.time()))
+        return True, 'user achieved achievement'
+
+    @staticmethod
+    def upgrade_level(user:User, achievement:Achievement, level:int)->tuple:
+        #if user has not achieved achievement, he achieves it now
+        if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
+            res = AchievementHandler.achieve_achievement(user, achievement)
+            if not res[0]:
+                return res
+        #update level
+        uaa:UserAchievedAchievement = UserAchievedAchievement.objects.get(achievement=achievement, user=user)
+        #only update if new level is higher
+        if level <= uaa.level:
+            return True, 'user already achieved (higher) level'
+        uaa.level = level
+        uaa.date = int(time.time())
+        uaa.save(force_update=True)
+        return True, 'level upgraded'
+
+    @staticmethod
+    def get_icon(level:int, icon_text:string)->string:
+        try:
+            dict:dict = json.loads(icon_text)
+            return dict.get(str(level))
+        except:
+            return icon_text
 
 
 class InvitationsHandler():
