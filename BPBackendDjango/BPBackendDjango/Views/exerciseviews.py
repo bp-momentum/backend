@@ -393,7 +393,7 @@ class GetDoneExercisesView(APIView):
             return Response(data)
 
         # security: only trainer and admin can access other users data
-        if not (token["info"]["account_type"] in ["trainer", "admin"]):
+        if not (token["info"]["account_type"] in ["trainer"]):
             data = {
                 'success': False,
                 'description': 'type of account is not allowed to access other users data',
@@ -401,6 +401,13 @@ class GetDoneExercisesView(APIView):
             }
             return Response(data)
 
+        if not User.objects.filter(username=req_data['user']).exists():
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+            }
+            return Response(data)
         user = User.objects.get(username=req_data['user'])
         data = self.GetDone(user=user)
         return Response(data)
