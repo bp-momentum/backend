@@ -3,7 +3,7 @@ import math
 
 class AIInterface():
     @staticmethod
-    def call_ai(exercise, video, username):
+    def call_ai(exercise, video, username)->tuple:
         #TODO assign result user
         #expecting (success, results, feedback)
         return DummyAI.dummy_function(exercise, video)
@@ -11,7 +11,7 @@ class AIInterface():
 
 class DummyAI:
     @staticmethod
-    def dummy_function(ex, video):
+    def dummy_function(ex, video)->tuple:
         return True, {
             'intensity': math.ceil(random.random()*10000)/200 + 50,
             'speed': math.ceil(random.random()*10000)/200 + 50,
