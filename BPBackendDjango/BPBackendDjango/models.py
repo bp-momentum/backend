@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
+from django.forms import BooleanField
 
 class Location(models.Model):
     street = models.CharField(max_length=128)
@@ -9,21 +10,16 @@ class Location(models.Model):
     house_nr = models.CharField(max_length=12)
     address_addition = models.CharField(max_length=128, default='')
 
-class Person(models.Model):
+
+class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, editable=True, unique=True)
+    username = models.CharField(max_length=50, editable=True)
     password = models.CharField(max_length=255)
+    email_address = models.CharField(max_length=254, default="")
+    refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="en")
     token_date = models.BigIntegerField(default=0)
-    refresh_token = models.CharField(max_length=255, null=True)
-
-    class Meta:
-        abstract=False
-
-
-class Trainer(Person):
-    email_address = models.CharField(max_length=254, default="")
     last_login = models.CharField(max_length=10, null=True)
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
     academia = models.CharField(max_length=128, default='')
@@ -56,10 +52,17 @@ class ExerciseInPlan(models.Model):
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.CASCADE)
 
 
-class User(Person):
+class User(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
+    password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
+    refresh_token = models.CharField(max_length=255, null=True)
+    language = models.CharField(max_length=20, default="en")
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
+    token_date = models.BigIntegerField(default=0)
     last_login = models.CharField(max_length=10, null=True)
     first_login = models.CharField(max_length=10, default="01-01-1970", editable=False)
     streak = models.IntegerField(default=0)
@@ -83,7 +86,13 @@ class DoneExercises(models.Model):
 
 
 class Admin(models.Model):
-    is_admin = models.BooleanField(default=True, editable=False)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, editable=True)
+    password = models.CharField(max_length=255)
+    refresh_token = models.CharField(max_length=255, null=True)
+    language = models.CharField(max_length=20, default="en")
+    token_date = models.BigIntegerField(default=0)
 
 
 class Friends(models.Model):
