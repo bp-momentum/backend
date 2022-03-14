@@ -229,6 +229,7 @@ class CreatePlanView(APIView):
             #if yes keep old plan and relate it to new one
             if needed:
                 old_plan.visable = False
+                old_plan.save(force_update=True)
             #else delete old plan
             else:
                 TrainingSchedule.objects.filter(id=int(req_data['id'])).delete()
