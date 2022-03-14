@@ -1659,7 +1659,7 @@ class TestDoneExercise(TestCase):
         trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.ex:Exercise = Exercise.objects.create(title='Kniebeuge', description='{"de": "Gehe in die Knie, achte...", "en": "Do squats..."}')
         ts:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
-        exip:ExerciseInPlan = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex_id, plan=ts)
+        exip:ExerciseInPlan = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex, plan=ts)
         self.exip_id = exip.id
         self.trainer_id = trainer.id
         user:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234", plan=ts)
