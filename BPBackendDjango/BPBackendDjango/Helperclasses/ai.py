@@ -3,15 +3,20 @@ import math
 import time
 
 
-last_call = time.time()
+last_call = None
 
 
 class AIInterface:
 
     @staticmethod
     def call_ai(exercise, video) -> dict:
-        print("got")
         global last_call
+        print(last_call)
+        if last_call is None:
+            last_call = time.time()
+
+        print("got", time.time() - last_call)
+        print(last_call)
         ai_back = {}
         if time.time() - last_call > 3:
             rand = random.random()
