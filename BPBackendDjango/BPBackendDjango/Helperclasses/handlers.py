@@ -443,7 +443,7 @@ class ExerciseHandler():
                         })
             offset_gt = offset_lt
             #only check until today
-            if now.month == month and now.day == i:
+            if now.month == month and now.day == i and now.year == year:
                 break
         return out
 

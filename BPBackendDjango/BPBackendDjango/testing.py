@@ -887,7 +887,7 @@ class ProfileTestCase(TestCase):
         user:User = User.objects.get(id=self.user1_id)
         user.plan = plan
         user.save(force_update=True)
-        dex:DoneExercises = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(datetime.datetime(2022, 2, 12).timestamp()))
+        dex:DoneExercises = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(datetime.datetime(2022, 2, 12, 23, 52).timestamp()))
         #valid
         result = [{
             "exercise_plan_id": dex.exercise.id,
