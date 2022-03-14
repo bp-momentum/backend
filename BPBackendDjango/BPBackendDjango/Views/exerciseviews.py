@@ -401,6 +401,13 @@ class GetDoneExercisesView(APIView):
             }
             return Response(data)
 
+        if not User.objects.filter(username=req_data['user']).exists():
+            data = {
+                'success': False,
+                'description': 'Not a user',
+                'data': {}
+            }
+            return Response(data)
         user = User.objects.get(username=req_data['user'])
         data = self.GetDone(user=user)
         return Response(data)
