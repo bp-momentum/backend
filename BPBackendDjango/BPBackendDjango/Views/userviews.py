@@ -4,8 +4,6 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from BPBackendDjango.BPBackendDjango.serializers import CreateTrainerSerializer, CreateUserSerializer
-
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import FULL_COMBO, DateHandler, ErrorHandler, InvitationsHandler, PasswordHandler, TrainerHandler, UserHandler
 import hashlib

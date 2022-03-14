@@ -1,7 +1,5 @@
 from django.test import TestCase
 
-from BPBackendDjango.BPBackendDjango.Views.planviews import AddPlanToUserView, CreatePlanView, DeletePlanView, GetAllPlansView, GetPlanOfUser, ShowPlanView
-
 from .models import Achievement, Admin, DoneExercises, Exercise, ExerciseInPlan, Friends, Leaderboard, Location, OpenToken, Trainer, TrainingSchedule, User, UserAchievedAchievement, UserMedalInExercise
 from .settings import INTERN_SETTINGS
 from .Helperclasses.fortests import ViewSupport
@@ -12,6 +10,7 @@ from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestV
 from .Views.userviews import AuthView, ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, CreateUserView, DeleteAccountView, DeleteTrainerView, DeleteUserView, GetInvitedView, GetListOfUsers, GetProfileView, GetStreakView, GetPasswordResetEmailView, GetTrainerContactView, GetUserLevelView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, LoginView, LogoutAllDevicesView, RegisterView, SearchUserView, SetPasswordResetEmailView, SetTrainerLocationView
 from .Views.achievementviews import GetAchievementsView, ReloadAfterExerciseView, ReloadFriendAchievementView, GetMedals
 from .Views.exerciseviews import DoneExerciseView, GetDoneExercisesOfMonthView, GetDoneExercisesView, GetExerciseListView, GetExerciseView
+from .Views.planviews import AddPlanToUserView, CreatePlanView, DeletePlanView, GetAllPlansView, GetPlanOfUser, ShowPlanView
 import hashlib
 import time
 import datetime
