@@ -21,14 +21,14 @@ class AIInterface:
         if time.time() - last_call > 3:
             last_call = time.time()
             rand = random.random()
-            if rand < 0.85:
+            if rand < 0.93:
 
                 ai_back = {
                     "feedback": "statistics",
                     "stats": DummyAI.dummy_function(exercise, video),
                     "coordinates": {
-                        "x": random.randint(30, 400),
-                        "y": random.randint(30, 400)
+                        "x": random.randint(0, 100),
+                        "y": random.randint(0, 100)
                     }
 
                 }
