@@ -16,13 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from .Views.exerciseviews import *
+from .Views.exerciseviews import DoneExerciseView, GetDoneExercisesOfMonthView, GetDoneExercisesView, GetExerciseListView, GetExerciseView
 from .Views.leaderboardviews import ListLeaderboardView
-from .Views.userviews import *
-from .Views.interfaceviews import *
-from .Views.planviews import *
-from .Views.friendviews import *
-from .Views.achievementviews import *
+from .Views.userviews import AuthView, ChangeAvatarView, ChangeLanguageView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteAccountView, DeleteTrainerView, DeleteUserView, GetInvitedView, GetLanguageView, GetListOfUsers, GetPasswordResetEmailView, GetProfileView, GetStreakView, GetTrainerContactView, GetTrainersView, GetUserLevelView, GetUsersOfTrainerView, InvalidateInviteView, LoginView, LogoutAllDevicesView, RegisterView,  CreateUserView, SearchUserView, SetPasswordResetEmailView, SetTrainerLocationView
+from .Views.planviews import AddPlanToUserView, CreatePlanView, DeletePlanView, GetAllPlansView, GetPlanOfUser, ShowPlanView 
+from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView
+from .Views.achievementviews import GetAchievementsView, GetMedals, ReloadAfterExerciseView, ReloadFriendAchievementView
 
 urlpatterns = [
     #user
@@ -57,7 +56,6 @@ urlpatterns = [
     path('api/getlistofusers', GetListOfUsers.as_view(), name='getListOfUsers'),
     path('api/getstreak', GetStreakView.as_view(), name='getStreak'),
     #exercises
-    path('api/getlistofexercises', GetExerciseListView.as_view(), name='getListOfExercises'),
     path('api/getexercise', GetExerciseView.as_view(), name='getExercise'),
     path('api/getexerciselist', GetExerciseListView.as_view(), name='getExerciseList'),
     path('api/doneexercise', DoneExerciseView.as_view(), name='doneExercise'),
@@ -70,8 +68,6 @@ urlpatterns = [
     path('api/getplan', ShowPlanView.as_view(), name='getPlan'),
     path('api/requestplanofuser', GetPlanOfUser.as_view(), name='getPlanOfUser'),
     path('api/deleteplan', DeletePlanView.as_view(), name='deletePlan'),
-    #other
-    path('api/ai', AIView.as_view(), name='callAI'),
     #leaderboard
     path('api/listleaderboard', ListLeaderboardView.as_view(), name='listLeaderboard'),
     #achievements
