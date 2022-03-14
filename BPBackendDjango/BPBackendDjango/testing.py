@@ -375,7 +375,7 @@ class AchievementTestCase(TestCase):
             'icon': "www.test.de/streak1"
         }, {
             'name': 'perfectExercise',
-            'title': 'Perfekt Übung',
+            'title': 'Perfekte Übung',
             'description': "Erreiche 100 Prozent bei einer Übung",
             'level': 0,
             'progress': '0/1',
