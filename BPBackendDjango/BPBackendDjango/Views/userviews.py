@@ -7,7 +7,7 @@ from django.utils.html import strip_tags
 from BPBackendDjango.BPBackendDjango.serializers import CreateTrainerSerializer, CreateUserSerializer
 
 from ..Helperclasses.jwttoken import JwToken
-from ..Helperclasses.handlers import DateHandler, ErrorHandler, InvitationsHandler, PasswordHandler, TrainerHandler, UserHandler
+from ..Helperclasses.handlers import FULL_COMBO, DateHandler, ErrorHandler, InvitationsHandler, PasswordHandler, TrainerHandler, UserHandler
 import hashlib
 import datetime
 
@@ -19,7 +19,6 @@ MAX_LEVEL = 200
 MULT_PER_LVL = 1.25
 FIRST_LVL = 300
 
-FULL_COMBO = 10.0
 
 #creating random password
 from ..settings import EMAIL_HOST_USER

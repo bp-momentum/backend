@@ -8,14 +8,18 @@ import string
 import time
 from rest_framework.response import Response
 
+from ..Views.achievementviews import get_icon
+
 from ..Views.leaderboardviews import reset_leaderboard_entry
 from ..serializers import CreateExerciseInPlan, CreatePlan
 
-from ..models import Admin, DoneExercises, Exercise, ExerciseInPlan, Location, Trainer, TrainingSchedule, User
+from ..models import Achievement, Admin, DoneExercises, Exercise, ExerciseInPlan, Friends, Location, Trainer, TrainingSchedule, User, UserAchievedAchievement
 
 
 SECS_PER_YEAR = 31556952
 SECS_PER_DAY = 86400
+
+FULL_COMBO = 10.0
 
 class ErrorHandler():
 
@@ -480,6 +484,91 @@ class ExerciseHandler():
 
         #returns the data as in the get plan but with a additional var "done"
         return data
+
+
+class FriendHandler():
+
+    @staticmethod
+    #get all friends
+    def get_friends(user:User)->list:
+        sql = Friends.objects.filter(friend1=user, accepted=True).union(Friends.objects.filter(friend2=user, accepted=True))
+        
+        res = []
+        for f in sql:
+            res.append({
+                'id': f.id,
+                'friend1': f.friend1.username,
+                'friend2': f.friend2.username
+            })
+        return res
+
+    @staticmethod
+    #get received requests
+    def get_requests(user:User)->list:
+        sql = list(Friends.objects.filter(friend2=user, accepted=False))
+        res = []
+        for f in sql:
+            res.append({
+                'id': f.id,
+                'friend1': f.friend1.username,
+                'friend2': f.friend2.username
+            })
+        return res
+
+    @staticmethod
+    #get sent requests
+    def get_pending_requests(user:User)->list:
+        sql =  list(Friends.objects.filter(friend1=user, accepted=False))
+        res = []
+        for f in sql:
+            res.append({
+                'id': f.id,
+                'friend1': f.friend1.username,
+                'friend2': f.friend2.username
+            })
+        return res
+
+    @staticmethod
+    #checks if already friends or already requested
+    def already_friends(user1:User, user2:User)->bool:
+        return Friends.objects.filter(friend1=user1, friend2=user2).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
+
+    @staticmethod
+    #only method must be changed to get more/less data
+    def get_profile(user:User)->dict:
+        lvl_info = UserHandler.calc_level(user.xp)
+        return {
+            'username': user.username,
+            'level': lvl_info[0],
+            'level_progress': lvl_info[1],
+            'avatar': user.avatar,
+            'motivation': user.motivation,
+            'last_login': user.last_login,
+            'days': user.streak,
+            'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0,
+            'last_achievements': AchievementHandler.get_newest_achievements(user)
+        }
+
+
+class AchievementHandler():
+
+    @staticmethod
+    def get_newest_achievements(user:User):
+        new_achieved = []
+        count = 0
+        uaas = UserAchievedAchievement.objects.filter(user=user).order_by('-date')
+        for uaa in uaas:
+            if count >= 3:
+                break
+            achievement:Achievement = uaa.achievement
+            #only not hidden achievements are shown
+            if not achievement.hidden:
+                new_achieved.append({
+                        'name': achievement.name,
+                        'icon': get_icon(uaa.level, achievement.icon)
+                })
+                count += 1
+        return new_achieved
 
 
 class InvitationsHandler():

@@ -1,91 +1,11 @@
-from multiprocessing.managers import BaseManager
-from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .achievementviews import get_icon
-
-from .userviews import FULL_COMBO, calc_level
 from ..Helperclasses.jwttoken import JwToken
-from ..Helperclasses.handlers import ErrorHandler
+from ..Helperclasses.handlers import ErrorHandler, FriendHandler
 
-from ..models import Achievement, Friends, UserAchievedAchievement
-from ..models import User
+from ..models import Friends, User
 from ..serializers import CreateFriends
-
-#get all friends
-def get_friends(user):
-    sql = list(Friends.objects.filter(friend1=user, accepted=True))
-    sql = sql + list(Friends.objects.filter(friend2=user, accepted=True))
-    
-    res = []
-    for f in sql:
-        res.append({
-            'id': f.id,
-            'friend1': f.friend1.username,
-            'friend2': f.friend2.username
-        })
-    return res
-
-#get received requests
-def get_requests(user):
-    sql = list(Friends.objects.filter(friend2=user, accepted=False))
-    res = []
-    for f in sql:
-        res.append({
-            'id': f.id,
-            'friend1': f.friend1.username,
-            'friend2': f.friend2.username
-        })
-    return res
-
-#get sent requests
-def get_pending_requests(user):
-    sql =  list(Friends.objects.filter(friend1=user, accepted=False))
-    res = []
-    for f in sql:
-        res.append({
-            'id': f.id,
-            'friend1': f.friend1.username,
-            'friend2': f.friend2.username
-        })
-    return res
-
-#checks if already friends or already requested
-def already_friends(user1, user2):
-    return Friends.objects.filter(friend1=user1, friend2=user2).exists() or Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists()
-
-#only method must be changed to get more/less data
-def get_profile(user:User):
-    lvl_info = calc_level(user.xp)
-    return {
-        'username': user.username,
-        'level': lvl_info[0],
-        'level_progress': lvl_info[1],
-        'avatar': user.avatar,
-        'motivation': user.motivation,
-        'last_login': user.last_login,
-        'days': user.streak,
-        'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0,
-        'last_achievements': get_newest_achievements(user)
-    }
-
-def get_newest_achievements(user:User):
-    new_achieved = []
-    count = 0
-    uaas = UserAchievedAchievement.objects.filter(user=user).order_by('-date')
-    for uaa in uaas:
-        if count >= 3:
-            break
-        achievement:Achievement = uaa.achievement
-        #only not hidden achievements are shown
-        if not achievement.hidden:
-            new_achieved.append({
-                    'name': achievement.name,
-                    'icon': get_icon(uaa.level, achievement.icon)
-            })
-            count += 1
-    return new_achieved
 
 
 class GetMyFriendsView(APIView):
@@ -121,8 +41,8 @@ class GetMyFriendsView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
-        friends = get_friends(user.id)
+        user:User = User.objects.get(username=info['username'])
+        friends = FriendHandler.get_friends(user)
         data = {
                 'success': True,
                 'description': 'returning friends',
@@ -166,8 +86,8 @@ class GetPendingRequestView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
-        pending = get_pending_requests(user.id)
+        user:User = User.objects.get(username=info['username'])
+        pending = FriendHandler.get_pending_requests(user)
         data = {
                 'success': True,
                 'description': 'returning pending requests',
@@ -211,8 +131,8 @@ class GetRequestView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
-        requests = get_requests(user.id)
+        user:User = User.objects.get(username=info['username'])
+        requests = FriendHandler.get_requests(user)
         data = {
                 'success': True,
                 'description': 'returning requests',
@@ -275,9 +195,9 @@ class AddFriendView(APIView):
             return Response(data)
 
         #check if already friends
-        is_from = User.objects.get(username=info['username'])
-        is_to = User.objects.get(username=req_data['username'])
-        if already_friends(is_from, is_to):
+        is_from:User = User.objects.get(username=info['username'])
+        is_to:User = User.objects.get(username=req_data['username'])
+        if FriendHandler.already_friends(is_from, is_to):
             data = {
                     'success': False,
                     'description': 'Already friends',
@@ -341,7 +261,7 @@ class AcceptRequestView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         #check if request exists
         if not Friends.objects.filter(id=int(req_data['id']), friend2=user, accepted=False).exists():
@@ -352,8 +272,8 @@ class AcceptRequestView(APIView):
                 }
             return Response(data)
 
-        friend = Friends.objects.get(id=int(req_data['id']))
-        user1 = friend.friend1
+        friend:Friends = Friends.objects.get(id=int(req_data['id']))
+        user1:User = friend.friend1
         friend.accepted = True
         friend.save(force_update=True)
         Friends.objects.filter(friend1=user, friend2=user1, accepted=False).delete()
@@ -398,7 +318,7 @@ class DeclineRequestView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         #check if request exists
         if not Friends.objects.filter(id=int(req_data['id']), friend2=user.id, accepted=False).exists():
@@ -451,7 +371,7 @@ class DeleteFriendView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         #check if request exists
         if not (Friends.objects.filter(id=int(req_data['id']), friend2=user.id).exists() or Friends.objects.filter(id=int(req_data['id']), friend1=user.id).exists()):
@@ -462,8 +382,8 @@ class DeleteFriendView(APIView):
                 }
             return Response(data)
 
-        f = Friends.objects.get(id=int(req_data['id']))
-        removed_friend = f.friend1
+        f:Friends = Friends.objects.get(id=int(req_data['id']))
+        removed_friend:User = f.friend1
         if removed_friend.id == user.id:
             removed_friend = f.friend2
         Friends.objects.filter(id=int(req_data['id'])).delete()
@@ -511,7 +431,7 @@ class GetProfileOfFriendView(APIView):
                     'data': {}
                 }
             return Response(data)
-        user1 = User.objects.get(username=info['username'])
+        user1:User = User.objects.get(username=info['username'])
 
         #valid user
         if not User.objects.filter(username=req_data['username']).exists():
@@ -521,7 +441,7 @@ class GetProfileOfFriendView(APIView):
                     'data': {}
                 }
             return Response(data)
-        user2 = User.objects.get(username=req_data['username'])
+        user2:User = User.objects.get(username=req_data['username'])
 
         #are friends
         if not (Friends.objects.filter(friend1=user1, friend2=user2, accepted=True).exists() or Friends.objects.filter(friend1=user2, friend2=user1, accepted=True).exists()):
@@ -535,6 +455,6 @@ class GetProfileOfFriendView(APIView):
         data = {
             'success': True,
             'description': 'Returning profile',
-            'data': get_profile(user2)
+            'data': FriendHandler.get_profile(user2)
         }
         return Response(data)
