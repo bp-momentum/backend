@@ -44,7 +44,7 @@ INTERN_SETTINGS = {
     },
     "video_dir": "videos/",
     "secret_key": get_random_string(16),
-    "allowed_origins": ["localhost:80", "localhost:81"],
+    "allowed_origins": ["http://localhost:80", "http://localhost:81"],
     "website_url": "https://my_url.de",
     "last_leaderboard_reset": 0
 }
