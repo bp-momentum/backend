@@ -1,9 +1,6 @@
 from ..Helperclasses.ai import AIInterface
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import ErrorHandler
 
