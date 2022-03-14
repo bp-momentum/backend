@@ -14,7 +14,7 @@ class Location(models.Model):
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, editable=True)
+    username = models.CharField(max_length=50, editable=True, unique=True)
     password = models.CharField(max_length=255)
     email_address = models.CharField(max_length=254, default="")
     refresh_token = models.CharField(max_length=255, null=True)
@@ -34,14 +34,10 @@ class TrainingSchedule(models.Model):
 
 
 class Exercise(models.Model):
-    description = models.TextField(default="")
+    description = models.TextField(default="{ }")
     video = models.FilePathField(null=True)
     title = models.CharField(max_length=255)
     activated = models.BooleanField(default=True)
-
-
-class Team(models.Model):
-    team_name = models.CharField(max_length=255)
 
 
 class ExerciseInPlan(models.Model):
@@ -55,7 +51,7 @@ class ExerciseInPlan(models.Model):
 class User(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, editable=True)
+    username = models.CharField(max_length=50, editable=True, unique=True)
     password = models.CharField(max_length=255)
     trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, default=0)
     email_address = models.CharField(max_length=254, default="")
@@ -67,7 +63,7 @@ class User(models.Model):
     first_login = models.CharField(max_length=10, default="01-01-1970", editable=False)
     streak = models.IntegerField(default=0)
     xp = models.BigIntegerField(default=0)
-    avatar = models.IntegerField(max_length=5, default=0)
+    avatar = models.IntegerField(default=0)
     motivation = models.TextField(max_length=1000, default='')
 
 
@@ -88,7 +84,7 @@ class DoneExercises(models.Model):
 class Admin(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, editable=True)
+    username = models.CharField(max_length=50, editable=True, unique=True)
     password = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255, null=True)
     language = models.CharField(max_length=20, default="en")
@@ -119,7 +115,7 @@ class UserAchievedAchievement(models.Model):
         indexes = [models.Index(fields=["-date"])]
 
 class Leaderboard(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     speed = models.IntegerField(default=0)
     intensity = models.IntegerField(default=0)
     cleanliness = models.IntegerField(default=0)
