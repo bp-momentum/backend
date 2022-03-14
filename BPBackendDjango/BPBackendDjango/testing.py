@@ -885,19 +885,32 @@ class ProfileTestCase(TestCase):
         plan:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
         exip:ExerciseInPlan = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan)
         user:User = User.objects.get(id=self.user1_id)
+        user.plan = plan
+        user.save(force_update=True)
         dex:DoneExercises = DoneExercises.objects.create(exercise=exip, user=user, points=100, date=int(time.time()))
-        now = datetime.datetime.now()
         #valid
-        result = ExerciseHandler.get_done_exercises_of_month(now.month, now.year, user)
-        '''[{
+        result = [{
             "exercise_plan_id": dex.exercise.id,
             "id": dex.exercise.exercise.id,
             "date": dex.date,
-            "points": dex.points
-        }]'''
+            "points": dex.points,
+            "done": True
+        }, {
+            "exercise_plan_id": exip.id,
+            "id": exip.exercise.id,
+            "date": int(datetime.datetime(year=2022, month=2, day=19, hour=12).timestamp()),
+            "points": None,
+            "done": False
+        }, {
+            "exercise_plan_id": exip.id,
+            "id": exip.exercise.id,
+            "date": int(datetime.datetime(year=2022, month=2, day=26, hour=12).timestamp()),
+            "points": None,
+            "done": False
+        }]
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
-            'year': now.year,
-            'month': now.month
+            'year': 2022,
+            'month': 2
         })
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertTrue(response.data.get('success'))
@@ -905,15 +918,15 @@ class ProfileTestCase(TestCase):
         #invalid
         #trainer not able to
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {
-            'year': now.year,
-            'month': now.month
+            'year': 2022,
+            'month': 3
         })
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertFalse(response.data.get('success'))
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
-            'year': now.year,
-            'month': now.month
+            'year': 2022,
+            'month': 3
         })
         response = GetDoneExercisesOfMonthView.post(GetDoneExercisesOfMonthView, request)
         self.assertFalse(response.data.get('success'))

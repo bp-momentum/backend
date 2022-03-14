@@ -1,11 +1,7 @@
-import math
-import time
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ..Helperclasses.ai import DummyAI
-from ..models import DoneExercises, Exercise, ExerciseInPlan, Leaderboard, User
+from ..models import Exercise, User
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import DateHandler, ErrorHandler, ExerciseHandler, LanguageHandler
 
