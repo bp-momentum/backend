@@ -8,12 +8,10 @@ import string
 import time
 from rest_framework.response import Response
 
+from ..settings import INTERN_SETTINGS, SETTINGS_JSON
 from ..Views.achievementviews import get_icon
-
-from ..Views.leaderboardviews import reset_leaderboard_entry
 from ..serializers import CreateExerciseInPlan, CreatePlan
-
-from ..models import Achievement, Admin, DoneExercises, Exercise, ExerciseInPlan, Friends, Location, Trainer, TrainingSchedule, User, UserAchievedAchievement
+from ..models import Achievement, Admin, DoneExercises, Exercise, ExerciseInPlan, Friends, Leaderboard, Location, Trainer, TrainingSchedule, User, UserAchievedAchievement
 
 
 SECS_PER_YEAR = 31556952
@@ -338,7 +336,7 @@ class PlanHandler():
         user.plan = ts
         user.save(force_update=True)
 
-        reset_leaderboard_entry(username)
+        LeaderboardHandler.reset_leaderboard_entry(username)
         return "success"
 
     @staticmethod
@@ -548,6 +546,71 @@ class FriendHandler():
             'flame_height': user.streak/FULL_COMBO if user.streak <= FULL_COMBO else 1.0,
             'last_achievements': AchievementHandler.get_newest_achievements(user)
         }
+
+
+class LeaderboardHandler():
+
+    @staticmethod
+    def build_entry(index:int, leaderboard, rank:int, is_trainer:bool, username:string)->dict:
+        exs_to_do = 0
+        entry:Leaderboard = leaderboard[index]
+        user:User = entry.user
+        if user.plan is not None:
+            plan_data = ExerciseInPlan.objects.filter(plan=user.plan)
+            for ex in plan_data:
+                exs_to_do += ex.repeats_per_set * ex.sets
+        execs_done = entry.executions
+        score = 0 if execs_done == 0 or exs_to_do == 0 else entry.score
+        speed = 0 if execs_done == 0 or exs_to_do == 0 else entry.speed / execs_done
+        intensity = 0 if execs_done == 0 or exs_to_do == 0 else entry.intensity / execs_done
+        cleanliness = 0 if execs_done == 0 or exs_to_do == 0 else entry.cleanliness / execs_done
+        show_real_name = is_trainer and username == user.trainer.username
+
+        return {"rank": rank,
+                "username": user.first_name + " " + user.last_name if show_real_name else user.username,
+                "score": score,
+                "speed": speed,
+                "intensity": intensity,
+                "cleanliness": cleanliness}
+
+    @staticmethod
+    def reset_leaderboard()->None:
+        last_reset = datetime.datetime.fromtimestamp(INTERN_SETTINGS['last_leaderboard_reset'])
+        today = datetime.datetime.fromtimestamp(time.time())
+        already_reset = last_reset.isocalendar()[1] == today.isocalendar()[1] and last_reset.year == today.year
+
+        if already_reset:
+            return
+
+        INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
+        json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
+
+        all_entries = Leaderboard.objects.filter()
+        for entry in all_entries:
+            entry.score = 0
+            entry.executions = 0
+            entry.cleanliness = 0
+            entry.speed = 0
+            entry.intensity = 0
+            entry.save(force_update=True)
+
+    @staticmethod
+    def reset_leaderboard_entry(username:string)->None:
+        user_exists = User.objects.filter(username=username).exists()
+        if not user_exists:
+            return
+        user:User = User.objects.get(username=username)
+
+        l_2 = Leaderboard.objects.filter(user=user.id).exists()
+        if not l_2:
+            return
+        entry:Leaderboard = Leaderboard.objects.get(user=user.id)
+        entry.score = 0
+        entry.executions = 0
+        entry.cleanliness = 0
+        entry.speed = 0
+        entry.intensity = 0
+        entry.save(force_update=True)
 
 
 class AchievementHandler():
