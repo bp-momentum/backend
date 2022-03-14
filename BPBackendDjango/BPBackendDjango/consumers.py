@@ -402,6 +402,7 @@ class SetConsumer(WebsocketConsumer):
             # send bytes to ai
             self.start_ai_call(bytes_data)
 
+
         # check if request hast text_data
         if text_data is not None:
             text_data_json = json.loads(text_data)
