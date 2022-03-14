@@ -33,9 +33,17 @@ class AIInterface:
 
                 }
             else:
+                error_list = [
+                    {"en": "No person could be found in livestream",
+                    "de": "Es konnte keine Person im video gefunden werden"},
+                    {"en": "It seems to be too dark",
+                    "de": "Es scheint zu dunkel zu sein"},
+                    {"en": "It is not possible recognize an execution",
+                    "de": "Es konnte keine Ausführung einer Übung erkannt werden"}
+                ]
                 ai_back = {
                     "feedback": "information",
-                    "info": "No person could be found in livestream"
+                    "info": random.choice(error_list)
                 }
         return ai_back
 

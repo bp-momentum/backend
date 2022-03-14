@@ -349,7 +349,7 @@ class SetConsumer(WebsocketConsumer):
                 'success': True,
                 'description': "This is a information",
                 'data': {
-                    'information': feedback['info'],
+                    'information': feedback['info'][self.user.language],
 
                 }
             }))
