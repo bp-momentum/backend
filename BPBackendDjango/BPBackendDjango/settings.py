@@ -23,12 +23,21 @@ INTERN_SETTINGS = {
     "email_smtp_server": "",
     "admin_username": "admin",
     "admin_password": "admin",
+    "trainer_username": "trainer",
+    "trainer_password": "trainer",
+    "user_username": "user",
+    "user_password": "user",
     "database": {
         "name": "bpws",
         "user": "admin",
         "password": "",
         "host": "localhost",
-    }
+    },
+    "video_dir": "videos/",
+    "secret_key": "",
+    "allowed_origins": ["localhost:80", "localhost:81"],
+    "website_url": "https://my_url.de",
+    "last_leaderboard_reset": 0
 }
 try:
     with open(SETTINGS_JSON) as json_file:
@@ -53,12 +62,12 @@ except:
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-isvhbpca@5s(qb6a!d&&njfxtp9d#v93$i_zc)zc&k6e_#k2y+'
+SECRET_KEY = INTERN_SETTINGS["secret_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['78.46.150.116']
+ALLOWED_HOSTS = ['78.46.150.116', '127.0.0.1']
 
 from corsheaders.defaults import default_headers
 
@@ -66,15 +75,12 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "Session-Token",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:80',
-    'http://78.46.150.116'
-]
+CORS_ALLOWED_ORIGINS = INTERN_SETTINGS["allowed_origins"]
 
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,7 +88,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'BPBackendDjango',
-    'corsheaders'
+    'corsheaders',
+    'ordered_model',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -115,7 +123,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'BPBackendDjango.wsgi.application'
-
+ASGI_APPLICATION = 'BPBackendDjango.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
