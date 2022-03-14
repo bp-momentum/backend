@@ -367,6 +367,7 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.speed = self.speed
                 self.done_exercise_entry.intensity = self.intensity
                 self.done_exercise_entry.cleanliness = self.cleanliness
+                self.done_exercise_entry.score = self.points
                 self.done_exercise_entry.completed = self.completed
                 self.done_exercise_entry.save(force_update=True)
 
