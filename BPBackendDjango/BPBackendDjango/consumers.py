@@ -280,6 +280,12 @@ class SetConsumer(WebsocketConsumer):
             self.points = 0 if self.executions_per_set == 0 else int(
                 (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
 
+            # add streak when this was the last exercise today
+            if ExerciseHandler.check_if_last_exercise(self.user):
+                user:User = User.objects.get(id=self.user.id)
+                user.streak += 1
+                user.save(force_update=True)
+
             #add medal
             if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
                 UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
@@ -371,10 +377,7 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.completed = self.completed
                 self.done_exercise_entry.save(force_update=True)
 
-            if ExerciseHandler.check_if_last_exercise(self.user):
-                user:User = User.objects.get(id=self.user.id)
-                user.streak += 1
-                user.save(force_update=True)
+
 
 
 
