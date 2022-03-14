@@ -1,3 +1,5 @@
+import datetime
+import locale
 import math
 import time
 
@@ -284,7 +286,9 @@ class GetDoneExercisesView(APIView):
 
         # list of all done in last week
         # calculation of timespan and filter
-        done = DoneExercises.objects.filter(user=user, date__gt=time.time() + 86400 - time.time() % 86400 - 604800, completed=True)
+        locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+        weekday:int = datetime.datetime.now().weekday()
+        done = DoneExercises.objects.filter(user=user, date__gt=time.time() - weekday * 86400 - time.time() % 86400, completed=True)
 
         # list of all exercises to done
         all = ExerciseInPlan.objects.filter(plan=user.plan)
