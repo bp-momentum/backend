@@ -23,7 +23,6 @@ class SetConsumer(WebsocketConsumer):
         # initialising the new connection
         self.filename = None
         self.doing_set = False
-        self.f_stop = None
         self.username = ""
         self.user = None
 
@@ -49,7 +48,7 @@ class SetConsumer(WebsocketConsumer):
         self.exinplan = None
 
     # in this method the incoming video stream will be saved
-    def save_video(self, data):
+    def save_video(self, data_bytes):
         if not os.path.exists(os.path.join(INTERN_SETTINGS['video_dir'], self.username)):
             # check if the user folder was already created else mkdir
             try:
@@ -65,7 +64,7 @@ class SetConsumer(WebsocketConsumer):
             mode = 'ab'
 
         with open(os.path.join(INTERN_SETTINGS['video_dir'], self.username, self.filename), mode) as f:
-            f.write(data)
+            f.write(data_bytes)
             f.close()
 
     def authenticate(self, session_token):
@@ -118,9 +117,7 @@ class SetConsumer(WebsocketConsumer):
                 'data': {}
             }))
             self.filename = str(time.time()) + ".webm"
-            self.f_stop = threading.Event()
             self.doing_set = True
-            self.f(self.f_stop)
 
         else:
             self.send(text_data=json.dumps({
@@ -133,7 +130,6 @@ class SetConsumer(WebsocketConsumer):
     def end_set(self, data):
         # check if user is doing a set, if so and the set !!! is currently disabled and has to be changed when enabled!!
         if self.doing_set:
-            self.f_stop.set()
             self.doing_set = False
             self.send(text_data=json.dumps({
                 'message_type': 'end_set',
@@ -149,16 +145,9 @@ class SetConsumer(WebsocketConsumer):
                 'data': {}
             }))
 
-    def ai_evaluation(self, data):
 
-        if not self.doing_set:
-            self.send(text_data=json.dumps({
-                'success': False,
-                'description': "The set must be started to send the video Stream",
-                'data': {}
-            }))
-        self.save_video(data)
-        AIInterface.call_ai(self.exercise, data, self.username)
+
+
 
     def initiate(self, data):
         # save, which exercise is done
@@ -215,17 +204,11 @@ class SetConsumer(WebsocketConsumer):
             }
         }))
 
-    def send_stats(self, ex_id):
+    def send_stats(self, intensity, speed, cleanliness, coordinates):
         # send stats emulates the ai when sending info after a single execution
         # calculating points
         if not self.doing_set:
             return
-
-        #load ai data
-        a, b, c = DummyAI.dummy_function(ex=ex_id, video=None)
-        intensity = b['intensity']
-        speed = b['speed']
-        cleanliness = b['cleanliness']
 
         self.intensity += intensity
         self.speed += speed
@@ -242,8 +225,7 @@ class SetConsumer(WebsocketConsumer):
                 'intensity': intensity,
                 'speed': speed,
                 'cleanliness': cleanliness,
-                'x': 30,
-                'y': 100,
+                'coordinates': coordinates
             }
         }))
 
@@ -251,7 +233,6 @@ class SetConsumer(WebsocketConsumer):
 
         # end set when set is done
         if self.current_set_execution == self.executions_per_set:
-            self.f_stop.set()
             self.doing_set = False
             self.current_set_execution = 0
             self.current_set += 1
@@ -260,10 +241,29 @@ class SetConsumer(WebsocketConsumer):
 
         # end exercise when exercise is done
         if self.current_set == self.sets:
-            self.f_stop.set()
             self.doing_set = False
             type += 1
             self.current_set -= 1
+
+            # save in Leaderboard
+            self.points = 0 if self.executions_per_set == 0 else int(
+                (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
+
+            #add medal
+            if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
+                UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
+            umix:UserMedalInExercise = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
+            gained_medal = ""
+            if self.points >= 90: #gold
+                umix.gold += 1
+                gained_medal = "gold"
+            elif self.points >= 75: #silver
+                umix.silver += 1
+                gained_medal = "silver"
+            elif self.points >= 50: #bronze
+                umix.bronze += 1
+                gained_medal = "bronze"
+            umix.save(force_update=True)
 
             self.completed = True
             self.send(text_data=json.dumps({
@@ -273,31 +273,16 @@ class SetConsumer(WebsocketConsumer):
                 'data': {
                     'speed': 0 if self.executions_done == 0 else self.speed / self.executions_done,
                     'cleanliness': 0 if self.executions_done == 0 else self.cleanliness / self.executions_done,
-                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done}
+                    'intensity': 0 if self.executions_done == 0 else self.intensity / self.executions_done,
+                    'medal': gained_medal
+                }
             }))
-
-            # save in Leaderboard
-            self.points = 0 if self.executions_per_set == 0 else int(
-                (self.speed + self.intensity + self.cleanliness) / (self.sets * self.executions_per_set * 3))
 
             # add streak when this was the last exercise today
             if ExerciseHandler.check_if_last_exercise(self.user):
                 user:User = User.objects.get(id=self.user.id)
                 user.streak += 1
                 user.save(force_update=True)
-
-            #add medal
-            if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
-                UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
-            umix:UserMedalInExercise = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
-            if self.points >= 90: #gold
-                umix.gold += 1
-            elif self.points >= 75: #silver
-                umix.silver += 1
-            elif self.points >= 50: #bronze
-                umix.bronze += 1
-            umix.save(force_update=True)
-
 
             p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
             leaderboard_entry:Leaderboard = Leaderboard.objects.get(user=self.user.id)
@@ -333,12 +318,45 @@ class SetConsumer(WebsocketConsumer):
                 }
             }))
 
+    def ai_evaluation(self, data):
+
+        if not self.doing_set:
+            self.send(text_data=json.dumps({
+                'success': False,
+                'description': "The set must be started to send the video Stream",
+                'data': {}
+            }))
+
+        #self.save_video(data)
+        # check stats or info
+        feedback = AIInterface.call_ai(self.exercise, data)
+
+        if feedback['feedback'] == 'statistics':
+            # load ai data
+            intensity = feedback['stats']['intensity']
+            speed = feedback['stats']['speed']
+            cleanliness = feedback['stats']['cleanliness']
+            coordinates = feedback['coordinates']
+
+            self.send_stats(intensity, speed, cleanliness, coordinates)
+
+
+        elif feedback['feedback'] == 'information':
+            self.send(text_data=json.dumps({
+                'message_type': 'information',
+                'success': True,
+                'description': "This is a information",
+                'data': {
+                    'information': feedback['info'][self.user.language],
+
+                }
+            }))
+
     # start new thread
-    def f(self, f_stop):
-        self.send_stats(1)
-        if not f_stop.is_set():
-            wait = random.randint(2, 4)
-            threading.Timer(wait, self.f, [f_stop]).start()
+    def start_ai_call(self, data):
+        t = threading.Thread(target=SetConsumer.ai_evaluation, args=(self, data,))
+        t.daemon = True
+        t.start()
 
     # On Connect
     def connect(self):
@@ -349,10 +367,6 @@ class SetConsumer(WebsocketConsumer):
 
     # On Disconnect
     def disconnect(self, close_code):
-        try:
-            self.f_stop.set()
-        except:
-            pass
         self.doing_set = False
 
         # save current state in database
@@ -377,17 +391,14 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.completed = self.completed
                 self.done_exercise_entry.save(force_update=True)
 
-
-
-
-
     # On Receive
     def receive(self, text_data=None, bytes_data=None):
 
         # check if request has bytes_data
         if bytes_data is not None:
             # send bytes to ai
-            self.ai_evaluation(bytes_data)
+            self.start_ai_call(bytes_data)
+
 
         # check if request hast text_data
         if text_data is not None:
