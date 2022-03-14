@@ -6,7 +6,7 @@ API Docs
 
 ## Create User and Trainer
 
-Type: POST 
+Method: POST 
 
 Path: /api/createuser
 
@@ -39,7 +39,7 @@ Success Return
 
 ## Login
 
-Type: POST 
+Method: POST 
 
 Path: /api/login
 
@@ -65,7 +65,7 @@ Success Return
 
 ## Register
 
-Type: POST 
+Method: POST 
 
 Path: /api/register
 
@@ -99,7 +99,7 @@ Success Return
 
 ## Logout all devices
 
-Type: POST 
+Method: POST 
 
 Path: /api/logoutdevices
 
@@ -119,7 +119,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'refresh-token changed',
+    "description": "refresh-token changed",
     "data": {
         "refresh-token": <str>,
         "session_token": <str>
@@ -129,7 +129,7 @@ Success Return
 
 ## Login via refresh-token
 
-Type: POST 
+Method: POST 
 
 Path: /api/auth
 
@@ -150,7 +150,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'user is now logged in',
+    "description": "user is now logged in",
     "data": {
         "session_token": <str>,
         "refresh-token": <str>
@@ -160,7 +160,7 @@ Success Return
 
 ## Delete Account
 
-Type: POST 
+Method: POST 
 
 Path: /api/deleteaccount
 
@@ -188,7 +188,7 @@ Success Return
 
 ## Change Language
 
-Type: POST 
+Method: POST 
 
 Path: /api/changelanguage
 
@@ -217,7 +217,7 @@ Success Return
 
 ## Get Language
 
-Type: GET 
+Method: GET 
 
 Path: /api/getlanguage
 
@@ -247,7 +247,7 @@ Success Return
 
 ## Get Users of Trainer
 
-Type: GET (as trainer) or POST as admin 
+Method: GET (as trainer) or POST as admin 
 
 Path: /api/gettrainersuser
 
@@ -276,7 +276,7 @@ Success Return
             "username": <str>,
             "plan": <int>,
             "done_exercises": <float>,
-            "last_login": <string>
+            "last_login": <str>
         }]
     }
 }
@@ -284,7 +284,7 @@ Success Return
 
 ## Get Trainers
 
-Type: GET
+Method: GET
 
 Path: /api/gettrainers
 
@@ -310,7 +310,7 @@ Success Return
         "trainers": <list>[{
             "id": <int>,
             "username": <str>,
-            "last_login": <string>
+            "last_login": <str>
         }]
     }
 }
@@ -318,7 +318,7 @@ Success Return
 
 ## Delete Trainer
 
-Type: POST
+Method: POST
 
 Path: /api/deletetrainer
 
@@ -347,7 +347,7 @@ Success Return
 
 ## Delete User
 
-Type: POST
+Method: POST
 
 Path: /api/deleteuser
 
@@ -376,7 +376,7 @@ Success Return
 
 ## Get User Level
 
-Type: GET
+Method: GET
 
 Path: /api/getuserlevel
 
@@ -408,7 +408,7 @@ Success Return
 
 ## Get Invited User
 
-Type: GET
+Method: GET
 
 Path: /api/getinvited
 
@@ -443,7 +443,7 @@ Success Return
 
 ## Invalidate Invite
 
-Type: POST
+Method: POST
 
 Path: /api/invalidateinvite
 
@@ -472,7 +472,7 @@ Success Return
 
 ## Change Username
 
-Type: POST
+Method: POST
 
 Path: /api/changeusername
 
@@ -504,7 +504,7 @@ Success Return
 
 ## Change Password
 
-Type: POST
+Method: POST
 
 Path: /api/changepassword
 
@@ -537,7 +537,7 @@ Success Return
 
 ## Change Avatar
 
-Type: POST
+Method: POST
 
 Path: /api/changeavatar
 
@@ -566,7 +566,7 @@ Success Return
 
 ## Change Motivation
 
-Type: POST
+Method: POST
 
 Path: /api/changemotivation
 
@@ -595,7 +595,7 @@ Success Return
 
 ## Get Profil
 
-Type: GET
+Method: GET
 
 Path: /api/getprofile
 
@@ -627,7 +627,7 @@ Success Return
 
 ## Get Trainer Contact
 
-Type: GET
+Method: GET
 
 Path: /api/gettrainercontact
 
@@ -677,7 +677,7 @@ as trainer:
 
 ## Set Trainer Location
 
-Type: POST
+Method: POST
 
 Path: /api/changelocation
 
@@ -711,7 +711,7 @@ Success Return
 
 ## Set Trainer Telephone Number
 
-Type: POST
+Method: POST
 
 Path: /api/changetelephone
 
@@ -740,7 +740,7 @@ Success Return
 
 ## Set Trainer Academia
 
-Type: POST
+Method: POST
 
 Path: /api/changeacademia
 
@@ -769,7 +769,7 @@ Success Return
 
 ## Search User
 
-Type: POST
+Method: POST
 
 Path: /api/searchuser
 
@@ -803,7 +803,7 @@ Success Return
 
 ## Get List of Users
 
-Type: GET
+Method: GET
 
 Path: /api/getlistofusers
 
@@ -835,7 +835,7 @@ Success Return
 
 ## Get Reset Password Mail
 
-Type: POST
+Method: POST
 
 Path: /api/getresetpasswordemail
 
@@ -865,7 +865,7 @@ Success Return
 
 ## Reset Password
 
-Type: POST
+Method: POST
 
 Path: /api/resetpassword
 
@@ -894,7 +894,7 @@ Success Return
 
 ## Get exercise
 
-Type: GET 
+Method: GET 
 
 Path: /api/getexercise
 
@@ -916,7 +916,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Returned data',
+    "description": "Returned data",
     "data": {
         "title": <str>,
         "description": <str>,
@@ -927,7 +927,7 @@ Success Return
 
 ## Get exercise list
 
-Type: GET 
+Method: GET 
 
 Path: /api/getexerciselist
 
@@ -948,7 +948,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'list of exercises is provided',
+    "description": "list of exercises is provided",
     "data": {
         "exercise_list": <list>[{
                 "id": <int>,
@@ -961,7 +961,7 @@ Success Return
 
 ## Get Done Exercise
 
-Type: GET when user else POST
+Method: GET when user else POST
 
 Path: /api/getdoneexercises
 
@@ -983,7 +983,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Returned list of Exercises and if its done',
+    "description": "Returned list of Exercises and if its done",
     "data": {
             "name": <str>,
             "done": <list>[{
@@ -1000,7 +1000,7 @@ Success Return
 
 ## Get Done Exercises for month
 
-Type: POST
+Method: POST
 
 Path: /api/getdoneexercisesinmonth
 
@@ -1023,7 +1023,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'returned plan',
+    "description": "returned plan",
     "data": {
             "done": <list>[{
                             "exercise_plan_id": <int>,
@@ -1038,7 +1038,7 @@ Success Return
 
 ## Create plan
 
-Type: POST 
+Method: POST 
 
 Path: /api/createplan
 
@@ -1067,7 +1067,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'plan created',
+    "description": "plan created",
     "data": {
         "plan_id": plan.id
     }
@@ -1076,7 +1076,7 @@ Success Return
 
 ## assign plan to user
 
-Type: POST 
+Method: POST 
 
 Path: /api/addplantouser
 
@@ -1099,13 +1099,13 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'plan assigned to user',
+    "description": "plan assigned to user",
     "data": {}
 }
 ```
 
 ## Get List of Plans
-Type: GET 
+Method: GET 
 
 Path: /api/getlisofplans
 
@@ -1125,16 +1125,19 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'returning all plans',
+    "description": "returning all plans",
     "data": {
-        'plans': <list>
+        "plans": <list>[{
+            "id": <int>,
+            "name": <str>
+        }]
     }
 }
 ```
 
 ## Get Plan
 
-Type: POST 
+Method: POST 
 
 Path: /api/getplan
 
@@ -1156,7 +1159,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'returned plan',
+    "description": "returned plan",
     "data": {
             "name": <str>,
             "exercises": <list>[{
@@ -1172,7 +1175,7 @@ Success Return
 
 ## Get Plan of User
 
-Type: POST 
+Method: POST 
 
 Path: /api/requestplanofuser
 
@@ -1200,9 +1203,15 @@ as user:
 ```json
 {
     "success": true,
-    "description": 'returned plan of this account',
+    "description": "returned plan of this account",
     "data": {
-            "exercises": <list>
+            "exercises": <list>[{
+                "exercise_plan_id": <int>,
+                "id": <int>,
+                "sets": <int>,
+                "repeats_per_set": <int>,
+                "date": <str>
+            }]
         }
 }
 ```
@@ -1210,7 +1219,7 @@ as trainer:
 ```json
 {
     "success": true,
-    "description": 'returned plan of user',
+    "description": "returned plan of user",
     "data": {
             "exercises": <list>
         }
@@ -1219,7 +1228,7 @@ as trainer:
 
 ## Delete Plan
 
-Type: POST 
+Method: POST 
 
 Path: /api/deleteplan
 
@@ -1241,14 +1250,14 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'plan deleted',
+    "description": "plan deleted",
     "data": {}
 }
 ```
 
 ## List Leaderboard
 
-Type: POST 
+Method: POST 
 
 Path: /api/deleteplan
 
@@ -1270,7 +1279,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'The Leaderboard got listed',
+    "description": "The Leaderboard got listed",
     "data": {
         "leaderboard": <list>[{"rank": <int>,
                 "username": <str>,
@@ -1284,7 +1293,7 @@ Success Return
 
 ## Get Achievements
 
-Type: GET 
+Method: GET 
 
 Path: /api/getachievements
 
@@ -1305,7 +1314,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Returning achievements',
+    "description": "Returning achievements",
     "data": {
         "achievements": <list>[{"name": <str>,
                 "title": <str>,
@@ -1321,7 +1330,7 @@ Success Return
 
 ## Load Friend Achievement
 
-Type: GET 
+Method: GET 
 
 Path: /api/loadfriendachievements
 
@@ -1342,7 +1351,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'new achieved',
+    "description": "new achieved",
     "data": {
         "achievements": <list>[{"name": <str>,
                 "title": <str>,
@@ -1355,14 +1364,14 @@ Success Return
 }
 {
     "success": true,
-    "description": 'Not achieved',
+    "description": "Not achieved",
     "data": {}
 }
 ```
 
 ## Load Exercise Achievements
 
-Type: GET 
+Method: GET 
 
 Path: /api/loadexerciseachievement
 
@@ -1383,7 +1392,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'new achieved',
+    "description": "new achieved",
     "data": {
         "achievements": <list>[{"name": <str>,
                 "title": <str>,
@@ -1396,14 +1405,14 @@ Success Return
 }
 {
     "success": true,
-    "description": 'Not achieved',
+    "description": "Not achieved",
     "data": {}
 }
 ```
 
 ## Get Medals
 
-Type: GET 
+Method: GET 
 
 Path: /api/getmedals
 
@@ -1424,7 +1433,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'returning medals',
+    "description": "returning medals",
     "data": {
         "achievements": <list>[{"exercise": <str>,
                 "gold": <int>,
@@ -1436,7 +1445,7 @@ Success Return
 
 ## Get Friends
 
-Type: GET 
+Method: GET 
 
 Path: /api/getfriends
 
@@ -1457,7 +1466,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'returning friends',
+    "description": "returning friends",
     "data": {
         "friends": <list>[{"id": <int>,
                 "friend1": <str>,
@@ -1468,7 +1477,7 @@ Success Return
 
 ## Get Pending Friendrequests
 
-Type: GET 
+Method: GET 
 
 Path: /api/getpendingfriendrequests
 
@@ -1489,7 +1498,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'returning pending requests',
+    "description": "returning pending requests",
     "data": {
         "friends": <list>[{"id": <int>,
                 "friend1": <str>,
@@ -1500,7 +1509,7 @@ Success Return
 
 ## Get Friendrequests
 
-Type: GET 
+Method: GET 
 
 Path: /api/getfriendrequests
 
@@ -1521,7 +1530,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'returning requests',
+    "description": "returning requests",
     "data": {
         "friends": <list>[{"id": <int>,
                 "friend1": <str>,
@@ -1532,7 +1541,7 @@ Success Return
 
 ## Add Friend
 
-Type: POST 
+Method: POST 
 
 Path: /api/addfriend
 
@@ -1554,14 +1563,14 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Request sent',
+    "description": "Request sent",
     "data": {}
 }
 ```
 
 ## Accept Friendrequest
 
-Type: POST 
+Method: POST 
 
 Path: /api/acceptfriendrequest
 
@@ -1583,14 +1592,14 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Request accepted',
+    "description": "Request accepted",
     "data": {}
 }
 ```
 
 ## Decline Friendrequest
 
-Type: POST 
+Method: POST 
 
 Path: /api/declinefriendrequest
 
@@ -1612,14 +1621,14 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Request declined',
+    "description": "Request declined",
     "data": {}
 }
 ```
 
 ## Remove Friend
 
-Type: POST 
+Method: POST 
 
 Path: /api/removefriend
 
@@ -1641,7 +1650,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Removed friend',
+    "description": "Removed friend",
     "data": {
         "removed_friend": <str>
     }
@@ -1650,7 +1659,7 @@ Success Return
 
 ## Get Profile of Friend
 
-Type: POST 
+Method: POST 
 
 Path: /api/getprofileoffriend
 
@@ -1672,7 +1681,7 @@ Success Return
 ```json
 {
     "success": true,
-    "description": 'Returning profile',
+    "description": "Returning profile",
     "data": {
         "username": <str>,
         "level": <str>,
