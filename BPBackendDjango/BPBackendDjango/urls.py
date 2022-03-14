@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from .Views.exerciseviews import DoneExerciseView, GetDoneExercisesOfMonthView, GetDoneExercisesView, GetExerciseListView, GetExerciseView
+from .Views.exerciseviews import GetDoneExercisesOfMonthView, GetDoneExercisesView, GetExerciseListView, GetExerciseView
 from .Views.leaderboardviews import ListLeaderboardView
 from .Views.userviews import AuthView, ChangeAvatarView, ChangeLanguageView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteAccountView, DeleteTrainerView, DeleteUserView, GetInvitedView, GetLanguageView, GetListOfUsers, GetPasswordResetEmailView, GetProfileView, GetStreakView, GetTrainerContactView, GetTrainersView, GetUserLevelView, GetUsersOfTrainerView, InvalidateInviteView, LoginView, LogoutAllDevicesView, RegisterView,  CreateUserView, SearchUserView, SetPasswordResetEmailView, SetTrainerLocationView
 from .Views.planviews import AddPlanToUserView, CreatePlanView, DeletePlanView, GetAllPlansView, GetPlanOfUser, ShowPlanView 
