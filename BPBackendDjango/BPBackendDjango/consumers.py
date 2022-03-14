@@ -27,8 +27,8 @@ def check_if_last_exercise(user:User):
             if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - time.time() % 86400).exists():
                 #if in this period no exercise has been done
                 return False
-            #if all exercises had been done return, because after every exercise increasing streak is checked
-            return True
+        #if all exercises had been done return, because after every exercise increasing streak is checked
+        return True
     #should not happen, if no exercises -> not last
     return False
 
