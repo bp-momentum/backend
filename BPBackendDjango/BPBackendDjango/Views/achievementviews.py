@@ -1,13 +1,10 @@
 from urllib import request
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import json
-import time
 
 from ..Helperclasses.jwttoken import JwToken
-from ..serializers import AchieveAchievement
-from ..Helperclasses.handlers import ErrorHandler
-from ..models import *
+from ..Helperclasses.handlers import AchievementHandler, ErrorHandler, LanguageHandler
+from ..models import Achievement, DoneExercises, Friends, User, UserAchievedAchievement, UserMedalInExercise
 from .exerciseviews import MAX_POINTS
 
 #data for achievements (hours->seconds)
@@ -16,58 +13,6 @@ NIGHT_END = 6*84600
 EARLY_END = 8*84600
 
 ROOT_PATH = 'https://cdn.geoscribble.de/achievements/'
-
-def achieve_achievement(user:User, achievement:Achievement):
-    #if already achieved do nothing
-    if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
-        return True, 'achievement already achieved'
-    #save completed achievement
-    UserAchievedAchievement.objects.create(achievement=achievement, user=user, date=int(time.time()))
-    return True, 'user achieved achievement'
-
-def upgrade_level(user, achievement, level):
-    #if user has not achieved achievement, he achieves it now
-    if not UserAchievedAchievement.objects.filter(achievement=achievement.id, user=user.id).exists():
-        res = achieve_achievement(user, achievement)
-        if not res[0]:
-            return res
-    #update level
-    uaa:UserAchievedAchievement = UserAchievedAchievement.objects.get(achievement=achievement.id, user=user.id)
-    #only update if new level is higher
-    if level <= uaa.level:
-        return True, 'user already achieved (higher) level'
-    uaa.level = level
-    uaa.date = int(time.time())
-    uaa.save(force_update=True)
-    return True, 'level upgraded'
-
-def get_correct_description(username, description):
-    if User.objects.filter(username=username).exists():
-        user = User.objects.get(username=username)
-    elif Trainer.objects.filter(username=username).exists():
-        user = Trainer.objects.get(username=username)
-    elif Admin.objects.filter(username=username).exists():
-        user = Admin.objects.get(username=username)
-    else:
-        return "invalid user"
-    lang = user.language
-    try:
-        desc = json.loads(description)
-        res = desc.get(lang)
-    except:
-        res = 'description not available'
-    if res == None:
-        return "description not available in "+lang
-    return res
-
-def get_icon(level, icon_text):
-    try:
-        dict = json.loads(icon_text)
-        return dict.get(str(level))
-    except:
-        return icon_text
-    
-    
 
 
 class GetAchievementsView(APIView):
@@ -102,7 +47,7 @@ class GetAchievementsView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
         achieved = []
         nr_unachieved_hidden = 0
 
@@ -133,7 +78,7 @@ class GetAchievementsView(APIView):
                 nr_of_exs = len(DoneExercises.objects.filter(user=user.id))
                 #check which level is reached
                 if nr_of_exs >= 100:
-                    res = upgrade_level(user, achievement, 3)
+                    res = AchievementHandler.upgrade_level(user, achievement, 3)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -146,15 +91,15 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 3,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(3, achievement.icon)
+                        'icon': AchievementHandler.get_icon(3, achievement.icon)
                     }) 
                 elif nr_of_exs >= 50:
-                    res = upgrade_level(user, achievement, 2)
+                    res = AchievementHandler.upgrade_level(user, achievement, 2)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -167,15 +112,15 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 2,
                         'progress': str(nr_of_exs)+'/100',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(2, achievement.icon)
+                        'icon': AchievementHandler.get_icon(2, achievement.icon)
                     }) 
                 elif nr_of_exs >= 10:
-                    res = achieve_achievement(user, achievement)
+                    res = AchievementHandler.achieve_achievement(user, achievement)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -188,22 +133,22 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': str(nr_of_exs)+'/50',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(2, achievement.icon)
+                        'icon': AchievementHandler.get_icon(2, achievement.icon)
                     }) 
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 0,
                         'progress': str(nr_of_exs)+'/10',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(0, achievement.icon)
+                        'icon': AchievementHandler.get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -213,7 +158,7 @@ class GetAchievementsView(APIView):
                 nr_of_friends = len(Friends.objects.filter(friend1=user.id, accepted=True).union(Friends.objects.filter(friend2=user.id, accepted=True)))
                 #check which level is reached
                 if nr_of_friends >= 1:
-                    res = achieve_achievement(user, achievement)
+                    res = AchievementHandler.achieve_achievement(user, achievement)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -226,22 +171,22 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     }) 
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(0, achievement.icon)
+                        'icon': AchievementHandler.get_icon(0, achievement.icon)
                     }) 
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -251,7 +196,7 @@ class GetAchievementsView(APIView):
                 streak = user.streak
                 #check which level is reached
                 if streak >= 90:
-                    res = upgrade_level(user, achievement, 4)
+                    res = AchievementHandler.upgrade_level(user, achievement, 4)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -264,15 +209,15 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 4,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(4, achievement.icon)
+                        'icon': AchievementHandler.get_icon(4, achievement.icon)
                     }) 
                 elif streak >= 30:
-                    res = upgrade_level(user, achievement, 3)
+                    res = AchievementHandler.upgrade_level(user, achievement, 3)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -285,15 +230,15 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 3,
                         'progress': str(streak)+'/90',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(3, achievement.icon)
+                        'icon': AchievementHandler.get_icon(3, achievement.icon)
                     }) 
                 elif streak >= 7:
-                    res = upgrade_level(user, achievement, 2)
+                    res = AchievementHandler.upgrade_level(user, achievement, 2)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -306,15 +251,15 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 2,
                         'progress': str(streak)+'/30',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(2, achievement.icon)
+                        'icon': AchievementHandler.get_icon(2, achievement.icon)
                     }) 
                 elif streak >= 3:
-                    res = achieve_achievement(user, achievement)
+                    res = AchievementHandler.achieve_achievement(user, achievement)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -327,22 +272,22 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': str(streak)+'/7',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     }) 
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 0,
                         'progress': str(streak)+'/3',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(0, achievement.icon)
+                        'icon': AchievementHandler.get_icon(0, achievement.icon)
                     }) 
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -358,7 +303,7 @@ class GetAchievementsView(APIView):
                         break
                 #set achievement
                 if found:
-                    res = achieve_achievement(user, achievement)
+                    res = AchievementHandler.achieve_achievement(user, achievement)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -371,22 +316,22 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     })
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(0, achievement.icon)
+                        'icon': AchievementHandler.get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -402,7 +347,7 @@ class GetAchievementsView(APIView):
                         break
                 #set achievement
                 if found:
-                    res = achieve_achievement(user, achievement)
+                    res = AchievementHandler.achieve_achievement(user, achievement)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -415,22 +360,22 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     })
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(0, achievement.icon)
+                        'icon': AchievementHandler.get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -446,7 +391,7 @@ class GetAchievementsView(APIView):
                         break
                 #set achievement
                 if found:
-                    res = achieve_achievement(user, achievement)
+                    res = AchievementHandler.achieve_achievement(user, achievement)
                     if not res[0]:
                         data = {
                             'success': False,
@@ -459,22 +404,22 @@ class GetAchievementsView(APIView):
                         return Response(data)
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     })
                 elif not achievement.hidden:
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 0,
                         'progress': '0/1',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(0, achievement.icon)
+                        'icon': AchievementHandler.get_icon(0, achievement.icon)
                     })
                 else:
                     nr_unachieved_hidden = nr_unachieved_hidden + 1
@@ -523,14 +468,14 @@ class ReloadFriendAchievementView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         #can not be achieved
         if not Achievement.objects.filter(name='havingFriends').exists():
             icon_dict = '{"0":"' + ROOT_PATH + 'friends_0.svg","1":"' + ROOT_PATH + 'friends_1.svg"}'
             Achievement.objects.create(name='havingFriends', title='{"en":"A Friend!","de":"Freundschaft!"}', description='{"en": "Become friends with another user.", "de": "Sei mit einem Spieler befreundet"}', icon=icon_dict)
 
-        achievement = Achievement.objects.get(name='havingFriends')
+        achievement:Achievement = Achievement.objects.get(name='havingFriends')
 
         #already achieved
         if UserAchievedAchievement.objects.filter(achievement=achievement, user=user).exists():
@@ -545,7 +490,7 @@ class ReloadFriendAchievementView(APIView):
         nr_of_friends = len(Friends.objects.filter(friend1=user.id, accepted=True).union(Friends.objects.filter(friend2=user.id, accepted=True)))
         #check which level is reached
         if nr_of_friends >= 1:
-            res = achieve_achievement(user, achievement)
+            res = AchievementHandler.achieve_achievement(user, achievement)
             if not res[0]:
                 data = {
                     'success': False,
@@ -562,12 +507,12 @@ class ReloadFriendAchievementView(APIView):
                 'data': {
                     'achievements': {
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     }
                 }
             }
@@ -613,20 +558,20 @@ class ReloadAfterExerciseView(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
         achieved = []
         #do excersises
         if not Achievement.objects.filter(name='doneExercises').exists():
             icon_dict = '{"0":"' + ROOT_PATH + 'doneExercises_0.svg","1":"' + ROOT_PATH + 'doneExercises_1.svg","2":"' + ROOT_PATH + 'doneExercises_2.svg","3":"' + ROOT_PATH + 'doneExercises_3.svg"}'
             Achievement.objects.create(name='doneExercises', title='{"en":"Done Exercises","de":"Abgeschlossene Übungen"}', description='{"en": "Do exercises to get/level this achievement", "de": "Mache Übungen um diese Errungenschaft zu bekommen beziehungsweise hoch zu leveln"}')
-        achievement = Achievement.objects.get(name='doneExercises')
+        achievement:Achievement = Achievement.objects.get(name='doneExercises')
         #get number of done exercises
         nr_of_exs = len(DoneExercises.objects.filter(user=user.id))
         #already achieved
         if not UserAchievedAchievement.objects.filter(achievement=achievement, user=user, level=3).exists():
         #check which level is reached
             if nr_of_exs >= 100:
-                res = upgrade_level(user, achievement, 3)
+                res = AchievementHandler.upgrade_level(user, achievement, 3)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -640,15 +585,15 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'level upgraded':
                     achieved.append({
                     'name': achievement.name,
-                    'title': get_correct_description(user.username, achievement.title),
-                    'description': get_correct_description(user.username, achievement.description),
+                    'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                    'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                     'level': 3,
                     'progress': 'done',
                     'hidden': achievement.hidden,
-                    'icon': get_icon(3, achievement.icon)
+                    'icon': AchievementHandler.get_icon(3, achievement.icon)
                 }) 
             elif nr_of_exs >= 50:
-                res = upgrade_level(user, achievement, 2)
+                res = AchievementHandler.upgrade_level(user, achievement, 2)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -662,15 +607,15 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'level upgraded':
                     achieved.append({
                     'name': achievement.name,
-                    'title': get_correct_description(user.username, achievement.title),
-                    'description': get_correct_description(user.username, achievement.description),
+                    'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                    'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                     'level': 2,
                     'progress': str(nr_of_exs)+'/100',
                     'hidden': achievement.hidden,
-                    'icon': get_icon(2, achievement.icon)
+                    'icon': AchievementHandler.get_icon(2, achievement.icon)
                 }) 
             elif nr_of_exs >= 10:
-                res = achieve_achievement(user, achievement)
+                res = AchievementHandler.achieve_achievement(user, achievement)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -684,12 +629,12 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'user achieved achievement':
                     achieved.append({
                     'name': achievement.name,
-                    'title': get_correct_description(user.username, achievement.title),
-                    'description': get_correct_description(user.username, achievement.description),
+                    'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                    'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                     'level': 1,
                     'progress': str(nr_of_exs)+'/50',
                     'hidden': achievement.hidden,
-                    'icon': get_icon(1, achievement.icon)
+                    'icon': AchievementHandler.get_icon(1, achievement.icon)
                 }) 
         #perfectExercise
         if not Achievement.objects.filter(name='perfectExercise').exists():
@@ -708,7 +653,7 @@ class ReloadAfterExerciseView(APIView):
                     break
             #set achievement
             if found:
-                res = achieve_achievement(user, achievement)
+                res = AchievementHandler.achieve_achievement(user, achievement)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -722,12 +667,12 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'user achieved achievement':
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     })
         #night owl
         if not Achievement.objects.filter(name='nightOwl').exists():
@@ -746,7 +691,7 @@ class ReloadAfterExerciseView(APIView):
                     break
             #set achievement
             if found:
-                res = achieve_achievement(user, achievement)
+                res = AchievementHandler.achieve_achievement(user, achievement)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -760,12 +705,12 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'user achieved achievement':
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': achievement.iconget_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     })
         #earlyBird
         if not Achievement.objects.filter(name='earlyBird').exists():
@@ -784,7 +729,7 @@ class ReloadAfterExerciseView(APIView):
                     break
             #set achievement
             if found:
-                res = achieve_achievement(user, achievement)
+                res = AchievementHandler.achieve_achievement(user, achievement)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -798,12 +743,12 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'user achieved achievement':
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon':get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     })
         #streak
         if not Achievement.objects.filter(name='streak').exists():
@@ -816,7 +761,7 @@ class ReloadAfterExerciseView(APIView):
             streak = user.streak
             #check which level is reached
             if streak >= 90:
-                res = upgrade_level(user, achievement, 4)
+                res = AchievementHandler.upgrade_level(user, achievement, 4)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -830,15 +775,15 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'level upgraded':
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 4,
                         'progress': 'done',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(4, achievement.icon)
+                        'icon': AchievementHandler.get_icon(4, achievement.icon)
                     }) 
             elif streak >= 30:
-                res = upgrade_level(user, achievement, 3)
+                res = AchievementHandler.upgrade_level(user, achievement, 3)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -852,15 +797,15 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'level upgraded':
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 3,
                         'progress': str(streak)+'/90',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(3, achievement.icon)
+                        'icon': AchievementHandler.get_icon(3, achievement.icon)
                     }) 
             elif streak >= 7:
-                res = upgrade_level(user, achievement, 2)
+                res = AchievementHandler.upgrade_level(user, achievement, 2)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -874,15 +819,15 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'level upgraded':
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 2,
                         'progress': str(streak)+'/30',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(2, achievement.icon)
+                        'icon': AchievementHandler.get_icon(2, achievement.icon)
                     }) 
             elif streak >= 3:
-                res = achieve_achievement(user, achievement)
+                res = AchievementHandler.achieve_achievement(user, achievement)
                 if not res[0]:
                     data = {
                         'success': False,
@@ -896,12 +841,12 @@ class ReloadAfterExerciseView(APIView):
                 if res[1] == 'user achieved achievement':
                     achieved.append({
                         'name': achievement.name,
-                        'title': get_correct_description(user.username, achievement.title),
-                        'description': get_correct_description(user.username, achievement.description),
+                        'title': LanguageHandler.get_in_correct_language(user.username, achievement.title),
+                        'description': LanguageHandler.get_in_correct_language(user.username, achievement.description),
                         'level': 1,
                         'progress': str(streak)+'/7',
                         'hidden': achievement.hidden,
-                        'icon': get_icon(1, achievement.icon)
+                        'icon': AchievementHandler.get_icon(1, achievement.icon)
                     }) 
         #check if new achieved
         if len(achieved) == 0:
@@ -953,7 +898,7 @@ class GetMedals(APIView):
                 }
             return Response(data)
 
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
         medals = UserMedalInExercise.objects.filter(user=user)
         output = []
         for mex in medals:

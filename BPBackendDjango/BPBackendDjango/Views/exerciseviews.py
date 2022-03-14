@@ -1,104 +1,12 @@
-import datetime
-import locale
-import math
-import time
-from typing import List
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import json
 
-from ..Helperclasses.ai import DummyAI
-from ..models import *
+from ..models import Exercise, User
 from ..Helperclasses.jwttoken import JwToken
-from ..Helperclasses.handlers import ErrorHandler
+from ..Helperclasses.handlers import DateHandler, ErrorHandler, ExerciseHandler, LanguageHandler
 
 MAX_POINTS = 100
-SECS_PER_YEAR = 31556952
-SECS_PER_DAY = 86400
 
-def user_needs_ex(username, id):
-    #TODO user needs exercise
-    return True
-
-def get_correct_description(username, description):
-    if User.objects.filter(username=username).exists():
-        user = User.objects.get(username=username)
-    elif Trainer.objects.filter(username=username).exists():
-        user = Trainer.objects.get(username=username)
-    elif Admin.objects.filter(username=username).exists():
-        user = Admin.objects.get(username=username)
-    else:
-        return "invalid user"
-    lang = user.language
-    desc = json.loads(description.replace("'", "\""))
-    res = desc.get(lang)
-    if res == None:
-        return "description not available in "+lang
-    return res
-
-def get_lastday_of_month(m, y):
-    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
-        return 31
-    elif m == 4 or m == 6 or m == 9 or m == 11:
-        return 30
-    elif m == 2:
-        if y % 400 == 0:
-            return 29
-        elif y % 100 == 0:
-            return 28
-        elif y % 4 == 0:
-            return 29
-        else:
-            return 28
-    else:
-        return 0
-
-def get_done_exercises_of_month(month:int, year:int, user:User)->list:
-    locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-    now = datetime.datetime.now()
-    if (now.month < month and now.year == year) or now.year < year:
-        return []
-    init:datetime.datetime = datetime.datetime(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
-    offset_gt = int(init.timestamp())
-    out = []
-    plan:TrainingSchedule = None
-    nr_days = get_lastday_of_month(month, year)
-    for i in range(1, nr_days+1):
-        weekday = init.strftime('%A').lower()
-        init += datetime.timedelta(days=1)
-        offset_lt = int(init.timestamp())
-        done_day = DoneExercises.objects.filter(user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True)
-        for d in done_day:
-            plan = d.exercise.plan
-            out.append({
-                "exercise_plan_id": d.exercise.id,
-                "id": d.exercise.exercise.id,
-                "date": d.date,
-                "points": d.points,
-                "done": True
-            })
-        if not plan is None:
-            exips = ExerciseInPlan.objects.filter(plan=plan, date=weekday)
-            for exip in exips:
-                if not done_day.filter(exercise=exip).exists():
-                    out.append({
-                        "exercise_plan_id": exip.id,
-                        "id": exip.exercise.id,
-                        "date": int(datetime.datetime(year=year, month=month, day=i, hour=12).timestamp()),
-                        "points": None,
-                        "done": False
-                    })
-        offset_gt = offset_lt
-        #only check until today
-        if now.month == month and now.day == i:
-            break
-    return out
-
-def valid_month(month):
-    if (month < 1) or (month > 12):
-        return False
-    return True
 
 class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
@@ -134,7 +42,7 @@ class GetExerciseView(APIView):
             return Response(data)
 
         #check if user is allowed to request
-        if not (token["info"]["account_type"] == "trainer" or (token["info"]["account_type"] == "user" and user_needs_ex(token["info"]['username'], int(req_data['id'])))):
+        if not (token["info"]["account_type"] == "trainer" or token["info"]["account_type"] == "user"):
             data = {
                 'success': False,
                 'description': 'Not allowed to request list of exercises',
@@ -143,7 +51,7 @@ class GetExerciseView(APIView):
             return Response(data)
 
         #get exercise
-        ex = Exercise.objects.get(id=int(req_data['id']))
+        ex:Exercise = Exercise.objects.get(id=int(req_data['id']))
 
         #checks wether exercise is activated
         if not ex.activated:
@@ -152,7 +60,7 @@ class GetExerciseView(APIView):
                 'description': 'Be careful, exercise is deactivated! Returned data',
                 'data': {
                     'title': ex.title,
-                    'description': get_correct_description(info['username'], ex.description),
+                    'description': LanguageHandler.get_in_correct_language(info['username'], ex.description),
                     'video': ex.video,
                     'activated': False
                 }
@@ -165,7 +73,7 @@ class GetExerciseView(APIView):
                 'description': 'Returned data',
                 'data': {
                     'title': ex.title,
-                    'description': get_correct_description(info['username'], ex.description),
+                    'description': LanguageHandler.get_in_correct_language(info['username'], ex.description),
                     'video': ex.video,
                     'activated': True
                 }
@@ -214,6 +122,7 @@ class GetExerciseListView(APIView):
                 'id': ex.id,
                 'title': ex.title
                 })
+
         data = {
                 'success': True,
                 'description': 'returning all exercises',
@@ -225,134 +134,8 @@ class GetExerciseListView(APIView):
         return Response(data)
 
 
-class DoneExerciseView(APIView):
-    def post(self, request, *args, **kwargs):
-        #checking if it contains all arguments
-        check = ErrorHandler.check_arguments(['Session-Token'], request.headers, ['exercise_plan_id'], request.data)
-        if not check.get('valid'):
-            data = {
-                'success': False,
-                'description': 'Missing arguments',
-                'data': check.get('missing')
-            }
-            return Response(data)
-        req_data = dict(request.data)
-        token = JwToken.check_session_token(request.headers['Session-Token'])
-        if not token["valid"]:
-            data = {
-                'success': False,
-                'description': 'Token is not valid',
-                'data': {}
-            }
-            return Response(data)
-
-        info = token['info']
-        #check if is user/user exists
-        if not User.objects.filter(username=info['username']).exists():
-            data = {
-                'success': False,
-                'description': 'Not a user',
-                'data': {}
-            }
-            return Response(data)
-        user = User.objects.get(username=info['username'])
-
-        #check if exercise in plan with given id exists
-        if not ExerciseInPlan.objects.filter(id=req_data['exercise_plan_id']).exists():
-            data = {
-                'success': False,
-                'description': 'Exercise in plan id does not exists',
-                'data': {}
-            }
-            return Response(data)
-        eip = ExerciseInPlan.objects.get(id=req_data['exercise_plan_id'])
-
-        # check if its already done this week
-        done = DoneExercises.objects.filter(exercise=eip, user=user)
-        for d in done:
-            # calculate the timespan and if its already done done
-            if time.time() - (d.date - d.date%86400) < 604800:
-                data = {
-                    'success': False,
-                    'description': 'User already did this exercise in this week',
-                    'data': {}
-                }
-                return Response(data)
-
-        # calculating points
-        a, b, c = DummyAI.dummy_function(ex=eip.exercise.id, video=None)
-        intensity = b['intensity']
-        speed = b['speed']
-        cleanliness = b['cleanliness']
-
-        points = int(math.ceil((intensity + speed + cleanliness) / 3))
-        leaderboard_entry = Leaderboard.objects.get(user=user)
-        leaderboard_entry.score += points
-        leaderboard_entry.save(force_update=True)
-        # creating the new DoneExercise entry
-        new_entry = DoneExercises(exercise=eip, user=user, points=points, date=int(time.time()))
-        new_entry.save()
-        data = {
-            'success': True,
-            'description': 'Done Exercise is now saved',
-            'data': {}
-        }
-
-        return Response(data)
-
 
 class GetDoneExercisesView(APIView):
-
-    def GetDone(self, user):
-
-        # list of all done in last week
-        # calculation of timespan and filter
-        locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-        weekday:int = datetime.datetime.now().weekday()
-        done = DoneExercises.objects.filter(user=user, date__gt=time.time() - weekday * 86400 - time.time() % 86400, completed=True)
-
-        # list of all exercises to done
-        all = ExerciseInPlan.objects.filter(plan=user.plan)
-        out = []
-        for a in all:
-            done_found = False
-            for d in done:
-                if done_found:
-                    continue
-                if a.id == d.exercise.id:
-                    out.append({"exercise_plan_id": a.id,
-                                "id": a.exercise.id,
-                                "date": a.date,
-                                "sets": a.sets,
-                                "repeats_per_set": a.repeats_per_set,
-                                "done": True
-                                })
-                    done_found = True
-                    break
-            if done_found:
-                continue
-
-            out.append({"exercise_plan_id": a.id,
-                        "id": a.exercise.id,
-                        "date": a.date,
-                        "sets": a.sets,
-                        "repeats_per_set": a.repeats_per_set,
-                        "done": False
-                        })
-
-
-
-        data = {
-            "success": True,
-            "description": "Returned list of Exercises and if its done",
-            "data":
-                {"name": user.plan.name,
-                 "exercises": out
-                 }
-        }
-
-        #returns the data as in the get plan but with a additional var "done"
-        return data
 
     def get(self, request, *args, **kwargs):
         #checking if it contains all arguments
@@ -382,7 +165,7 @@ class GetDoneExercisesView(APIView):
                 'data': {}
             }
             return Response(data)
-        user = User.objects.get(username=info['username'])
+        user:User = User.objects.get(username=info['username'])
 
         if user.plan is None:
             data = {
@@ -393,7 +176,7 @@ class GetDoneExercisesView(APIView):
             return Response(data)
 
         #create data in form of get plan
-        data = self.GetDone(user=user)
+        data = ExerciseHandler.get_done(user=user)
         return Response(data)
 
     def post(self, request, *args, **kwargs):
@@ -433,8 +216,8 @@ class GetDoneExercisesView(APIView):
                 'data': {}
             }
             return Response(data)
-        user = User.objects.get(username=req_data['user'])
-        data = self.GetDone(user=user)
+        user:User = User.objects.get(username=req_data['user'])
+        data = ExerciseHandler.get_done(user=user)
         return Response(data)
 
 
@@ -462,7 +245,7 @@ class GetDoneExercisesOfMonthView(APIView):
             return Response(data)
         info = token['info']
         if info['account_type'] == 'user':
-            user = User.objects.get(username=info['username'])
+            user:User = User.objects.get(username=info['username'])
         else:
             data = {
                 'success': False,
@@ -470,14 +253,14 @@ class GetDoneExercisesOfMonthView(APIView):
                 'data': {}
             }
             return Response(data)
-        if not valid_month(month=req_data['month']):
+        if not DateHandler.valid_month(month=req_data['month']):
             data = {
                 'success': False,
                 'description': 'invalid month',
                 'data': {}
             }
             return Response(data)
-        done = get_done_exercises_of_month(int(req_data['month']), int(req_data['year']), user)
+        done = ExerciseHandler.get_done_exercises_of_month(int(req_data['month']), int(req_data['year']), user)
         data = {
             'success': True,
             'description': 'Returning exercises done in this month',

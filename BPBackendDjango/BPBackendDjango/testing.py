@@ -1,28 +1,16 @@
-import collections
-from multiprocessing.connection import wait
-from pickle import TRUE
-from django.http import request
-from pickle import EXT2
-from urllib import request
 from django.test import TestCase
 
-from .Views.leaderboardviews import ListLeaderboardView
+from .models import Achievement, Admin, DoneExercises, Exercise, ExerciseInPlan, Friends, Leaderboard, Location, OpenToken, Trainer, TrainingSchedule, User, UserAchievedAchievement, UserMedalInExercise
+from .settings import INTERN_SETTINGS
 from .Helperclasses.fortests import ViewSupport
 from .Helperclasses.jwttoken import JwToken
-from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView, get_friends, get_pending_requests, get_requests
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetStreakView, GetPasswordResetEmailView, GetUsersOfTrainerView, GetTrainersView, SetPasswordResetEmailView, calc_level, get_trainers_data, get_users_data_for_upper
-from .Views.userviews import GetInvitedView, InvalidateInviteView, get_invited_data
-from .Views.userviews import ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, DeleteTrainerView, DeleteUserView, GetProfileView, GetTrainerContactView, GetUsersOfTrainerView, GetTrainersView, SetTrainerLocationView, get_trainers_data, get_users_data_for_upper
-from .Views.userviews import DeleteTrainerView, DeleteUserView, GetInvitedView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, get_invited_data, get_trainers_data, get_users_data_for_upper
-from .Views.userviews import GetUserLevelView
-from rest_framework import response
-from django.test.utils import setup_test_environment
-from .models import *
-from .Helperclasses.jwttoken import JwToken
+from .Helperclasses.handlers import ExerciseHandler, FriendHandler, InvitationsHandler, TrainerHandler, UserHandler
+from .Views.leaderboardviews import ListLeaderboardView
+from .Views.friendviews import AcceptRequestView, AddFriendView, DeclineRequestView, DeleteFriendView, GetMyFriendsView, GetPendingRequestView, GetProfileOfFriendView, GetRequestView
+from .Views.userviews import AuthView, ChangeAvatarView, ChangeMotivationView, ChangePasswordView, ChangeTrainerAcademiaView, ChangeTrainerTelephoneView, ChangeUsernameView, CreateUserView, DeleteAccountView, DeleteTrainerView, DeleteUserView, GetInvitedView, GetListOfUsers, GetProfileView, GetStreakView, GetPasswordResetEmailView, GetTrainerContactView, GetUserLevelView, GetUsersOfTrainerView, GetTrainersView, InvalidateInviteView, LoginView, LogoutAllDevicesView, RegisterView, SearchUserView, SetPasswordResetEmailView, SetTrainerLocationView
 from .Views.achievementviews import GetAchievementsView, ReloadAfterExerciseView, ReloadFriendAchievementView, GetMedals
-from .Views.userviews import *
-from .Views.exerciseviews import *
-from .Views.planviews import *
+from .Views.exerciseviews import GetDoneExercisesOfMonthView, GetDoneExercisesView, GetExerciseListView, GetExerciseView
+from .Views.planviews import AddPlanToUserView, CreatePlanView, DeletePlanView, GetAllPlansView, GetPlanOfUser, ShowPlanView
 import hashlib
 import time
 import datetime
@@ -32,16 +20,17 @@ class UserTestCase(TestCase):
     trainer_id = 1
 
     def setUp(self):
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer_id = trainer.id
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
 
     def test_if_exists(self):
+        #test if was created
         self.assertTrue(Trainer.objects.filter(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234").exists())
         self.assertTrue(User.objects.filter(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=self.trainer_id, email_address="prescher-erik@web.de", password="Password1234").exists())
 
     def test_if_user_gets_deleted_when_trainer_gets_deleted(self):
+        #test if on_delete works as wanted
         Trainer.objects.filter(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234").delete()
         self.assertFalse(Trainer.objects.filter(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234").exists())
         self.assertFalse(User.objects.filter(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=self.trainer_id, email_address="prescher-erik@web.de", password="Password1234").exists())
@@ -57,33 +46,30 @@ class DeleteUserTestCase(TestCase):
     friends_id = 1
 
     def setUp(self):
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
-        DeleteUserTestCase.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
-        user1 = User.objects.get(first_name='Erik')
-        user2 = User.objects.get(first_name='Jannis')
-        DeleteUserTestCase.user_id = user1.id
-        DeleteUserTestCase.user_id_2 = user2.id
-        Exercise.objects.create(title='Squat', description='Just do it.')
-        exercise = Exercise.objects.get(title='Squat')
-        DeleteUserTestCase.exercise_id = exercise.id
-        plan = TrainingSchedule.objects.create(name="testplan", trainer=trainer)
-        exercise_plan = ExerciseInPlan.objects.create(exercise=exercise, plan=plan)
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.trainer_id = trainer.id
+        user1:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user2:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
+        self.user_id = user1.id
+        self.user_id_2 = user2.id
+        exercise:Exercise = Exercise.objects.create(title='Squat', description='Just do it.')
+        self.exercise_id = exercise.id
+        plan:TrainingSchedule = TrainingSchedule.objects.create(name="testplan", trainer=trainer)
+        exercise_plan:ExerciseInPlan = ExerciseInPlan.objects.create(exercise=exercise, plan=plan)
         DoneExercises.objects.create(exercise=exercise_plan, user=user1, points=98)
-        DeleteUserTestCase.done_ex_id = DoneExercises.objects.get(points=98).id
+        self.done_ex_id = DoneExercises.objects.get(points=98).id
         Friends.objects.create(friend1=user1, friend2=user2)
-        DeleteUserTestCase.friends_id = Friends.objects.get(friend1=DeleteUserTestCase.user_id).id
+        self.friends_id = Friends.objects.get(friend1=self.user_id).id
 
     def test_cascade(self):
-        User.objects.filter(id=DeleteUserTestCase.user_id).delete()
-        self.assertTrue(User.objects.filter(id=DeleteUserTestCase.user_id_2).exists())
-        self.assertTrue(Trainer.objects.filter(id=DeleteUserTestCase.trainer_id).exists())
-        self.assertTrue(Exercise.objects.filter(id=DeleteUserTestCase.exercise_id).exists())
-        self.assertFalse(User.objects.filter(id=DeleteUserTestCase.user_id).exists())
-        self.assertFalse(DoneExercises.objects.filter(id=DeleteUserTestCase.done_ex_id).exists())
-        self.assertFalse(Friends.objects.filter(id=DeleteUserTestCase.friends_id).exists())
+        #test cascade of user
+        User.objects.filter(id=self.user_id).delete()
+        self.assertTrue(User.objects.filter(id=self.user_id_2).exists())
+        self.assertTrue(Trainer.objects.filter(id=self.trainer_id).exists())
+        self.assertTrue(Exercise.objects.filter(id=self.exercise_id).exists())
+        self.assertFalse(User.objects.filter(id=self.user_id).exists())
+        self.assertFalse(DoneExercises.objects.filter(id=self.done_ex_id).exists())
+        self.assertFalse(Friends.objects.filter(id=self.friends_id).exists())
 
 
 class ExerciseTestCase(TestCase):
@@ -92,10 +78,12 @@ class ExerciseTestCase(TestCase):
         Exercise.objects.create(title='Liegestütze', description="Mache Liegestütze", activated=False)
 
     def test_if_exists(self):
+        #test if exist
         self.assertTrue(Exercise.objects.filter(title='Kniebeuge', description="Gehe in die Knie, achte...", video=None, activated=True).exists())
         self.assertTrue(Exercise.objects.filter(title='Liegestütze', description="Mache Liegestütze", video=None, activated=False).exists())
 
     def test_if_delete_works(self):
+        #test delete
         Exercise.objects.filter(title='Kniebeuge', description="Gehe in die Knie, achte...", video=None, activated=True).delete()
         Exercise.objects.filter(title='Liegestütze', description="Mache Liegestütze", video=None, activated=False).delete()
         self.assertFalse(Exercise.objects.filter(title='Kniebeuge', description="Gehe in die Knie, achte...", video=None, activated=True).exists())
@@ -110,17 +98,13 @@ class PlanTestCase(TestCase):
     ts_id = 0
 
     def setUp(self):
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        user = User.objects.get(first_name="Erik")
+        user:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
         self.user_id = user.id
-        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
-        ex = Exercise.objects.get(title='Kniebeuge')
+        ex:Exercise = Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
         self.ex_id = ex.id
-        TrainingSchedule.objects.create(trainer=trainer)
-        ts = TrainingSchedule.objects.get(trainer=trainer.id)
+        ts:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
         self.ts_id = ts.id
         ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
         user.plan = ts
@@ -130,7 +114,7 @@ class PlanTestCase(TestCase):
         self.assertTrue(TrainingSchedule.objects.filter(trainer=self.trainer_id).exists())
         self.assertTrue(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id).exists())
         self.assertTrue(User.objects.filter(first_name="Erik").exists())
-        user = User.objects.get(first_name="Erik")
+        user:User = User.objects.get(first_name="Erik")
         self.assertEquals(user.plan.id, self.ts_id)
 
     def test_if_related_deletes_work(self):
@@ -139,9 +123,9 @@ class PlanTestCase(TestCase):
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
         #recreate data
         Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
-        ex = Exercise.objects.get(title='Kniebeuge')
+        ex:Exercise = Exercise.objects.get(title='Kniebeuge')
         self.ex_id = ex.id
-        ts = TrainingSchedule.objects.get(id=self.ts_id)
+        ts:TrainingSchedule = TrainingSchedule.objects.get(id=self.ts_id)
         ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
         #test cascade if Trainer is deleted
         Trainer.objects.filter(first_name="Erik").delete()
@@ -150,13 +134,12 @@ class PlanTestCase(TestCase):
         self.assertFalse(ExerciseInPlan.objects.filter(exercise=self.ex_id, plan=self.ts_id))
         #recreate data        
         Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_id = trainer.id
         User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        user = User.objects.get(first_name="Erik")
+        user:User = User.objects.get(first_name="Erik")
         self.user_id = user.id
-        TrainingSchedule.objects.create(trainer=trainer)
-        ts = TrainingSchedule.objects.get(trainer=self.trainer_id)
+        ts:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
         self.ts_id = ts.id
         ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
         user.plan = ts
@@ -171,17 +154,14 @@ class PlanTestCase(TestCase):
 
 class getUsersAndTrainersTestCase(TestCase):
 
-    admin = None
+    admin:Admin = None
     trainers = []
     users = []
 
     def setUp(self) -> None:
-        Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", password="Password1234")
-        self.admin = Admin.objects.get(username="DerAdmin")
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        self.trainers.append(Trainer.objects.get(first_name="Erik"))
-        Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerAndereTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        self.trainers.append(Trainer.objects.get(first_name="Jannis"))
+        self.admin:Admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", password="Password1234")
+        self.trainers.append(Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234"))
+        self.trainers.append(Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerAndereTrainer", email_address="prescher-erik@web.de", password="Password1234"))
         User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=self.trainers[0],password="pswd22")
         User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=self.trainers[0],password="pswd22")
         User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=self.trainers[0],password="pswd22")
@@ -203,17 +183,17 @@ class getUsersAndTrainersTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': token2}, {})
         response = GetUsersOfTrainerView.get(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[0])))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data_for_upper(User.objects.filter(trainer=self.trainers[0])))
         #admin getting user of specific trainer
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': self.trainers[1].id})
         response = GetUsersOfTrainerView.post(GetUsersOfTrainerView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data_for_upper(User.objects.filter(trainer=self.trainers[1])))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data_for_upper(User.objects.filter(trainer=self.trainers[1])))
         #admin getting trainers
         request = ViewSupport.setup_request({'Session-Token': token1}, {})
         response = GetTrainersView.get(GetTrainersView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('trainers'), get_trainers_data(Trainer.objects.all()))
+        self.assertEquals(response.data.get('data').get('trainers'), TrainerHandler.get_trainers_data(Trainer.objects.all()))
         #trainer deleting user
         id = self.users[9].id
         request = ViewSupport.setup_request({'Session-Token': token1}, {'id': id})
@@ -331,8 +311,8 @@ class AchievementTestCase(TestCase):
     token1 = None
     token2 = None
     token3 = None
-    achievement1 = None
-    achievement2 = None
+    achievement1:Achievement = None
+    achievement2:Achievement = None
 
     def setUp(self) -> None:
         admin:Admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", password="Password1234")
@@ -521,18 +501,18 @@ class AchievementTestCase(TestCase):
 
 class LevelTestCase(TestCase):
 
+    user1:User = None
+    user2:User = None
+
     def setUp(self):
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer = trainer
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
-        user1 = User.objects.get(first_name='Erik')
-        user2 = User.objects.get(first_name='Jannis')
+        user1:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        user2:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password="Password1234")
         user2.xp = 400
         user2.save()
-        self.user1 = user1
-        self.user2 = user2
+        self.user1:User = user1
+        self.user2:User = user2
 
     def test_level(self):
         #user getting own level
@@ -569,14 +549,14 @@ class LevelTestCase(TestCase):
 class HandlingInvitesTestCase(TestCase):
 
     def setUp(self) -> None:
-        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer = trainer
-        trainer2 = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerAndereTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        trainer2:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerAndereTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer2 = trainer2
         token = JwToken.create_new_user_token(trainer.username, 'Jannis', 'Bauer', 'jannis@test.de', 'user')
-        self.ot1 = OpenToken.objects.create(token=token, email='jannis@test.de', first_name='Jannis', last_name='Bauer', creator=trainer.username)
+        self.ot1:OpenToken = OpenToken.objects.create(token=token, email='jannis@test.de', first_name='Jannis', last_name='Bauer', creator=trainer.username)
         token = JwToken.create_new_user_token(trainer2.username, 'Julian', 'Imhof', 'julian@test.de', 'user')
-        self.ot2 = OpenToken.objects.create(token=token, email='julian@test.de', first_name='Julian', last_name='Imhof', creator=trainer2.username)
+        self.ot2:OpenToken = OpenToken.objects.create(token=token, email='julian@test.de', first_name='Julian', last_name='Imhof', creator=trainer2.username)
         self.token = JwToken.create_session_token('DerTrainer', 'trainer')
 
     def test_get(self):
@@ -584,7 +564,7 @@ class HandlingInvitesTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token}, {})
         response = GetInvitedView.get(GetInvitedView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('invited'), get_invited_data([self.ot1,]))
+        self.assertEquals(response.data.get('data').get('invited'), InvitationsHandler.get_invited_data([self.ot1,]))
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
@@ -624,13 +604,10 @@ class HandlingInvitesTestCase(TestCase):
 class ProfileTestCase(TestCase):
 
     def setUp(self) -> None:
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
         self.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
-        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
-        user1 = User.objects.get(first_name='Erik')
-        user2 = User.objects.get(first_name='Jannis')
+        user1:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
+        user2:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
         self.user1_id = user1.id
         self.user2_id = user2.id
         self.token1 = JwToken.create_session_token(trainer.username, 'trainer')
@@ -649,7 +626,7 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'username': 'coolerName'})
         response = ChangeUsernameView.post(ChangeUsernameView, request)
         self.assertTrue(response.data.get('success'))
-        user1 = User.objects.get(id=self.user1_id)
+        user1:User = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.username, 'coolerName')
         #invalid
         #invalid token
@@ -672,7 +649,7 @@ class ProfileTestCase(TestCase):
         })
         response = ChangePasswordView.post(ChangePasswordView, request)
         self.assertTrue(response.data.get('success'))
-        trainer = Trainer.objects.get(id=self.trainer_id)
+        trainer:Trainer = Trainer.objects.get(id=self.trainer_id)
         self.assertEqual(trainer.password, str(hashlib.sha3_256('pswd_new'.encode('utf8')).hexdigest()))
         #user
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {
@@ -681,7 +658,7 @@ class ProfileTestCase(TestCase):
         })
         response = ChangePasswordView.post(ChangePasswordView, request)
         self.assertTrue(response.data.get('success'))
-        user1 = User.objects.get(id=self.user1_id)
+        user1:User = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.password, str(hashlib.sha3_256('neue1234'.encode('utf8')).hexdigest()))
         #invalid
         #wrong password
@@ -691,7 +668,7 @@ class ProfileTestCase(TestCase):
         })
         response = ChangePasswordView.post(ChangePasswordView, request)
         self.assertFalse(response.data.get('success'))
-        user2 = User.objects.get(id=self.user2_id)
+        user2:User = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.password, str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {
@@ -712,12 +689,12 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'avatar': 1})
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertTrue(response.data.get('success'))
-        user2 = User.objects.get(id=self.user2_id)
+        user2:User = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.avatar, 1)
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'avatar': 2})
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertTrue(response.data.get('success'))
-        user1 = User.objects.get(id=self.user1_id)
+        user1:User = User.objects.get(id=self.user1_id)
         self.assertEqual(user1.avatar, 2)
         #invalid
         #trainer not allowed
@@ -740,7 +717,7 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'motivation': 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn'})
         response = ChangeMotivationView.post(ChangeMotivationView, request)
         self.assertTrue(response.data.get('success'))
-        user2 = User.objects.get(id=self.user2_id)
+        user2:User = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.motivation, 'Nieder mit der Schwerkraft, lang lebe der Leichtsinn')
         #invalid
         #trainer not able to use
@@ -764,7 +741,7 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetProfileView.get(GetProfileView, request)
         self.assertTrue(response.data.get('success'))
-        user2 = User.objects.get(id=self.user2_id)
+        user2:User = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.username, response.data.get('data').get('username'))
         self.assertEqual(user2.avatar, response.data.get('data').get('avatar'))
         self.assertEqual(user2.first_login, response.data.get('data').get('first_login'))
@@ -773,7 +750,7 @@ class ProfileTestCase(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'telephone': '015712251102'})
         response = ChangeTrainerTelephoneView.post(ChangeTrainerTelephoneView, request)
         self.assertTrue(response.data.get('success'))
-        trainer = Trainer.objects.get(id=self.trainer_id)
+        trainer:Trainer = Trainer.objects.get(id=self.trainer_id)
         self.assertEqual(trainer.telephone, '015712251102')
         #change academia of trainer
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'academia': 'dr. nat'})
@@ -793,7 +770,7 @@ class ProfileTestCase(TestCase):
         response = SetTrainerLocationView.post(SetTrainerLocationView, request)
         self.assertTrue(response.data.get('success'))
         trainer = Trainer.objects.get(id=self.trainer_id)
-        loc = Location.objects.get()
+        loc:Location = Location.objects.get()
         self.assertEqual(trainer.location, loc)
         #user gets trainers contact
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
@@ -903,14 +880,14 @@ class ProfileTestCase(TestCase):
 
     def test_done_exercises_of_month(self):
         #additional setup
-        ex = Exercise.objects.create(title='Kniebeuge')
-        trainer = Trainer.objects.get(id=self.trainer_id)
-        plan = TrainingSchedule.objects.create(trainer=trainer)
-        exip = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan, date='saturday')
+        ex:Exercise = Exercise.objects.create(title='Kniebeuge')
+        trainer:Trainer = Trainer.objects.get(id=self.trainer_id)
+        plan:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
+        exip:ExerciseInPlan = ExerciseInPlan.objects.create(sets=1, repeats_per_set=10, exercise=ex, plan=plan, date='saturday')
         user:User = User.objects.get(id=self.user1_id)
         user.plan = plan
         user.save(force_update=True)
-        dex = DoneExercises.objects.create(exercise=exip, user=user, points=100, completed=True, date=int(datetime.datetime(year=2022, month=2, day=12, hour=21, minute=53, second=47).timestamp()))
+        dex:DoneExercises = DoneExercises.objects.create(exercise=exip, user=user, points=100, completed=True, date=int(datetime.datetime(2022, 2, 12, 23, 52).timestamp()))
         #valid
         result = [{
             "exercise_plan_id": dex.exercise.id,
@@ -974,14 +951,11 @@ class TestUserViews(TestCase):
     new_trainer_token = None
 
     def setUp(self):
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
-        Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
-        user = User.objects.get(first_name="Erik")
+        user:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
+        admin:Admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
         self.user_id = user.id
-        admin = Admin.objects.get(first_name="Erik")
         self.admin_id = admin.id
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
@@ -990,24 +964,23 @@ class TestUserViews(TestCase):
     def test_delete_account(self):
         #valid token
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
-        response = DeleteAccountView.post(self=APIView, request=request) 
+        response = DeleteAccountView.post(DeleteAccountView, request=request) 
         self.assertTrue(response.data.get('success'))
         self.assertFalse(User.objects.filter(id=self.user_id).exists())
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
-        response = DeleteAccountView.post(self=APIView, request=request) 
+        response = DeleteAccountView.post(DeleteAccountView, request=request) 
         self.assertFalse(response.data.get('success'))
         #missing arguments
         request = ViewSupport.setup_request({}, {})
-        response = DeleteAccountView.post(self=APIView, request=request) 
+        response = DeleteAccountView.post(DeleteAccountView, request=request) 
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
         self.assertEquals(response.data.get('data').get('data'), [])
         #setup user again
-        trainer = Trainer.objects.get(id=self.trainer_id)
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
-        user = User.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.get(id=self.trainer_id)
+        user:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256("Password1234".encode('utf8')).hexdigest()))
         self.user_id = user.id
         self.user_token = JwToken.create_session_token(user.username, 'user')
 
@@ -1048,7 +1021,7 @@ class TestUserViews(TestCase):
     def test_register(self):
         #register user
         if self.new_user_token == None:
-            trainer = Trainer.objects.get(id=self.trainer_id)
+            trainer:Trainer = Trainer.objects.get(id=self.trainer_id)
             self.new_user_token = JwToken.create_new_user_token(trainer.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'user')
             OpenToken.objects.create(token=self.new_user_token, email='bptestmail52@gmail.com', first_name='Jannis', last_name='Bauer', creator=trainer.username)
         request = ViewSupport.setup_request({}, {
@@ -1069,7 +1042,7 @@ class TestUserViews(TestCase):
         self.assertFalse(response.data.get('success'))
         #register trainer
         if self.new_trainer_token == None:
-            admin = Admin.objects.get(id=self.admin_id)
+            admin:Admin = Admin.objects.get(id=self.admin_id)
             self.new_trainer_token = JwToken.create_new_user_token(admin.username, 'Jannis', 'Bauer', 'bptestmail52@gmail.com', 'trainer')
             OpenToken.objects.create(token=self.new_trainer_token, email='bptestmail52@gmail.com', first_name='Jannis', last_name='Bauer', creator=trainer.username)
         request = ViewSupport.setup_request({}, {
@@ -1097,7 +1070,7 @@ class TestUserViews(TestCase):
         self.assertEquals(response.data.get('data').get('data'), ['password', 'username', 'new_user_token'])
 
     def test_createUser(self):
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         #create user
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
@@ -1208,13 +1181,10 @@ class TestExerciseView(TestCase):
         Exercise.objects.create(title='Liegestütze', description='{"de": "Mache Liegestütze...", "en": "Do pushups..."}', activated=False)
         self.ex_id = Exercise.objects.get(title='Kniebeuge').id
 
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
-        user = User.objects.get(first_name="Erik")
-        admin = Admin.objects.get(first_name="Erik")
+        user:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
+        admin:Admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
@@ -1286,24 +1256,20 @@ class TestPlanView(TestCase):
     ts_id = 0
 
     def setUp(self):
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer_id = trainer.id
-        User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
-        user = User.objects.get(first_name="Erik")
+        user:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234")
         self.user_id = user.id
-        Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
-        ex = Exercise.objects.get(title='Kniebeuge')
+        ex:Exercise = Exercise.objects.create(title='Kniebeuge', description="Gehe in die Knie, achte...")
         self.ex_id = ex.id
-        TrainingSchedule.objects.create(trainer=trainer)
-        ts = TrainingSchedule.objects.get(trainer=trainer.id)
+        ts:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
         self.ts_id = ts.id
         ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=ex, plan=ts)
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
 
     def test_create_new(self):
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.get(first_name="Erik")
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         #valid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {
@@ -1434,9 +1400,8 @@ class TestPlanView(TestCase):
         INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
         TrainingSchedule.objects.create(name='addtouser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
         self.ts_id = TrainingSchedule.objects.get(name='addtouser_plan').id
-        User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=Trainer.objects.get(id=self.trainer_id), email_address="fake@web.de", password="Password1234")
+        user:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=Trainer.objects.get(id=self.trainer_id), email_address="fake@web.de", password="Password1234")
         #valid user and plan
-        user = User.objects.get(username='jbadV')
         user.plan = None
         user.save()
         request = ViewSupport.setup_request({'Session-Token':  self.trainer_token}, {
@@ -1516,7 +1481,7 @@ class TestPlanView(TestCase):
         #valid
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'plan': self.ts_id})
         response = ShowPlanView.post(ShowPlanView, request)
-        ts = TrainingSchedule.objects.get(id=self.ts_id)
+        ts:TrainingSchedule = TrainingSchedule.objects.get(id=self.ts_id)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('name'), ts.name)
         self.assertEquals(len(response.data.get('data').get('exercises')), len(ExerciseInPlan.objects.filter(plan=self.ts_id)))
@@ -1542,9 +1507,8 @@ class TestPlanView(TestCase):
 
     def test_get_for_user(self):
         #valid
-        user = User.objects.get(id=self.user_id)
-        TrainingSchedule.objects.create(name='getfromuser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
-        ts = TrainingSchedule.objects.get(name='getfromuser_plan')
+        user:User = User.objects.get(id=self.user_id)
+        ts:TrainingSchedule = TrainingSchedule.objects.create(name='getfromuser_plan', trainer=Trainer.objects.get(id=self.trainer_id))
         #as user
         if user.plan == None:
             user.plan = ts
@@ -1589,8 +1553,7 @@ class TestPlanView(TestCase):
 
     def test_delete(self):
         #valid
-        TrainingSchedule.objects.create(name='delete_plan', trainer=Trainer.objects.get(id=self.trainer_id))
-        ts = TrainingSchedule.objects.get(name='delete_plan')
+        ts:TrainingSchedule = TrainingSchedule.objects.create(name='delete_plan', trainer=Trainer.objects.get(id=self.trainer_id))
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'id': ts.id})
         response = DeletePlanView.post(DeletePlanView, request)
         self.assertTrue(response.data.get('success'))
@@ -1627,12 +1590,11 @@ class TestLeaderboardView(TestCase):
     users = []
 
     def setUp(self) -> None:
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        trainer = Trainer.objects.get(first_name="Erik")
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         self.trainer_id = trainer.id
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
-        ts = TrainingSchedule.objects.create(name='plan_for_everyone', trainer=trainer)
-        ex = Exercise.objects.create(title='Kniebeuge')
+        ts:TrainingSchedule = TrainingSchedule.objects.create(name='plan_for_everyone', trainer=trainer)
+        ex:Exercise = Exercise.objects.create(title='Kniebeuge')
         ExerciseInPlan.objects.create(exercise=ex, plan=ts, sets=1, repeats_per_set=1)
         User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=trainer,password="pswd22", plan=ts)
         User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=trainer,password="pswd22", plan=ts)
@@ -1645,7 +1607,7 @@ class TestLeaderboardView(TestCase):
             Leaderboard.objects.create(user=user, score=score, cleanliness=score, intensity=score, speed=score, executions=1)
             if score == 80:
                 self.user_token = JwToken.create_session_token(user.username, 'user')
-            score+=10
+            score += 10
 
     def test_get(self):
         INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
@@ -1672,7 +1634,7 @@ class TestLeaderboardView(TestCase):
         response = ListLeaderboardView.post(ListLeaderboardView, request)
         self.assertTrue(response.data.get('success'))
         leaderboard = []
-        entry = Leaderboard.objects.get(score=90)
+        entry:Leaderboard = Leaderboard.objects.get(score=90)
         leaderboard.append({"rank": 1, "username": entry.user.username, "score": 90})
         entry = Leaderboard.objects.get(score=80)
         leaderboard.append({"rank": 2, "username": entry.user.username, "score": 80})
@@ -1699,7 +1661,7 @@ class TestLeaderboardView(TestCase):
 class TestDoneExercise(TestCase):
 
     trainer_id = 1
-    ex_id = 1
+    ex = None
     trainer_token = None
     user_token = None
     admin_token = None
@@ -1707,68 +1669,34 @@ class TestDoneExercise(TestCase):
     exip_id = 0
 
     def setUp(self) -> None:
-        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        self.ex_id = Exercise.objects.create(title='Kniebeuge', description='{"de": "Gehe in die Knie, achte...", "en": "Do squats..."}')
-        ts = TrainingSchedule.objects.create(trainer=trainer)
-        exip = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex_id, plan=ts)
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
+        self.ex:Exercise = Exercise.objects.create(title='Kniebeuge', description='{"de": "Gehe in die Knie, achte...", "en": "Do squats..."}')
+        ts:TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
+        exip:ExerciseInPlan = ExerciseInPlan.objects.create(date="monday", sets=5, repeats_per_set=10, exercise=self.ex, plan=ts)
         self.exip_id = exip.id
         self.trainer_id = trainer.id
-        user = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234", plan=ts)
-        admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
+        user:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password="Password1234", plan=ts)
+        admin:Admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="derAdmin", password="Password1234")
         user.plan = ts
         user.save(force_update=True)
-        self.user = User.objects.get(username='DeadlyFarts')
+        self.user:User = User.objects.get(username='DeadlyFarts')
         self.trainer_token = JwToken.create_session_token(trainer.username, 'trainer')
         self.user_token = JwToken.create_session_token(user.username, 'user')
         self.admin_token = JwToken.create_session_token(admin.username, 'admin')
         Leaderboard.objects.create(user=User.objects.get(username=self.user.username), score=0)
 
-    def test_do_exercise(self):
-        #valid
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertTrue(response.data.get('success'))
-        self.assertTrue(DoneExercises.objects.all().exists())
-        #invalid
-        #already done
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #invalid exercise in plan
-        request = ViewSupport.setup_request({'Session-Token': self.user_token}, {'exercise_plan_id': 5412654})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #admin not allowed to
-        request = ViewSupport.setup_request({'Session-Token': self.admin_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #trainer not allowed to
-        request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #invalid token
-        request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'exercise_plan_id': self.exip_id})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        #missing arguments
-        request = ViewSupport.setup_request({}, {})
-        response = DoneExerciseView.post(DoneExerciseView, request)
-        self.assertFalse(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['exercise_plan_id'])
-
     def test_get_done(self): #not working, issue with method in tests
-        '''#valid
+        #valid
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.user_token}, {})
         response = GetDoneExercisesView.get(GetDoneExercisesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('exercises'), GetDoneExercisesView.GetDone(GetDoneExercisesView, self.user))
+        self.assertEquals(response.data, ExerciseHandler.get_done(self.user))
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {'user': self.user.username})
         response = GetDoneExercisesView.post(GetDoneExercisesView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('exercises'), GetDoneExercisesView.GetDone(GetDoneExercisesView, self.user))
+        self.assertEquals(response.data, ExerciseHandler.get_done(self.user))
         #invalid
         #trainer cant call user method
         request = ViewSupport.setup_request({'Session-Token': self.trainer_token}, {})
@@ -1809,7 +1737,7 @@ class TestDoneExercise(TestCase):
         response = GetDoneExercisesView.post(GetDoneExercisesView, request)
         self.assertFalse(response.data.get('success'))
         self.assertEquals(response.data.get('data').get('header'), ['Session-Token'])
-        self.assertEquals(response.data.get('data').get('data'), ['user'])'''
+        self.assertEquals(response.data.get('data').get('data'), ['user'])
 
 
 class TestFriendSystem(TestCase):
@@ -1824,10 +1752,8 @@ class TestFriendSystem(TestCase):
     token5 = None
 
     def setUp(self) -> None:
-        Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", password="Password1234")
-        self.admin = Admin.objects.get(username="DerAdmin")
-        Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
-        self.trainer = Trainer.objects.get(first_name="Erik")
+        self.admin:Admin = Admin.objects.create(first_name="Erik", last_name="Prescher", username="DerAdmin", password="Password1234")
+        self.trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password="Password1234")
         User.objects.create(first_name="vorname", last_name="nachname", username="user1", email_address="user1@users.com", trainer=self.trainer,password="pswd22")
         User.objects.create(first_name="vorname", last_name="nachname", username="user2", email_address="user2@users.com", trainer=self.trainer,password="pswd22")
         User.objects.create(first_name="vorname", last_name="nachname", username="user3", email_address="user3@users.com", trainer=self.trainer,password="pswd22")
@@ -1846,7 +1772,6 @@ class TestFriendSystem(TestCase):
         self.token5 = JwToken.create_session_token(self.users[2].username, 'user')
 
     def test_system(self):
-        #TODO
         #valid
         #user1 adds user2
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'username': 'user2'})
@@ -1868,13 +1793,13 @@ class TestFriendSystem(TestCase):
         response = GetRequestView.get(GetRequestView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('requests')), 1)
-        self.assertEquals(response.data.get('data').get('requests'), get_requests(self.users[0]))
+        self.assertEquals(response.data.get('data').get('requests'), FriendHandler.get_requests(self.users[0]))
         #user1 get pending
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetPendingRequestView.get(GetPendingRequestView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('pending')), 2)
-        self.assertEquals(response.data.get('data').get('pending'), get_pending_requests(self.users[0]))
+        self.assertEquals(response.data.get('data').get('pending'), FriendHandler.get_pending_requests(self.users[0]))
         #user1 accepts from user2
         id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=False).id
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
@@ -1894,7 +1819,7 @@ class TestFriendSystem(TestCase):
         response = GetMyFriendsView.get(GetMyFriendsView, request)
         self.assertTrue(response.data.get('success'))
         self.assertEquals(len(response.data.get('data').get('friends')), 1)
-        self.assertEquals(response.data.get('data').get('friends'), get_friends(self.users[0]))
+        self.assertEquals(response.data.get('data').get('friends'), FriendHandler.get_friends(self.users[0]))
         #user1 delete friend (user2)
         id = Friends.objects.get(friend1=self.users[1], friend2=self.users[0], accepted=True).id
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'id': id})
@@ -2039,22 +1964,22 @@ class TestFriendSystem(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {'search': 'user1'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {'search': 'user1'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([User.objects.get(username='user1'), User.objects.get(username='user10')]))
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {'search': 'user1'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([User.objects.get(username='user10')]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([User.objects.get(username='user10')]))
         #empty
         request = ViewSupport.setup_request({'Session-Token': self.token4}, {'search': 'del'})
         response = SearchUserView.post(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data([]))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data([]))
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {'search': 'del'})
@@ -2073,17 +1998,17 @@ class TestFriendSystem(TestCase):
         request = ViewSupport.setup_request({'Session-Token': self.token1}, {})
         response = GetListOfUsers.get(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all()))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data(User.objects.all()))
         #as trainer
         request = ViewSupport.setup_request({'Session-Token': self.token2}, {})
         response = GetListOfUsers.get(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all()))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data(User.objects.all()))
         #as user
         request = ViewSupport.setup_request({'Session-Token': self.token3}, {})
         response = GetListOfUsers.get(SearchUserView, request)
         self.assertTrue(response.data.get('success'))
-        self.assertEquals(response.data.get('data').get('users'), get_users_data(User.objects.all().exclude(username='user1')))
+        self.assertEquals(response.data.get('data').get('users'), UserHandler.get_users_data(User.objects.all().exclude(username='user1')))
         #invalid
         #invalid token
         request = ViewSupport.setup_request({'Session-Token': 'invalid'}, {})
@@ -2105,9 +2030,9 @@ class TestResetPassword(TestCase):
     trainer_id = 0
 
     def setUp(self) -> None:
-        trainer = Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerTrainer", email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        trainer:Trainer = Trainer.objects.create(first_name="Jannis", last_name="Bauer", username="DerTrainer", email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
         self.trainer_id = trainer.id
-        user = User.objects.create(first_name="Jannis", last_name="Bauer", username="derNutzer", trainer=trainer, email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
+        user:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="derNutzer", trainer=trainer, email_address="bptestmail52@gmail.com", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
         self.user_id = user.id
         self.token2 = JwToken.create_reset_password_token('DerTrainer')
         self.token3 = JwToken.create_reset_password_token('derNutzer')
@@ -2153,7 +2078,7 @@ class TestResetPassword(TestCase):
         })
         response = SetPasswordResetEmailView.post(SetPasswordResetEmailView, request)
         self.assertTrue(response.data.get('success'))
-        user = User.objects.get(id=self.user_id)
+        user:User = User.objects.get(id=self.user_id)
         self.assertEquals(user.password, str(hashlib.sha3_256('newFancy'.encode('utf8')).hexdigest()))
         '''not implemented yet
         #trainer
@@ -2192,10 +2117,10 @@ class TestMedals(TestCase):
     token3 = None
 
     def setUp(self) -> None:
-        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
         self.trainer_id = trainer.id
-        user1 = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
-        user2 = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
+        user1:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()))
+        user2:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()))
         self.user1_id = user1.id
         self.user2_id = user2.id
         self.token1 = JwToken.create_session_token(trainer.username, 'trainer')
@@ -2203,10 +2128,10 @@ class TestMedals(TestCase):
         self.token3 = JwToken.create_session_token(user2.username, 'user')
         ex1 = Exercise.objects.create(title='Kniebeuge')
         ex2 = Exercise.objects.create(title='Liegestütze')
-        umix1 = UserMedalInExercise.objects.create(user=user1, gold=2, silver=5, exercise=ex1)
-        umix2 = UserMedalInExercise.objects.create(user=user1, gold=4, bronze=3, exercise=ex2)
-        umix3 = UserMedalInExercise.objects.create(user=user2, gold=6, silver=1, exercise=ex1)
-        umix4 = UserMedalInExercise.objects.create(user=user2, gold=1, silver=2, bronze=4, exercise=ex2)
+        UserMedalInExercise.objects.create(user=user1, gold=2, silver=5, exercise=ex1)
+        UserMedalInExercise.objects.create(user=user1, gold=4, bronze=3, exercise=ex2)
+        UserMedalInExercise.objects.create(user=user2, gold=6, silver=1, exercise=ex1)
+        UserMedalInExercise.objects.create(user=user2, gold=1, silver=2, bronze=4, exercise=ex2)
         self.umixs = list(UserMedalInExercise.objects.all())
 
     def test_get(self):
@@ -2263,10 +2188,10 @@ class TestProfileOfFriends(TestCase):
     token3 = None
     
     def setUp(self) -> None:
-        trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
-        user1 = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()), avatar=5, motivation='Krise', xp=20)
-        user2 = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()), avatar=2, motivation='Gute Tage', xp=5000)
-        user3 = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()), avatar=4, motivation='Es lebe der Leichtsinn', xp=60000)
+        trainer:Trainer = Trainer.objects.create(first_name="Erik", last_name="Prescher", username="DerTrainer", email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('Passwort'.encode('utf8')).hexdigest()))
+        user1:User = User.objects.create(first_name="Erik", last_name="Prescher", username="DeadlyFarts", trainer=trainer, email_address="prescher-erik@web.de", password=str(hashlib.sha3_256('passwd'.encode('utf8')).hexdigest()), avatar=5, motivation='Krise', xp=20)
+        user2:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbad", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()), avatar=2, motivation='Gute Tage', xp=5000)
+        user3:User = User.objects.create(first_name="Jannis", last_name="Bauer", username="jbadV", trainer=trainer, email_address="test@bla.de", password=str(hashlib.sha3_256('passwdyo'.encode('utf8')).hexdigest()), avatar=4, motivation='Es lebe der Leichtsinn', xp=60000)
         Friends.objects.create(friend1=user1, friend2=user2, accepted=True)
         Friends.objects.create(friend1=user1, friend2=user3, accepted=False)
         self.token1 = JwToken.create_session_token(trainer.username, 'trainer')
@@ -2282,8 +2207,8 @@ class TestProfileOfFriends(TestCase):
         self.assertTrue(response.data.get('success'))
         self.assertEquals(response.data.get('data'), {
             'username': 'jbad',
-            'level': calc_level(5000)[0],
-            'level_progress': calc_level(5000)[1],
+            'level': UserHandler.calc_level(5000, 200)[0],
+            'level_progress': UserHandler.calc_level(5000, 200)[1],
             'avatar': 2,
             'motivation': 'Gute Tage',
             'last_login': None,
@@ -2300,7 +2225,7 @@ class TestProfileOfFriends(TestCase):
         self.assertEquals(response.data.get('data'), {
             'username': 'DeadlyFarts',
             'level': 0,
-            'level_progress': calc_level(20)[1],
+            'level_progress': UserHandler.calc_level(20, 200)[1],
             'avatar': 5,
             'motivation': 'Krise',
             'last_login': None,

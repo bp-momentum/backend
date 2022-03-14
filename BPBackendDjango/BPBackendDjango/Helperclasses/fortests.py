@@ -4,7 +4,7 @@ class Request():
 class ViewSupport():
 
     @staticmethod
-    def setup_request(header, data):
+    def setup_request(header:dict, data:dict)->Request:
         request = Request()
         request.headers = header
         request.data = data
