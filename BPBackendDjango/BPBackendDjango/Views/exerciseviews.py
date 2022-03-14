@@ -282,7 +282,7 @@ class GetDoneExercisesView(APIView):
             return Response(data)
 
         # security: only trainer and admin can access other users data
-        if not (token["info"]["account_type"] in ["trainer", "admin"]):
+        if not (token["info"]["account_type"] in ["trainer"]):
             data = {
                 'success': False,
                 'description': 'type of account is not allowed to access other users data',
