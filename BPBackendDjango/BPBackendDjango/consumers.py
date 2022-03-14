@@ -1,5 +1,5 @@
 import errno
-from .Helperclasses.handlers import LeaderboardHandler, UserHandler
+from .Helperclasses.handlers import ExerciseHandler, LeaderboardHandler, UserHandler
 
 from channels.generic.websocket import WebsocketConsumer
 import time
@@ -8,29 +8,14 @@ import threading
 from .Helperclasses.ai import DummyAI, AIInterface
 import random
 import os
-import datetime
 
 from .models import DoneExercises, User, ExerciseInPlan, Leaderboard, UserMedalInExercise
 from .settings import INTERN_SETTINGS
 from .Helperclasses.jwttoken import JwToken
 
-def check_if_last_exercise(user:User):
-    today = datetime.datetime.now()
-    weekday = today.strftime('%A').lower()
-    exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
-    #if there had not to be done any exercises, check if that's last login
-    if exips.exists():
-        for exip in exips:
-            #calculate period in which exercise had to be done
-            if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - time.time() % 86400).exists():
-                #if in this period no exercise has been done
-                return False
-        #if all exercises had been done return, because after every exercise increasing streak is checked
-        return True
-    #should not happen, if no exercises -> not last
-    return False
 
 class SetConsumer(WebsocketConsumer):
+
     def __init__(self):
         super().__init__()
 
@@ -112,7 +97,7 @@ class SetConsumer(WebsocketConsumer):
         # set connections user info
         info = token['info']
         self.username = info['username']
-        self.user = User.objects.get(username=self.username)
+        self.user:User = User.objects.get(username=self.username)
 
         self.send(text_data=json.dumps({
             'message_type': 'authenticate',
@@ -181,7 +166,7 @@ class SetConsumer(WebsocketConsumer):
         self.initiated = True
 
         # load exercise info from database
-        self.exinplan = ExerciseInPlan.objects.get(id=self.exercise)
+        self.exinplan:ExerciseInPlan = ExerciseInPlan.objects.get(id=self.exercise)
         self.sets = self.exinplan.sets
         self.executions_per_set = self.exinplan.repeats_per_set
 
@@ -190,7 +175,7 @@ class SetConsumer(WebsocketConsumer):
 
         # when exercise was already started, load info
         if query.exists():
-            self.done_exercise_entry = query[0]
+            self.done_exercise_entry:DoneExercises = query[0]
             self.executions_done = self.done_exercise_entry.executions_done
             self.current_set = self.done_exercise_entry.current_set
             self.current_set_execution = self.done_exercise_entry.current_set_execution
@@ -298,7 +283,7 @@ class SetConsumer(WebsocketConsumer):
             #add medal
             if not UserMedalInExercise.objects.filter(user=self.user, exercise=self.exinplan.exercise).exists():
                 UserMedalInExercise.objects.create(user=self.user, exercise=self.exinplan.exercise)
-            umix = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
+            umix:UserMedalInExercise = UserMedalInExercise.objects.get(user=self.user, exercise=self.exinplan.exercise)
             if self.points >= 90: #gold
                 umix.gold += 1
             elif self.points >= 75: #silver
@@ -309,7 +294,7 @@ class SetConsumer(WebsocketConsumer):
 
 
             p = 0 if self.executions_per_set == 0 else int((self.speed + self.intensity + self.cleanliness)/3)
-            leaderboard_entry = Leaderboard.objects.get(user=self.user.id)
+            leaderboard_entry:Leaderboard = Leaderboard.objects.get(user=self.user.id)
 
             leaderboard_entry.speed += self.speed
             leaderboard_entry.intensity += self.intensity
@@ -385,7 +370,7 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.completed = self.completed
                 self.done_exercise_entry.save(force_update=True)
 
-            if check_if_last_exercise(self.user):
+            if ExerciseHandler.check_if_last_exercise(self.user):
                 user:User = User.objects.get(id=self.user.id)
                 user.streak += 1
                 user.save(force_update=True)
