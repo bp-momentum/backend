@@ -319,6 +319,7 @@ class SetConsumer(WebsocketConsumer):
             }))
 
     def ai_evaluation(self, data):
+        print(data)
 
         if not self.doing_set:
             self.send(text_data=json.dumps({
