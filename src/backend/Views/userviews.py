@@ -191,7 +191,7 @@ class CreateUserView(APIView):
         plain_message = strip_tags(html_message)
         addon = " "
         try:
-            send_mail("Momentum Passwort",
+            send_mail("momentum Passwort",
                     plain_message,
                      EMAIL_HOST_USER, 
                      [req_data['email_address']], html_message=html_message)
