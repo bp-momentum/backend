@@ -1281,12 +1281,14 @@ Success Return
     "success": true,
     "description": "The Leaderboard got listed",
     "data": {
-        "leaderboard": <list>[{"rank": <int>,
-                "username": <str>,
-                "score": <int>,
-                "speed": <int>,
-                "intensity": <int>,
-                "cleanliness": <int>}]
+        "leaderboard": <list>[{
+            "rank": <int>,
+            "username": <str>,
+            "score": <int>,
+            "speed": <int>,
+            "intensity": <int>,
+            "cleanliness": <int>
+        }]
     }
 }
 ```
@@ -1316,13 +1318,15 @@ Success Return
     "success": true,
     "description": "Returning achievements",
     "data": {
-        "achievements": <list>[{"name": <str>,
+        "achievements": <list>[{
+                "name": <str>,
                 "title": <str>,
                 "description": <str>,
                 "level": <int>,
                 "progress": <str>,
                 "hidden": <bool>,
-                "icon": <str>}],
+                "icon": <str>
+        }],
         "number_of_unachieved_hiden": <int>
     }
 }
@@ -1353,13 +1357,15 @@ Success Return
     "success": true,
     "description": "new achieved",
     "data": {
-        "achievements": <list>[{"name": <str>,
+        "achievements": <list>[{
+                "name": <str>,
                 "title": <str>,
                 "description": <str>,
                 "level": <int>,
                 "progress": <str>,
                 "hidden": <bool>,
-                "icon": <str>}]
+                "icon": <str>
+        }]
     }
 }
 {
@@ -1394,13 +1400,15 @@ Success Return
     "success": true,
     "description": "new achieved",
     "data": {
-        "achievements": <list>[{"name": <str>,
+        "achievements": <list>[{
+                "name": <str>,
                 "title": <str>,
                 "description": <str>,
                 "level": <int>,
                 "progress": <str>,
                 "hidden": <bool>,
-                "icon": <str>}]
+                "icon": <str>
+        }]
     }
 }
 {
@@ -1435,10 +1443,12 @@ Success Return
     "success": true,
     "description": "returning medals",
     "data": {
-        "achievements": <list>[{"exercise": <str>,
+        "achievements": <list>[{
+                "exercise": <str>,
                 "gold": <int>,
                 "silver": <int>,
-                "bronze": <int>}]
+                "bronze": <int>
+        }]
     }
 }
 ```
@@ -1468,9 +1478,11 @@ Success Return
     "success": true,
     "description": "returning friends",
     "data": {
-        "friends": <list>[{"id": <int>,
+        "friends": <list>[{
+                "id": <int>,
                 "friend1": <str>,
-                "friend2": <str>}]
+                "friend2": <str>
+        }]
     }
 }
 ```
@@ -1500,9 +1512,11 @@ Success Return
     "success": true,
     "description": "returning pending requests",
     "data": {
-        "friends": <list>[{"id": <int>,
+        "friends": <list>[{
+                "id": <int>,
                 "friend1": <str>,
-                "friend2": <str>}]
+                "friend2": <str>
+        }]
     }
 }
 ```
@@ -1532,9 +1546,11 @@ Success Return
     "success": true,
     "description": "returning requests",
     "data": {
-        "friends": <list>[{"id": <int>,
+        "friends": <list>[{
+                "id": <int>,
                 "friend1": <str>,
-                "friend2": <str>}]
+                "friend2": <str>
+        }]
     }
 }
 ```
