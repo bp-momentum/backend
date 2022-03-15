@@ -615,7 +615,7 @@ class LeaderboardHandler():
             return
 
         INTERN_SETTINGS['last_leaderboard_reset'] = time.time()
-        json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"))
+        json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"), indent=4)
 
         all_entries = Leaderboard.objects.filter()
         for entry in all_entries:
