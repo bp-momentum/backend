@@ -1,4 +1,17 @@
-# Backend
+<h1 align="center">
+  <img src=".preview/Logo.png" width="250"><br>
+  Momentum Backend
+</h1>
+
+<div align="center">
+  
+  [![GitHub license](https://img.shields.io/github/license/bp-momentum/backend.svg)](https://github.com/bp-momentum/backend/blob/main/LICENSE)
+  [![Latest release](https://badgen.net/github/release/bp-momentum/backend)](https://github.com/bp-momentum/backend/releases)
+  [![GitHub commits](https://badgen.net/github/commits/bp-momentum/backend/main)](https://GitHub.com/bp-momentum/backend/commit/)
+  [![Github stars](https://img.shields.io/github/stars/bp-momentum/backend.svg)](https://GitHub.com/bp-momentum/backend/stargazers/)
+  [![Deploy](https://img.shields.io/github/workflow/status/bp-momentum/backend/Deploy)](https://github.com/bp-momentum/backend/actions/workflows/deploy.yml)
+
+</div>
 
 ## Setup
 
@@ -6,8 +19,7 @@
 To create a PostgreSQL database, please refer to this very useful [guide](https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-20-04-quickstart-de).
 
 ### Entrypoint
-Inside the `BPBackendDjango` directory, you will find a file called `manage.py`. This is the main entrypoint for all operations with
-this Django backend server.
+Inside the `BPBackendDjango` directory, you will find a file called `manage.py`. This is the main entrypoint for all operations with this Django backend server.
 
 ### Configuration
 To create a default configuration, please start the server once, by running `python3 manage.py runserver <host-address>:<port>`.
@@ -43,6 +55,15 @@ be reachable at your `<host-address>:<port>`. The admin panel will be reachable 
 As an example you can type the command `python3 manage.py runserver 0.0.0.0:8000`
 
 Now the server can be reached by the frontend if the ports are allowed in the firewall.
+
+### Automatically deleting old videos
+
+To automatically delete old videos create a cronjob.
+
+```bash
+@daily root find /path/to/video/files "*" -mtime +6 -type f -delete
+```
+Here `root` is the user, `/path/to/video/files` is the path to all videos and `-mtime +6` is the time after which the files will be deleted, where `+6` equals 7 days.
 
 ## Api Documentation
 ### Create User and Trainer
