@@ -51,7 +51,7 @@ class GetAchievementsView(APIView):
         achieved = []
         nr_unachieved_hidden = 0
 
-        #create non existing achievements (#TODO add icon path)
+        #create non existing achievements
         if not Achievement.objects.filter(name='doneExercises').exists():
             icon_dict = '{"0":"' + ROOT_PATH + 'doneExercises_0.svg","1":"' + ROOT_PATH + 'doneExercises_1.svg","2":"' + ROOT_PATH + 'doneExercises_2.svg","3":"' + ROOT_PATH + 'doneExercises_3.svg"}'
             Achievement.objects.create(name='doneExercises', title='{"en":"Done Exercises","de":"Abgeschlossene Übungen"}', description='{"en":"Do exercises to get/level this achievement","de":"Mache Übungen um diese Errungenschaft zu bekommen beziehungsweise hoch zu leveln"}', icon=icon_dict)

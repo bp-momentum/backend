@@ -8,10 +8,10 @@ on:
 env:
   PYTHON_VERSION: 3.8
   SETTINGS_PATH: /home/github/bachelor-praktikum/api/store/settings.json
-  NEW_MIGRATIONS_PATH: ./BPBackendDjango/BPBackendDjango/migrations/
+  NEW_MIGRATIONS_PATH: ./src/src/migrations/
   OLD_MIGRATIONS_PATH: /home/github/bachelor-praktikum/api/migrations/
   SERVER_PATH: /home/github/bachelor-praktikum/api/server/
-  DJANGO_PATH: ./BPBackendDjango/manage.py
+  DJANGO_PATH: ./src/manage.py
   SERVICE_NAME: bp-backend.service
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - name: Copy settings
         run: cp ${{ env.SETTINGS_PATH }} ./settings.json
       - name: Test
-        run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
+        run: python ./src/manage.py test src/ --noinput
 
   deploy:
     runs-on: self-hosted
@@ -50,9 +50,9 @@ jobs:
       - name: List new migrations
         run: ls ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Makemigrations
-        run: python ${{ env.DJANGO_PATH }} makemigrations BPBackendDjango
+        run: python ${{ env.DJANGO_PATH }} makemigrations src
       - name: Migrate
-        run: python ${{ env.DJANGO_PATH }} migrate BPBackendDjango
+        run: python ${{ env.DJANGO_PATH }} migrate src
       - name: List new migrations
         run: ls ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Delete old migrations
@@ -62,8 +62,8 @@ jobs:
       - name: Delete old files
         run: rm -rf ${{ env.SERVER_PATH }}*
       - name: Move settings
-        run: mv ./settings.json ./BPBackendDjango/
+        run: mv ./settings.json ./src/
       - name: Copy files
-        run: cp -r BPBackendDjango/* ${{ env.SERVER_PATH }}
+        run: cp -r src/* ${{ env.SERVER_PATH }}
       - name: Restarting server
         run: sudo /usr/bin/systemctl restart ${{ env.SERVICE_NAME }}
