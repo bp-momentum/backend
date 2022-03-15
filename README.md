@@ -1,4 +1,4 @@
-# BP-backend
+# Backend
 
 ## Setup
 
