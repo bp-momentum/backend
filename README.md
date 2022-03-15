@@ -30,7 +30,7 @@ The allowed origins are the urls from where the server can be reached.
 Here you should give the frontend url and maybe the localhost addresses for testing.
 For the website url you have to give the url of the frontend.
 
-last_leaderboard_reset should not be changed
+last_leaderboard_reset should not be changed.
 
 ### Starting the Server
 Before starting the server the database must creating the tables.
