@@ -1,10 +1,52 @@
 # BP-backend
 
-API Docs
+## Setup
+
+### Database
+To create a PostgreSQL database, please refer to this very useful [guide](https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-20-04-quickstart-de).
+
+### Entrypoint
+Inside the `BPBackendDjango` directory, you will find a file called `manage.py`. This is the main entrypoint for all operations with
+this Django backend server.
+
+### Configuration
+To create a default configuration, please start the server once, by running `python3 manage.py runserver <host-address>:<port>`.
+After that you will find a newly created `settings.json` file inside the directory. Now you can open the file and enter you configuration.
+You don't have to fill in the `token_key` object inside the json, as it will be created automatically upon the first server start.
+
+First you have to give the information for the email-service. Here you need to give your email address, your password and the 
+smtp server (for gmail: smtp.gmail.com). Then you can change the standard admin trainer and user
+details. These users will created only once when you firstly start the server. 
+
+Now you have to give the database information which you defined while creating 
+the database. "name" is here the database name, which you want to use and must be already created.
+
+"video_dir" is the relative path to the video folder, where the videos are stored.
+
+The secret key doesn't have to be changed. This is a random 16 long string.
 
 
+The allowed origins are the urls from where the server can be reached.
+Here you should give the frontend url and maybe the localhost addresses for testing.
+For the website url you have to give the url of the frontend.
 
-## Create User and Trainer
+last_leaderboard_reset should not be changed
+
+### Starting the Server
+Before starting the server the database must creating the tables.
+For this type the command "python manage.py makemigrations" and
+"python manage.py migrate". Now the database will be adjusted, and the tables will be created.
+
+After configuration, please start the server by running `python3 manage.py runserver <host-address>:<port>` again.
+If there are any issues with your settings, you will see errors in the output. After successfully starting the server, it will
+be reachable at your `<host-address>:<port>`. The admin panel will be reachable at `<host-address>:<port>/admin`.
+As an example you can type the command "python manage.py runserver 0.0.0.0:8000"
+
+Now the server can be reached by the frontend if the ports are allowed in the firewall.
+
+
+## Api Documentation
+### Create User and Trainer
 
 Method: POST 
 
@@ -37,7 +79,7 @@ Success Return
 }
 ```
 
-## Login
+### Login
 
 Method: POST 
 
@@ -63,7 +105,7 @@ Success Return
 }
 ```
 
-## Register
+### Register
 
 Method: POST 
 
@@ -97,7 +139,7 @@ Success Return
 }
 ```
 
-## Logout all devices
+### Logout all devices
 
 Method: POST 
 
@@ -127,7 +169,7 @@ Success Return
 }
 ```
 
-## Login via refresh-token
+### Login via refresh-token
 
 Method: POST 
 
@@ -158,7 +200,7 @@ Success Return
 }
 ```
 
-## Delete Account
+### Delete Account
 
 Method: POST 
 
@@ -186,7 +228,7 @@ Success Return
 }
 ```
 
-## Change Language
+### Change Language
 
 Method: POST 
 
@@ -215,7 +257,7 @@ Success Return
 }
 ```
 
-## Get Language
+### Get Language
 
 Method: GET 
 
@@ -245,7 +287,7 @@ Success Return
 }
 ```
 
-## Get Users of Trainer
+### Get Users of Trainer
 
 Method: GET (as trainer) or POST as admin 
 
@@ -282,7 +324,7 @@ Success Return
 }
 ```
 
-## Get Trainers
+### Get Trainers
 
 Method: GET
 
@@ -316,7 +358,7 @@ Success Return
 }
 ```
 
-## Delete Trainer
+### Delete Trainer
 
 Method: POST
 
@@ -345,7 +387,7 @@ Success Return
 }
 ```
 
-## Delete User
+### Delete User
 
 Method: POST
 
@@ -374,7 +416,7 @@ Success Return
 }
 ```
 
-## Get User Level
+### Get User Level
 
 Method: GET
 
@@ -406,7 +448,7 @@ Success Return
 }
 ```
 
-## Get Invited User
+### Get Invited User
 
 Method: GET
 
@@ -441,7 +483,7 @@ Success Return
 }
 ```
 
-## Invalidate Invite
+### Invalidate Invite
 
 Method: POST
 
@@ -470,7 +512,7 @@ Success Return
 }
 ```
 
-## Change Username
+### Change Username
 
 Method: POST
 
@@ -502,7 +544,7 @@ Success Return
 }
 ```
 
-## Change Password
+### Change Password
 
 Method: POST
 
@@ -535,7 +577,7 @@ Success Return
 }
 ```
 
-## Change Avatar
+### Change Avatar
 
 Method: POST
 
@@ -564,7 +606,7 @@ Success Return
 }
 ```
 
-## Change Motivation
+### Change Motivation
 
 Method: POST
 
@@ -593,7 +635,7 @@ Success Return
 }
 ```
 
-## Get Profil
+### Get Profil
 
 Method: GET
 
@@ -625,7 +667,7 @@ Success Return
 }
 ```
 
-## Get Trainer Contact
+### Get Trainer Contact
 
 Method: GET
 
@@ -675,7 +717,7 @@ as trainer:
 }
 ```
 
-## Set Trainer Location
+### Set Trainer Location
 
 Method: POST
 
@@ -709,7 +751,7 @@ Success Return
 }
 ```
 
-## Set Trainer Telephone Number
+### Set Trainer Telephone Number
 
 Method: POST
 
@@ -738,7 +780,7 @@ Success Return
 }
 ```
 
-## Set Trainer Academia
+### Set Trainer Academia
 
 Method: POST
 
@@ -767,7 +809,7 @@ Success Return
 }
 ```
 
-## Search User
+### Search User
 
 Method: POST
 
@@ -801,7 +843,7 @@ Success Return
 }
 ```
 
-## Get List of Users
+### Get List of Users
 
 Method: GET
 
@@ -833,7 +875,7 @@ Success Return
 }
 ```
 
-## Get Reset Password Mail
+### Get Reset Password Mail
 
 Method: POST
 
@@ -863,7 +905,7 @@ Success Return
 }
 ```
 
-## Reset Password
+### Reset Password
 
 Method: POST
 
@@ -892,7 +934,7 @@ Success Return
 }
 ```
 
-## Get exercise
+### Get exercise
 
 Method: GET 
 
@@ -925,7 +967,7 @@ Success Return
 }
 ```
 
-## Get exercise list
+### Get exercise list
 
 Method: GET 
 
@@ -959,7 +1001,7 @@ Success Return
 ```
 
 
-## Get Done Exercise
+### Get Done Exercise
 
 Method: GET when user else POST
 
@@ -998,7 +1040,7 @@ Success Return
 }
 ```
 
-## Get Done Exercises for month
+### Get Done Exercises for month
 
 Method: POST
 
@@ -1036,7 +1078,7 @@ Success Return
 }
 ```
 
-## Create plan
+### Create plan
 
 Method: POST 
 
@@ -1074,7 +1116,7 @@ Success Return
 }
 ```
 
-## assign plan to user
+### assign plan to user
 
 Method: POST 
 
@@ -1104,7 +1146,7 @@ Success Return
 }
 ```
 
-## Get List of Plans
+### Get List of Plans
 Method: GET 
 
 Path: /api/getlisofplans
@@ -1135,7 +1177,7 @@ Success Return
 }
 ```
 
-## Get Plan
+### Get Plan
 
 Method: POST 
 
@@ -1173,7 +1215,7 @@ Success Return
 }
 ```
 
-## Get Plan of User
+### Get Plan of User
 
 Method: POST 
 
@@ -1226,7 +1268,7 @@ as trainer:
 }
 ```
 
-## Delete Plan
+### Delete Plan
 
 Method: POST 
 
@@ -1255,7 +1297,7 @@ Success Return
 }
 ```
 
-## List Leaderboard
+### List Leaderboard
 
 Method: POST 
 
@@ -1293,7 +1335,7 @@ Success Return
 }
 ```
 
-## Get Achievements
+### Get Achievements
 
 Method: GET 
 
@@ -1332,7 +1374,7 @@ Success Return
 }
 ```
 
-## Load Friend Achievement
+### Load Friend Achievement
 
 Method: GET 
 
@@ -1375,7 +1417,7 @@ Success Return
 }
 ```
 
-## Load Exercise Achievements
+### Load Exercise Achievements
 
 Method: GET 
 
@@ -1418,7 +1460,7 @@ Success Return
 }
 ```
 
-## Get Medals
+### Get Medals
 
 Method: GET 
 
@@ -1453,7 +1495,7 @@ Success Return
 }
 ```
 
-## Get Friends
+### Get Friends
 
 Method: GET 
 
@@ -1487,7 +1529,7 @@ Success Return
 }
 ```
 
-## Get Pending Friendrequests
+### Get Pending Friendrequests
 
 Method: GET 
 
@@ -1521,7 +1563,7 @@ Success Return
 }
 ```
 
-## Get Friendrequests
+### Get Friendrequests
 
 Method: GET 
 
@@ -1555,7 +1597,7 @@ Success Return
 }
 ```
 
-## Add Friend
+### Add Friend
 
 Method: POST 
 
@@ -1584,7 +1626,7 @@ Success Return
 }
 ```
 
-## Accept Friendrequest
+### Accept Friendrequest
 
 Method: POST 
 
@@ -1613,7 +1655,7 @@ Success Return
 }
 ```
 
-## Decline Friendrequest
+### Decline Friendrequest
 
 Method: POST 
 
@@ -1642,7 +1684,7 @@ Success Return
 }
 ```
 
-## Remove Friend
+### Remove Friend
 
 Method: POST 
 
@@ -1673,7 +1715,7 @@ Success Return
 }
 ```
 
-## Get Profile of Friend
+### Get Profile of Friend
 
 Method: POST 
 
