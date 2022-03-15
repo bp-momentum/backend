@@ -131,8 +131,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'src.wsgi.application'
-ASGI_APPLICATION = 'src.asgi.application'
+WSGI_APPLICATION = 'momentum-backend.wsgi.application'
+ASGI_APPLICATION = 'momentum-backend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
