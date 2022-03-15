@@ -96,7 +96,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'momentum-backend',
+    'backend',
     'corsheaders',
     'ordered_model',
     'rest_framework'
@@ -113,7 +113,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'momentum-backend.urls'
+ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
     {
@@ -131,8 +131,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'momentum-backend.wsgi.application'
-ASGI_APPLICATION = 'momentum-backend.asgi.application'
+WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

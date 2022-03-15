@@ -2,7 +2,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm+all,visualstudiocode,django
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm+all,visualstudiocode,django
 
-src/momentum-backend/migrations/
+src/backend/migrations/
 settings.json
 ### Django ###
 __init__.py

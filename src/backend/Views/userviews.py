@@ -187,7 +187,7 @@ class CreateUserView(APIView):
         #create data base entry
         OpenToken.objects.create(token=new_user_token, email=req_data['email_address'], first_name=req_data['first_name'], last_name=req_data['last_name'], creator=info['username'])
         #create and send mail
-        html_message = render_to_string('momentum-backend/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'{req_data["url"]}/?new_user_token={new_user_token}'})
+        html_message = render_to_string('backend/registrationEmail.html', {'full_name': f' {req_data["first_name"]} {req_data["last_name"]}', "account_type": "trainer" if info["account_type"] == "admin" else "user", "link": f'{req_data["url"]}/?new_user_token={new_user_token}'})
         plain_message = strip_tags(html_message)
         addon = " "
         try:
@@ -1519,7 +1519,7 @@ class GetPasswordResetEmailView(APIView):
 
         #create the reset token
         reset_token = JwToken.create_reset_password_token(user.username)
-        html_message = render_to_string('momentum-backend/resetEmail.html',
+        html_message = render_to_string('backend/resetEmail.html',
                                         {'full_name': f' {user.first_name} {user.last_name}',
                                          "link": f'{url}/?reset_token={reset_token}'})
         plain_message = strip_tags(html_message)
