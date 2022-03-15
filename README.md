@@ -25,7 +25,6 @@ the database. "name" is here the database name, which you want to use and must b
 
 The secret key doesn't have to be changed. This is a random 16 long string.
 
-
 The allowed origins are the urls from where the server can be reached.
 Here you should give the frontend url and maybe the localhost addresses for testing.
 For the website url you have to give the url of the frontend.
@@ -34,16 +33,16 @@ last_leaderboard_reset should not be changed.
 
 ### Starting the Server
 Before starting the server the database must create the tables.
-For this type the command "python manage.py makemigrations" and
-"python manage.py migrate". Now the database will be adjusted, and the tables will be created.
+To achieve that, type the command `python3 manage.py makemigrations` and
+`python3 manage.py migrate`. This will automatically adjust the database and create all missing tables.
+Now, the database is ready to be used.
 
 After configuration, please start the server by running `python3 manage.py runserver <host-address>:<port>` again.
 If there are any issues with your settings, you will see errors in the output. After successfully starting the server, it will
 be reachable at your `<host-address>:<port>`. The admin panel will be reachable at `<host-address>:<port>/admin`.
-As an example you can type the command "python manage.py runserver 0.0.0.0:8000"
+As an example you can type the command `python3 manage.py runserver 0.0.0.0:8000`
 
 Now the server can be reached by the frontend if the ports are allowed in the firewall.
-
 
 ## Api Documentation
 ### Create User and Trainer
