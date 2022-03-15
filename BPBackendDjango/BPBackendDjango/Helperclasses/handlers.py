@@ -503,15 +503,17 @@ class ExerciseHandler():
         today = datetime.datetime.now()
         weekday = today.strftime('%A').lower()
         exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+
+        not_done = 0
         #if there had not to be done any exercises, check if that's last login
         if exips.exists():
             for exip in exips:
                 #calculate period in which exercise had to be done
                 if not DoneExercises.objects.filter(exercise=exip, user=user, date__gt=time.time() - time.time() % 86400).exists():
                     #if in this period no exercise has been done
-                    return False
+                    not_done += 1
             #if all exercises had been done return, because after every exercise increasing streak is checked
-            return True
+            return not_done <= 1
         #should not happen, if no exercises -> not last
         return False
 
