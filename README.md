@@ -33,7 +33,7 @@ For the website url you have to give the url of the frontend.
 last_leaderboard_reset should not be changed.
 
 ### Starting the Server
-Before starting the server the database must creating the tables.
+Before starting the server the database must create the tables.
 For this type the command "python manage.py makemigrations" and
 "python manage.py migrate". Now the database will be adjusted, and the tables will be created.
 
