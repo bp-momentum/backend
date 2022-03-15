@@ -50,9 +50,9 @@ jobs:
       - name: List new migrations
         run: ls ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Makemigrations
-        run: python ${{ env.DJANGO_PATH }} makemigrations src
+        run: python ${{ env.DJANGO_PATH }} makemigrations backend
       - name: Migrate
-        run: python ${{ env.DJANGO_PATH }} migrate src
+        run: python ${{ env.DJANGO_PATH }} migrate backend
       - name: List new migrations
         run: ls ${{ env.NEW_MIGRATIONS_PATH }}
       - name: Delete old migrations

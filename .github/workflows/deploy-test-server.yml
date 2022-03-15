@@ -45,9 +45,9 @@ jobs:
       - name: Collect Migrations
         run: cp -r ${{ env.OLD_MIGRATIONS_PATH }}* ${{ env.NEW_MIGRATIONS_PATH }} | echo "No migrations found"
       - name: Makemigrations
-        run: python ${{ env.DJANGO_PATH }} makemigrations src
+        run: python ${{ env.DJANGO_PATH }} makemigrations backend
       - name: Migrate
-        run: python ${{ env.DJANGO_PATH }} migrate src
+        run: python ${{ env.DJANGO_PATH }} migrate backend
       - name: Delete old migrations
         run: rm -rf ${{ env.OLD_MIGRATIONS_PATH }}*
       - name: Save Migrations
