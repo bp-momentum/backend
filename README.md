@@ -16,7 +16,7 @@ You don't have to fill in the `token_key` object inside the json, as it will be 
 
 First you have to give the information for the email-service. Here you need to give your email address, your password and the 
 smtp server (for gmail: smtp.gmail.com). Then you can change the standard admin trainer and user
-details. These users will created only once when you firstly start the server. 
+details. These users will be created only once when you first start the server. 
 
 Now you have to give the database information which you defined while creating 
 the database. "name" is here the database name, which you want to use and must be already created.
