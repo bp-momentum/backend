@@ -41,6 +41,7 @@ INTERN_SETTINGS = {
         "user": "admin",
         "password": "",
         "host": "localhost",
+        "port": "553"
     },
     "video_dir": "videos/",
     "secret_key": get_random_string(16),
@@ -145,7 +146,7 @@ DATABASES = {
         'USER': INTERN_SETTINGS["database"]["user"],
         'PASSWORD': INTERN_SETTINGS["database"]["password"],
         'HOST': INTERN_SETTINGS["database"]["host"],
-        'PORT': '',
+        'PORT': INTERN_SETTINGS["database"]["port"],
         'DISABLE_SERVER_SIDE_CURSORS': True,
     }
 }
