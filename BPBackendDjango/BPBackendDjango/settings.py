@@ -45,6 +45,7 @@ INTERN_SETTINGS = {
     "video_dir": "videos/",
     "secret_key": get_random_string(16),
     "allowed_origins": ["http://localhost:80", "http://localhost:81"],
+    "allowed_hosts": ["127.0.0.1"],
     "website_url": "https://my_url.de",
     "last_leaderboard_reset": 0
 }
@@ -76,7 +77,7 @@ SECRET_KEY = INTERN_SETTINGS["secret_key"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['78.46.150.116', '127.0.0.1']
+ALLOWED_HOSTS = INTERN_SETTINGS["allowed_hosts"]
 
 from corsheaders.defaults import default_headers
 
@@ -144,7 +145,7 @@ DATABASES = {
         'USER': INTERN_SETTINGS["database"]["user"],
         'PASSWORD': INTERN_SETTINGS["database"]["password"],
         'HOST': INTERN_SETTINGS["database"]["host"],
-        'POST': '',
+        'PORT': '',
         'DISABLE_SERVER_SIDE_CURSORS': True,
     }
 }
