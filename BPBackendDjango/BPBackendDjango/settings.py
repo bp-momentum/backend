@@ -41,7 +41,7 @@ INTERN_SETTINGS = {
         "user": "admin",
         "password": "",
         "host": "localhost",
-        "port": "553"
+        "port": "5432"
     },
     "video_dir": "videos/",
     "secret_key": get_random_string(16),
