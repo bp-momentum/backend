@@ -41,7 +41,7 @@ except:
 
 try:
     if not Exercise.objects.filter().exists():
-        newExercise = Exercise(title="Example Exercise", description={"en": "This is a Example Exercise", "de": "Dies ist eine beispiel Übung"})
+        newExercise = Exercise(title="Example Exercise", description={"en": "This is an Example Exercise", "de": "Dies ist eine Beispiel Übung"})
         newExercise.save()
 except:
     pass
