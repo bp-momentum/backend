@@ -1,5 +1,5 @@
 """
-WSGI config for BPBackendDjango project.
+WSGI config for MomentumBackend project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BPBackendDjango.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "MomentumBackend.settings")
 
 application = get_wsgi_application()

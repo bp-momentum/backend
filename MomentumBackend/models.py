@@ -2,13 +2,14 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from django.forms import BooleanField
 
+
 class Location(models.Model):
     street = models.CharField(max_length=128)
     postal_code = models.CharField(max_length=12)
     country = models.CharField(max_length=64)
     city = models.CharField(max_length=128)
     house_nr = models.CharField(max_length=12)
-    address_addition = models.CharField(max_length=128, default='')
+    address_addition = models.CharField(max_length=128, default="")
 
 
 class Trainer(models.Model):
@@ -22,8 +23,8 @@ class Trainer(models.Model):
     token_date = models.BigIntegerField(default=0)
     last_login = models.CharField(max_length=10, null=True)
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
-    academia = models.CharField(max_length=128, default='')
-    telephone = models.CharField(max_length=32, default='')
+    academia = models.CharField(max_length=128, default="")
+    telephone = models.CharField(max_length=32, default="")
 
 
 class TrainingSchedule(models.Model):
@@ -64,7 +65,7 @@ class User(models.Model):
     streak = models.IntegerField(default=0)
     xp = models.BigIntegerField(default=0)
     avatar = models.IntegerField(default=0)
-    motivation = models.TextField(max_length=1000, default='')
+    motivation = models.TextField(max_length=1000, default="")
 
 
 class DoneExercises(models.Model):
@@ -92,8 +93,8 @@ class Admin(models.Model):
 
 
 class Friends(models.Model):
-    friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend1')
-    friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend2')
+    friend1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friend1")
+    friend2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="friend2")
     accepted = models.BooleanField(default=False)
 
 
@@ -102,8 +103,8 @@ class Achievement(models.Model):
     title = models.TextField(default="{ }")
     description = models.TextField(default="{ }")
     hidden = models.BooleanField(default=False)
-    icon = models.TextField(default='{ }')
-    
+    icon = models.TextField(default="{ }")
+
 
 class UserAchievedAchievement(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
@@ -113,6 +114,7 @@ class UserAchievedAchievement(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["-date"])]
+
 
 class Leaderboard(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -140,4 +142,3 @@ class UserMedalInExercise(models.Model):
     silver = models.IntegerField(default=0)
     bronze = models.IntegerField(default=0)
     exercise = models.ForeignKey(Exercise, on_delete=CASCADE)
-

@@ -1,10 +1,10 @@
-class Request():
+class Request:
     pass
 
-class ViewSupport():
 
+class ViewSupport:
     @staticmethod
-    def setup_request(header:dict, data:dict)->Request:
+    def setup_request(header: dict, data: dict) -> Request:
         request = Request()
         request.headers = header
         request.data = data
