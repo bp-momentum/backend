@@ -19,7 +19,7 @@
 To create a PostgreSQL database, please refer to this very useful [guide](https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-20-04-quickstart-de).
 
 ### Entrypoint
-Inside the `BPBackendDjango` directory, you will find a file called `manage.py`. This is the main entrypoint for all operations with this Django backend server.
+You will find a file called `manage.py`. This is the main entrypoint for all operations with this Django backend server.
 
 ### Configuration
 To create a default configuration, please start the server once, by running `python3 manage.py runserver <host-address>:<port>`.
