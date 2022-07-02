@@ -7,7 +7,7 @@ django.setup()
 
 import hashlib
 from .models import Admin, User, Trainer, Exercise, Leaderboard
-from .settings import INTERN_SETTINGS
+from .settings import CONFIGURATION
 
 # check if at least one admin account exists
 try:
@@ -15,10 +15,10 @@ try:
         newAdmin = Admin(
             first_name="Admin",
             last_name="Admin",
-            username=INTERN_SETTINGS["admin_username"],
+            username=CONFIGURATION["admin_username"],
             password=str(
                 hashlib.sha3_256(
-                    INTERN_SETTINGS["admin_password"].encode("utf-8")
+                    CONFIGURATION["admin_password"].encode("utf-8")
                 ).hexdigest()
             ),
         )
@@ -31,10 +31,10 @@ try:
         newTrainer = Trainer(
             first_name="Trainer",
             last_name="Trainer",
-            username=INTERN_SETTINGS["trainer_username"],
+            username=CONFIGURATION["trainer_username"],
             password=str(
                 hashlib.sha3_256(
-                    INTERN_SETTINGS["trainer_password"].encode("utf-8")
+                    CONFIGURATION["trainer_password"].encode("utf-8")
                 ).hexdigest()
             ),
         )
@@ -45,14 +45,14 @@ except:
 
 try:
     if not User.objects.filter().exists():
-        trainer = Trainer.objects.get(username=INTERN_SETTINGS["trainer_username"])
+        trainer = Trainer.objects.get(username=CONFIGURATION["trainer_username"])
         newUser = User(
             first_name="User",
             last_name="User",
-            username=INTERN_SETTINGS["user_username"],
+            username=CONFIGURATION["user_username"],
             password=str(
                 hashlib.sha3_256(
-                    INTERN_SETTINGS["user_password"].encode("utf-8")
+                    CONFIGURATION["user_password"].encode("utf-8")
                 ).hexdigest()
             ),
             trainer=trainer,
@@ -60,7 +60,7 @@ try:
 
         newUser.save()
         Leaderboard.objects.create(
-            user=User.objects.get(username=INTERN_SETTINGS["user_username"]), score=0
+            user=User.objects.get(username=CONFIGURATION["user_username"]), score=0
         )
 except:
     pass

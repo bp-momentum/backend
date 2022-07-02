@@ -16,7 +16,7 @@ from .models import (
     Leaderboard,
     UserMedalInExercise,
 )
-from .settings import INTERN_SETTINGS
+from .settings import CONFIGURATION
 from .Helperclasses.jwttoken import JwToken
 
 
@@ -55,25 +55,25 @@ class SetConsumer(WebsocketConsumer):
     # in this method the incoming video stream will be saved
     def save_video(self, data_bytes):
         if not os.path.exists(
-            os.path.join(INTERN_SETTINGS["video_dir"], self.username)
+            os.path.join(CONFIGURATION["video_dir"], self.username)
         ):
             # check if the user folder was already created else mkdir
             try:
-                os.mkdir(os.path.join(INTERN_SETTINGS["video_dir"], self.username))
+                os.mkdir(os.path.join(CONFIGURATION["video_dir"], self.username))
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
 
         # add new video blob to the file
         if not os.path.exists(
-            os.path.join(INTERN_SETTINGS["video_dir"], self.username, self.filename)
+            os.path.join(CONFIGURATION["video_dir"], self.username, self.filename)
         ):
             mode = "wb"
         else:
             mode = "ab"
 
         with open(
-            os.path.join(INTERN_SETTINGS["video_dir"], self.username, self.filename),
+            os.path.join(CONFIGURATION["video_dir"], self.username, self.filename),
             mode,
         ) as f:
             f.write(data_bytes)

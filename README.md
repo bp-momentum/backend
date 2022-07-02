@@ -22,26 +22,39 @@ To create a PostgreSQL database, please refer to this very useful [guide](https:
 You will find a file called `manage.py`. This is the main entrypoint for all operations with this Django backend server.
 
 ### Configuration
-To create a default configuration, please start the server once, by running `python3 manage.py runserver <host-address>:<port>`.
-After that you will find a newly created `settings.json` file inside the directory. Now you can open the file and enter you configuration.
-You don't have to fill in the `token_key` object inside the json, as it will be created automatically upon the first server start.
+The configuration is done through environment variables.
 
-First you have to give the information for the email-service. Here you need to give your email address, your password and the 
-smtp server (for gmail: smtp.gmail.com). Then you can change the standard admin trainer and user
-details. These users will be created only once when you first start the server. 
+The following environment variables are available:
 
-Now you have to give the database information which you defined while creating 
-the database. "name" is here the database name, which you want to use and must be already created.
+| Variable | Required <> Default Value | Description |
+| --- | --- | --- |
+|EMAIL_ADDRESS|Required|The email address the server will use to send emails.|
+|EMAIL_PASSWORD|Required|The password of the email address the server will use to send emails.|
+|EMAIL_HOST|Required|The host of the email server.|
+|EMAIL_PORT|587|The port of the email server.|
+|ADMIN_USERNAME|Required|The username of the default admin account.|
+|ADMIN_PASSWORD|Required|The password of the default admin account.|
+|TRAINER_USERNAME|Required|The username of the default trainer account.|
+|TRAINER_PASSWORD|Required|The password of the default trainer account.|
+|USER_USERNAME|Required|The username of the default user account.|
+|USER_PASSWORD|Required|The password of the default user account.|
+|DATABASE_NAME|Required|The name of the database.|
+|DATABASE_USER|Required|The username of the database.|
+|DATABASE_PASSWORD|Required|The password of the database.|
+|DATABASE_HOST|Required|The host of the database.|
+|DATABASE_PORT|Required|The port of the database.|
+|VIDEO_PATH|Required|The relative path to store videos files.|
+|ALLOWED_ORIGINS|Required|The allowed origins of the server as a comma separated list.|
+|ALLOWED_HOSTS|Required|The allowed hosts of the server as a comma separated list.|
+|WEBSITE_URL|Required|The url of the website.|
 
-"video_dir" is the relative path to the video folder, where the videos are stored.
+`VIDEO_PATH` is the relative path to the video folder, where video recordings are stored.
 
-The secret key doesn't have to be changed. This is a random 16 long string.
+`ALLOWED_ORIGINS` are the urls from where the server can be reached.
+This should contain the frontend url and for testing `localhost` and similar.
 
-The allowed origins are the urls from where the server can be reached.
-Here you should give the frontend url and maybe the localhost addresses for testing.
-For the website url you have to give the url of the frontend.
-
-last_leaderboard_reset should not be changed.
+`WEBSITE_URL` needs to be the url of the frontend.
+This is used to generate links sent by email to users.
 
 ### Starting the Server
 Before starting the server the database must create the tables.

@@ -9,11 +9,6 @@ on:
 env:
   PYTHON_VERSION: 3.8
   SETTINGS_PATH: /home/github/bachelor-praktikum/api/store/test-settings.json
-  NEW_MIGRATIONS_PATH: ./BPBackendDjango/BPBackendDjango/migrations/
-  OLD_MIGRATIONS_PATH: /home/github/bachelor-praktikum/api/test-migrations/
-  SERVER_PATH: /home/github/bachelor-praktikum/api/test-server/
-  DJANGO_PATH: ./BPBackendDjango/manage.py
-  SERVICE_NAME: bp-test-backend.service
 
 jobs:
   test:
@@ -32,36 +27,3 @@ jobs:
         run: cp ${{ env.SETTINGS_PATH }} ./settings.json
       - name: Test
         run: python ./BPBackendDjango/manage.py test BPBackendDjango/ --noinput
-
-  deploy-test-server:
-    runs-on: self-hosted
-    needs: test
-    if: "contains(github.event.head_commit.message, '[start]')"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Copy settings
-        run: cp ${{ env.SETTINGS_PATH }} ./settings.json
-      - name: Create Migrations folder
-        run: mkdir ${{ env.NEW_MIGRATIONS_PATH }}
-      - name: Collect Migrations
-        run: cp -r ${{ env.OLD_MIGRATIONS_PATH }}* ${{ env.NEW_MIGRATIONS_PATH }} | echo "No migrations found"
-      - name: Makemigrations
-        run: python ${{ env.DJANGO_PATH }} makemigrations BPBackendDjango
-      - name: Migrate
-        run: python ${{ env.DJANGO_PATH }} migrate BPBackendDjango
-      - name: Delete old migrations
-        run: rm -rf ${{ env.OLD_MIGRATIONS_PATH }}*
-      - name: Save Migrations
-        run: mv ${{ env.NEW_MIGRATIONS_PATH }}* ${{ env.OLD_MIGRATIONS_PATH }} | echo "No migrations found"
-      - name: Delete old files
-        run: rm -rf ${{ env.SERVER_PATH }}*
-      - name: Move settings
-        run: mv ./settings.json ./BPBackendDjango/
-      - name: Copy files
-        run: cp -r BPBackendDjango/* ${{ env.SERVER_PATH }}
-      - name: Restarting server
-        run: sudo /usr/bin/systemctl restart ${{ env.SERVICE_NAME }}

@@ -15,6 +15,7 @@ from jwcrypto import jwk
 import random
 import string
 from corsheaders.defaults import default_headers
+from .configuration import Configuration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,65 +28,41 @@ def get_random_string(length):
     return result_str
 
 
+CONFIGURATION = Configuration.load()
+
 SETTINGS_JSON = "settings.json"
-INTERN_SETTINGS = {
-    "email_address": "",
-    "email_password": "",
-    "email_smtp_server": "",
-    "admin_username": "admin",
-    "admin_password": "admin",
-    "trainer_username": "trainer",
-    "trainer_password": "trainer",
-    "user_username": "user",
-    "user_password": "user",
-    "database": {
-        "name": "bpws",
-        "user": "admin",
-        "password": "",
-        "host": "localhost",
-        "port": "5432",
-    },
-    "video_dir": "videos/",
-    "secret_key": get_random_string(16),
-    "allowed_origins": ["http://localhost:80", "http://localhost:81"],
-    "allowed_hosts": ["127.0.0.1"],
-    "website_url": "https://my_url.de",
-    "last_leaderboard_reset": 0,
-}
+
 try:
     with open(SETTINGS_JSON) as json_file:
         INTERN_SETTINGS = json.load(json_file)
 except FileNotFoundError:
-    json.dump(INTERN_SETTINGS, open(SETTINGS_JSON, "w"), indent=4)
-    print("Please enter settings at: ", SETTINGS_JSON)
-    exit()
+    INTERN_SETTINGS_TEMPLATE = {
+        "secret_key": get_random_string(16),
+        "last_leaderboard_reset": 0,
+        "token_key": jwk.JWK(generate="oct", size=256)
+    }
+    json.dump(INTERN_SETTINGS_TEMPLATE, open(SETTINGS_JSON, "w"), indent=4)
 
-try:
-    TOKEN_KEY = INTERN_SETTINGS["token_key"]
-except KeyError:
-    key = jwk.JWK(generate="oct", size=256)
-    # token in settings.json speichern
-    newSetting = INTERN_SETTINGS
-    newSetting["token_key"] = key
-    json.dump(newSetting, open(SETTINGS_JSON, "w"), indent=4)
-
+with open(SETTINGS_JSON) as json_file:
+    INTERN_SETTINGS = json.load(json_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = INTERN_SETTINGS["secret_key"]
+TOKEN_KEY = INTERN_SETTINGS["token_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = INTERN_SETTINGS["allowed_hosts"]
+ALLOWED_HOSTS = CONFIGURATION["allowed_hosts"]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "Session-Token",
 ]
 
-CORS_ALLOWED_ORIGINS = INTERN_SETTINGS["allowed_origins"]
+CORS_ALLOWED_ORIGINS = CONFIGURATION["allowed_origins"]
 
 # Application definition
 
@@ -141,11 +118,11 @@ ASGI_APPLICATION = "MomentumBackend.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": INTERN_SETTINGS["database"]["name"],
-        "USER": INTERN_SETTINGS["database"]["user"],
-        "PASSWORD": INTERN_SETTINGS["database"]["password"],
-        "HOST": INTERN_SETTINGS["database"]["host"],
-        "PORT": INTERN_SETTINGS["database"]["port"],
+        "NAME": CONFIGURATION["database"]["name"],
+        "USER": CONFIGURATION["database"]["user"],
+        "PASSWORD": CONFIGURATION["database"]["password"],
+        "HOST": CONFIGURATION["database"]["host"],
+        "PORT": CONFIGURATION["database"]["port"],
         "DISABLE_SERVER_SIDE_CURSORS": True,
     }
 }
@@ -196,8 +173,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = INTERN_SETTINGS["email_smtp_server"]
+EMAIL_HOST = CONFIGURATION["email_smtp_server"]
 EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = INTERN_SETTINGS["email_address"]
-EMAIL_HOST_PASSWORD = INTERN_SETTINGS["email_password"]
+EMAIL_PORT = CONFIGURATION["email_smtp_port"]
+EMAIL_HOST_USER = CONFIGURATION["email_address"]
+EMAIL_HOST_PASSWORD = CONFIGURATION["email_password"]
