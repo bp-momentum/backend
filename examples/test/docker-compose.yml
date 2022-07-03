@@ -1,0 +1,20 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+  momentum-test-backend:
+    build: ../..
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    depends_on:
+      - momentum-db
+    environment:
+      EMAIL_ADDRESS: test@example.com
+      EMAIL_PASSWORD: test
+      EMAIL_HOST: smtp.example.com
+      DATABASE_USE_POSTGRESQL: false
+      VIDEO_PATH: videos
+      ALLOWED_ORIGINS: http://localhost
+      ALLOWED_HOSTS: 127.0.0.1,localhost
+      WEBSITE_URL: localhost:8080

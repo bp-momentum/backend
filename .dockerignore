@@ -1,0 +1,8 @@
+.preview
+.github
+.githooks
+.gitignore
+LICENSE
+Makefile
+README.md
+db.sqlite3
