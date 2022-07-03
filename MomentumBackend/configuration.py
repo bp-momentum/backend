@@ -131,7 +131,9 @@ class Configuration:
       value = os.environ[key] if key in os.environ else value
       # cast to correct type
       try:
-        if definition["type"] == str:
+        if value == None:
+          pass
+        elif definition["type"] == str:
           value = str(value)
         elif definition["type"] == int:
           value = int(value)
