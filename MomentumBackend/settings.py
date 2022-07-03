@@ -21,10 +21,10 @@ from .configuration import Configuration
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def get_random_string(length):
+def getRandomString(length):
     # choose from all lowercase letterF
     letters = string.ascii_lowercase
-    result_str = "".join(random.choice(letters) for i in range(length))
+    result_str = "".join(random.choice(letters) for _ in range(length))
     return result_str
 
 
@@ -37,7 +37,7 @@ try:
         INTERN_SETTINGS = json.load(json_file)
 except FileNotFoundError:
     INTERN_SETTINGS_TEMPLATE = {
-        "secret_key": get_random_string(16),
+        "secret_key": getRandomString(16),
         "last_leaderboard_reset": 0,
         "token_key": jwk.JWK(generate="oct", size=256)
     }
@@ -54,7 +54,7 @@ SECRET_KEY = INTERN_SETTINGS["secret_key"]
 TOKEN_KEY = INTERN_SETTINGS["token_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = CONFIGURATION["debug"]
 
 ALLOWED_HOSTS = CONFIGURATION["allowed_hosts"]
 
@@ -127,6 +127,13 @@ DATABASES = {
     }
 }
 
+if not CONFIGURATION["use_postgres"]:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(BASE_DIR / "db.sqlite3"),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

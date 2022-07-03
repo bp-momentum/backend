@@ -31,13 +31,14 @@ The following environment variables are available:
 |EMAIL_ADDRESS|Required|The email address the server will use to send emails.|
 |EMAIL_PASSWORD|Required|The password of the email address the server will use to send emails.|
 |EMAIL_HOST|Required|The host of the email server.|
-|EMAIL_PORT|587|The port of the email server.|
-|ADMIN_USERNAME|Required|The username of the default admin account.|
-|ADMIN_PASSWORD|Required|The password of the default admin account.|
-|TRAINER_USERNAME|Required|The username of the default trainer account.|
-|TRAINER_PASSWORD|Required|The password of the default trainer account.|
-|USER_USERNAME|Required|The username of the default user account.|
-|USER_PASSWORD|Required|The password of the default user account.|
+|EMAIL_PORT|`587`|The port of the email server.|
+|ADMIN_USERNAME|`admin`|The username of the default admin account.|
+|ADMIN_PASSWORD|`admin`|The password of the default admin account.|
+|TRAINER_USERNAME|`trainer`|The username of the default trainer account.|
+|TRAINER_PASSWORD|`trainer`|The password of the default trainer account.|
+|USER_USERNAME|`user`|The username of the default user account.|
+|USER_PASSWORD|`user`|The password of the default user account.|
+|DATABASE_USE_POSTGRESQL|`true`|Whether to use PostgreSQL or SQLite.|
 |DATABASE_NAME|Required|The name of the database.|
 |DATABASE_USER|Required|The username of the database.|
 |DATABASE_PASSWORD|Required|The password of the database.|
@@ -47,14 +48,20 @@ The following environment variables are available:
 |ALLOWED_ORIGINS|Required|The allowed origins of the server as a comma separated list.|
 |ALLOWED_HOSTS|Required|The allowed hosts of the server as a comma separated list.|
 |WEBSITE_URL|Required|The url of the website.|
+|DEBUG|`False`|Whether the server is running in debug mode.|
 
 `VIDEO_PATH` is the relative path to the video folder, where video recordings are stored.
 
-`ALLOWED_ORIGINS` are the urls from where the server can be reached.
-This should contain the frontend url and for testing `localhost` and similar.
+`ALLOWED_ORIGINS` are the urls that can be used to refer to the server.
+This should contain the frontend url and for testing possibly `localhost` and similar.
+
+`ALLOWED_HOSTS` are the hosts that the server listens to.
+If run behind a reverse proxy this should contain the address behind the proxy.
 
 `WEBSITE_URL` needs to be the url of the frontend.
 This is used to generate links sent by email to users.
+
+`DATABASE_USE_POSTGRESQL` should only be set for testing purposes. For production, PostgreSQL should always be preferred.
 
 ### Starting the Server
 Before starting the server the database must create the tables.
