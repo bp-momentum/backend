@@ -23,5 +23,8 @@ WORKDIR /app
 # install requirements
 RUN pip install -r requirements.txt
 
+# make entrypoint executable
+RUN chmod +x entrypoint.sh
+
 # excute the entrypoint.sh file
 ENTRYPOINT ["./entrypoint.sh"]
