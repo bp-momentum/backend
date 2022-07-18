@@ -244,7 +244,12 @@ class UserHandler:
     def get_profile_data(user: User) -> dict:
         return {
             "username": user.username,
-            "avatar": user.avatar,
+            "avatar": {
+                "hairStyle": user.avatarHairStyle,
+                "hairColor": user.avatarHairColor,
+                "skinColor": user.avatarSkinColor,
+                "eyeColor": user.avatarEyeColor,
+            },
             "first_login": user.first_login,
             "motivation": user.motivation,
         }
@@ -634,7 +639,12 @@ class FriendHandler:
             "username": user.username,
             "level": lvl_info[0],
             "level_progress": lvl_info[1],
-            "avatar": user.avatar,
+            "avatar": {
+                "hairStyle": user.avatarHairStyle,
+                "hairColor": user.avatarHairColor,
+                "skinColor": user.avatarSkinColor,
+                "eyeColor": user.avatarEyeColor,
+            },
             "motivation": user.motivation,
             "last_login": user.last_login,
             "days": user.streak,

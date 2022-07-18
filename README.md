@@ -633,7 +633,12 @@ Header:
 Parameters: 
 ```json
 {
-    "avatar": <int>
+    "avatar": {
+        "skinColor": <number>,
+        "hairColor": <number>,
+        "hairStyle": <number>,
+        "eyeColor": <number>,
+    }
 }
 ```
 Success Return 
@@ -700,7 +705,12 @@ Success Return
     "description": "Returning profile data",
     "data": {
         "username": <str>,
-        "avatar": <int>,
+        "avatar": {
+            "skinColor": <number>,
+            "hairColor": <number>,
+            "hairStyle": <number>,
+            "eyeColor": <number>,
+        },
         "first_login": <str>,
         "motivation": <str>
     }
@@ -1784,7 +1794,12 @@ Success Return
         "username": <str>,
         "level": <str>,
         "level_progress": <str>,
-        "avatar": <str>,
+        "avatar": {
+            "skinColor": <number>,
+            "hairColor": <number>,
+            "hairStyle": <number>,
+            "eyeColor": <number>,
+        },
         "motivation": <str>,
         "last_login": <str>,
         "days": <str>,
