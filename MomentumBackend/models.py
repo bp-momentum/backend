@@ -64,7 +64,10 @@ class User(models.Model):
     first_login = models.CharField(max_length=10, default="01-01-1970", editable=False)
     streak = models.IntegerField(default=0)
     xp = models.BigIntegerField(default=0)
-    avatar = models.IntegerField(default=0)
+    avatarHairStyle = models.IntegerField(default=0)
+    avatarHairColor = models.IntegerField(default=0)
+    avatarSkinColor = models.IntegerField(default=0)
+    avatarEyeColor = models.IntegerField(default=0)
     motivation = models.TextField(max_length=1000, default="")
 
 

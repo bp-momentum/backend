@@ -1022,13 +1022,19 @@ class ChangeAvatarView(APIView):
 
         user: User = User.objects.get(username=info["username"])
 
-        a = int(req_data["avatar"])
+        avatarHairStyle = int(req_data["avatar"]["hairStyle"])
+        avatarHairColor = int(req_data["avatar"]["hairColor"])
+        avatarSkinColor = int(req_data["avatar"]["skinColor"])
+        avatarEyeColor = int(req_data["avatar"]["eyeColor"])
         # checking if number is small enough to fit in data base
-        if a >= 100000:
+        if avatarHairStyle >= 100000 or avatarHairColor >= 100000 or avatarSkinColor >= 100000 or avatarEyeColor >= 100000:
             data = {"success": False, "description": "invalid value", "data": {}}
             return Response(data)
         # chaneg avatar
-        user.avatar = a
+        user.avatarHairStyle = avatarHairStyle
+        user.avatarHairColor = avatarHairColor
+        user.avatarSkinColor = avatarSkinColor
+        user.avatarEyeColor = avatarEyeColor
         user.save(force_update=True)
         data = {"success": True, "description": "Avatar changed", "data": {}}
         return Response(data)

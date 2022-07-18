@@ -1220,28 +1220,35 @@ class ProfileTestCase(TestCase):
     def test_change_avatar(self):
         # valid
         request = ViewSupport.setup_request(
-            {"Session-Token": self.token3}, {"avatar": 1}
+            {"Session-Token": self.token3}, {"avatar": {"skinColor": 1, "hairColor": 1, "hairStyle": 1, "eyeColor": 1}}
         )
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertTrue(response.data.get("success"))
         user2: User = User.objects.get(id=self.user2_id)
-        self.assertEqual(user2.avatar, 1)
+        self.assertEqual(user2.avatarHairStyle, 1)
+        self.assertEqual(user2.avatarEyeColor, 1)
+        self.assertEqual(user2.avatarHairColor, 1)
+        self.assertEqual(user2.avatarSkinColor, 1)
+
         request = ViewSupport.setup_request(
-            {"Session-Token": self.token2}, {"avatar": 2}
+            {"Session-Token": self.token2}, {"avatar": {"skinColor": 2, "hairColor": 2, "hairStyle": 2, "eyeColor": 2}}
         )
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertTrue(response.data.get("success"))
         user1: User = User.objects.get(id=self.user1_id)
-        self.assertEqual(user1.avatar, 2)
+        self.assertEqual(user1.avatarHairStyle, 2)
+        self.assertEqual(user1.avatarEyeColor, 2)
+        self.assertEqual(user1.avatarHairColor, 2)
+        self.assertEqual(user1.avatarSkinColor, 2)
         # invalid
         # trainer not allowed
         request = ViewSupport.setup_request(
-            {"Session-Token": self.token1}, {"avatar": 1}
+            {"Session-Token": self.token1}, {"avatar": {"skinColor": 1, "hairColor": 1, "hairStyle": 1, "eyeColor": 1}}
         )
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertFalse(response.data.get("success"))
         # invalid token
-        request = ViewSupport.setup_request({"Session-Token": "invalid"}, {"avatar": 1})
+        request = ViewSupport.setup_request({"Session-Token": "invalid"}, {"avatar": {"skinColor": 1, "hairColor": 1, "hairStyle": 1, "eyeColor": 1}})
         response = ChangeAvatarView.post(ChangeAvatarView, request)
         self.assertFalse(response.data.get("success"))
         # missing arguments
@@ -1293,7 +1300,10 @@ class ProfileTestCase(TestCase):
         self.assertTrue(response.data.get("success"))
         user2: User = User.objects.get(id=self.user2_id)
         self.assertEqual(user2.username, response.data.get("data").get("username"))
-        self.assertEqual(user2.avatar, response.data.get("data").get("avatar"))
+        self.assertEqual(user2.avatarSkinColor, response.data.get("data").get("avatar").get("skinColor"))
+        self.assertEqual(user2.avatarHairColor, response.data.get("data").get("avatar").get("hairColor"))
+        self.assertEqual(user2.avatarHairStyle, response.data.get("data").get("avatar").get("hairStyle"))
+        self.assertEqual(user2.avatarEyeColor, response.data.get("data").get("avatar").get("eyeColor"))
         self.assertEqual(
             user2.first_login, response.data.get("data").get("first_login")
         )
@@ -3333,7 +3343,10 @@ class TestProfileOfFriends(TestCase):
             trainer=trainer,
             email_address="prescher-erik@web.de",
             password=str(hashlib.sha3_256("passwd".encode("utf8")).hexdigest()),
-            avatar=5,
+            avatarHairStyle=1,
+            avatarHairColor=1,
+            avatarSkinColor=1,
+            avatarEyeColor=1,
             motivation="Krise",
             xp=20,
         )
@@ -3344,7 +3357,10 @@ class TestProfileOfFriends(TestCase):
             trainer=trainer,
             email_address="test@bla.de",
             password=str(hashlib.sha3_256("passwdyo".encode("utf8")).hexdigest()),
-            avatar=2,
+            avatarHairStyle=2,
+            avatarHairColor=2,
+            avatarSkinColor=2,
+            avatarEyeColor=2,
             motivation="Gute Tage",
             xp=5000,
         )
@@ -3355,7 +3371,10 @@ class TestProfileOfFriends(TestCase):
             trainer=trainer,
             email_address="test@bla.de",
             password=str(hashlib.sha3_256("passwdyo".encode("utf8")).hexdigest()),
-            avatar=4,
+            avatarHairStyle=4,
+            avatarHairColor=4,
+            avatarSkinColor=4,
+            avatarEyeColor=4,
             motivation="Es lebe der Leichtsinn",
             xp=60000,
         )
@@ -3384,7 +3403,12 @@ class TestProfileOfFriends(TestCase):
                 "username": "jbad",
                 "level": UserHandler.calc_level(5000, 200)[0],
                 "level_progress": UserHandler.calc_level(5000, 200)[1],
-                "avatar": 2,
+                "avatar": {
+                    "hairStyle": 2,
+                    "hairColor": 2,
+                    "skinColor": 2,
+                    "eyeColor": 2,
+                },
                 "motivation": "Gute Tage",
                 "last_login": None,
                 "days": 0,
@@ -3403,7 +3427,12 @@ class TestProfileOfFriends(TestCase):
                 "username": "DeadlyFarts",
                 "level": 0,
                 "level_progress": UserHandler.calc_level(20, 200)[1],
-                "avatar": 5,
+                "avatar": {
+                    "hairStyle": 1,
+                    "hairColor": 1,
+                    "skinColor": 1,
+                    "eyeColor": 1,
+                },
                 "motivation": "Krise",
                 "last_login": None,
                 "days": 0,
