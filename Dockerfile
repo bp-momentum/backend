@@ -34,7 +34,7 @@ RUN pip install -r requirements.txt
 # make entrypoint executable
 RUN chmod +x entrypoint.sh
 
-EXPOSE 8000
+EXPOSE 80
 
 # excute the entrypoint.sh file
 ENTRYPOINT ["./entrypoint.sh"]
