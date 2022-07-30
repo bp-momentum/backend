@@ -47,7 +47,6 @@ The following environment variables are available:
 |VIDEO_PATH|Required|The relative path to store videos files.|
 |ALLOWED_ORIGINS|Required|The allowed origins of the server as a comma separated list.|
 |ALLOWED_HOSTS|Required|The allowed hosts of the server as a comma separated list.|
-|WEBSITE_URL|Required|The url of the website.|
 |DEBUG|`False`|Whether the server is running in debug mode.|
 
 `VIDEO_PATH` is the relative path to the video folder, where video recordings are stored.

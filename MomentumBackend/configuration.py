@@ -106,11 +106,6 @@ class Configuration:
       "required": True,
       "help": "The allowed hosts of the server.",
     },
-    "WEBSITE_URL": {
-      "type": str,
-      "required": True,
-      "help": "The url of the website.",
-    },
     "DEBUG": {
       "type": bool,
       "required": False,
@@ -189,7 +184,6 @@ class Configuration:
       "video_dir": data["VIDEO_PATH"],
       "allowed_origins": data["ALLOWED_ORIGINS"],
       "allowed_hosts": data["ALLOWED_HOSTS"],
-      "website_url": data["WEBSITE_URL"],
       "debug": data["DEBUG"],
       "use_postgres": data["DATABASE_USE_POSTGRESQL"],
     }
