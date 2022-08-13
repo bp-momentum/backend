@@ -352,9 +352,8 @@ class SetConsumer(WebsocketConsumer):
 
             # add streak when this was the last exercise today
             if ExerciseHandler.check_if_last_exercise(self.user):
-                user: User = User.objects.get(id=self.user.id)
-                user.streak += 1
-                user.save(force_update=True)
+                self.user.streak += 1
+                self.user.save(force_update=True)
 
             p = (
                 0
@@ -387,7 +386,7 @@ class SetConsumer(WebsocketConsumer):
                     (self.speed + self.intensity + self.cleanliness)
                     / (3 * self.executions_done)
                 )
-                * ((self.user.streak if self.user.streak < 10 else 10) + 1),
+                * (min(self.user.streak, 10) + 1),
             )
 
         # send set information
