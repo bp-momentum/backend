@@ -422,7 +422,7 @@ class PlanHandler:
 
 class LanguageHandler:
     @staticmethod
-    def get_in_correct_language(username: string, description: string) -> string:
+    def get_in_correct_language(username: string, description: dict) -> string:
         if User.objects.filter(username=username).exists():
             user: User = User.objects.get(username=username)
         elif Trainer.objects.filter(username=username).exists():
@@ -432,8 +432,7 @@ class LanguageHandler:
         else:
             return "invalid user"
         lang = user.language
-        desc: dict = json.loads(description.replace("'", '"'))
-        res = desc.get(lang)
+        res = description.get(lang)
         if res == None:
             return lang + " is not available"
         return res

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bp-momentum/blob/main/MomentumBackend/schemas/exercises.json",
+  "title": "ChangeAvatar",
+  "description": "The schema to change avatar",
+  "type": "object",
+  "patternProperties": {
+    "^.*$": {
+      "description": "A single exercise",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "The description of the exercise in multiple languages",
+          "type": "object",
+          "patternProperties": {
+            "^.*$": {
+              "type": "string"
+            }
+          }
+        },
+        "video": {
+          "description": "An optional url to a video of the exercise",
+          "type": "string"
+        }
+      },
+      "required": [ "description" ]
+    }
+  },
+  "required": []
+}

@@ -202,7 +202,7 @@ class DeleteUserTestCase(TestCase):
         self.user_id = user1.id
         self.user_id_2 = user2.id
         exercise: Exercise = Exercise.objects.create(
-            title="Squat", description="Just do it."
+            title="Squat", description={"en": "Just do it."}
         )
         self.exercise_id = exercise.id
         plan: TrainingSchedule = TrainingSchedule.objects.create(
@@ -230,10 +230,10 @@ class DeleteUserTestCase(TestCase):
 class ExerciseTestCase(TestCase):
     def setUp(self):
         Exercise.objects.create(
-            title="Kniebeuge", description="Gehe in die Knie, achte..."
+            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         Exercise.objects.create(
-            title="Liegestütze", description="Mache Liegestütze", activated=False
+            title="Liegestütze", description={"de": "Mache Liegestütze"}, activated=False
         )
 
     def test_if_exists(self):
@@ -241,7 +241,6 @@ class ExerciseTestCase(TestCase):
         self.assertTrue(
             Exercise.objects.filter(
                 title="Kniebeuge",
-                description="Gehe in die Knie, achte...",
                 video=None,
                 activated=True,
             ).exists()
@@ -249,7 +248,6 @@ class ExerciseTestCase(TestCase):
         self.assertTrue(
             Exercise.objects.filter(
                 title="Liegestütze",
-                description="Mache Liegestütze",
                 video=None,
                 activated=False,
             ).exists()
@@ -259,20 +257,17 @@ class ExerciseTestCase(TestCase):
         # test delete
         Exercise.objects.filter(
             title="Kniebeuge",
-            description="Gehe in die Knie, achte...",
             video=None,
             activated=True,
         ).delete()
         Exercise.objects.filter(
             title="Liegestütze",
-            description="Mache Liegestütze",
             video=None,
             activated=False,
         ).delete()
         self.assertFalse(
             Exercise.objects.filter(
                 title="Kniebeuge",
-                description="Gehe in die Knie, achte...",
                 video=None,
                 activated=True,
             ).exists()
@@ -280,7 +275,6 @@ class ExerciseTestCase(TestCase):
         self.assertFalse(
             Exercise.objects.filter(
                 title="Liegestütze",
-                description="Mache Liegestütze",
                 video=None,
                 activated=False,
             ).exists()
@@ -313,7 +307,7 @@ class PlanTestCase(TestCase):
         )
         self.user_id = user.id
         ex: Exercise = Exercise.objects.create(
-            title="Kniebeuge", description="Gehe in die Knie, achte..."
+            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         self.ex_id = ex.id
         ts: TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
@@ -343,7 +337,7 @@ class PlanTestCase(TestCase):
         )
         # recreate data
         Exercise.objects.create(
-            title="Kniebeuge", description="Gehe in die Knie, achte..."
+            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         ex: Exercise = Exercise.objects.get(title="Kniebeuge")
         self.ex_id = ex.id
@@ -703,14 +697,14 @@ class AchievementTestCase(TestCase):
         self.token3 = JwToken.create_session_token(self.user1.username, "user")
         self.achievement1: Achievement = Achievement.objects.create(
             name="streak",
-            title='{"en":"Streak","de":"Streak"}',
-            description='{"en": "get a streak", "de": "sammel eine Streak"}',
+            title={"en":"Streak","de":"Streak"},
+            description={"en": "get a streak", "de": "sammel eine Streak"},
             icon='{"4":"www.test.de/streak4","3":"www.test.de/streak3","2":"www.test.de/streak2","1":"www.test.de/streak1","0":"www.test.de/streak0"}',
         )
         self.achievement2: Achievement = Achievement.objects.create(
             name="havingFriends",
-            title='{"en":"A Friend!","de":"Freundschaft!"}',
-            description='{"en": "add a friend", "de": "habe einen Freund"}',
+            title={"en":"A Friend!","de":"Freundschaft!"},
+            description={"en": "add a friend", "de": "habe einen Freund"},
             icon='{"1":"www.test.de/friends1","0":"www.test.de/friends0"}',
         )
 
@@ -1865,11 +1859,11 @@ class TestExerciseView(TestCase):
     def setUp(self):
         Exercise.objects.create(
             title="Kniebeuge",
-            description='{"de": "Gehe in die Knie, achte...", "en": "Do squats..."}',
+            description={"de": "Gehe in die Knie, achte...", "en": "Do squats..."},
         )
         Exercise.objects.create(
             title="Liegestütze",
-            description='{"de": "Mache Liegestütze...", "en": "Do pushups..."}',
+            description={"de": "Mache Liegestütze...", "en": "Do pushups..."},
             activated=False,
         )
         self.ex_id = Exercise.objects.get(title="Kniebeuge").id
@@ -1996,7 +1990,7 @@ class TestPlanView(TestCase):
         )
         self.user_id = user.id
         ex: Exercise = Exercise.objects.create(
-            title="Kniebeuge", description="Gehe in die Knie, achte..."
+            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         self.ex_id = ex.id
         ts: TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
@@ -2576,7 +2570,7 @@ class TestDoneExercise(TestCase):
         )
         self.ex: Exercise = Exercise.objects.create(
             title="Kniebeuge",
-            description='{"de": "Gehe in die Knie, achte...", "en": "Do squats..."}',
+            description={"de": "Gehe in die Knie, achte...", "en": "Do squats..."},
         )
         ts: TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
         exip: ExerciseInPlan = ExerciseInPlan.objects.create(
@@ -3384,7 +3378,7 @@ class TestProfileOfFriends(TestCase):
         self.token2 = JwToken.create_session_token(user1.username, "user")
         self.token3 = JwToken.create_session_token(user2.username, "user")
         achievement: Achievement = Achievement.objects.create(
-            name="streak", description='{"en": "get a streak"}'
+            name="streak", description={"en": "get a streak"}
         )
         UserAchievedAchievement.objects.create(
             achievement=achievement, level=1, user=user2, date=time.time()

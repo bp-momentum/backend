@@ -19,8 +19,7 @@ ENV EMAIL_PASSWORD test
 ENV EMAIL_HOST smtp.example.com
 ENV VIDEO_PATH videos
 ENV ALLOWED_ORIGINS http://localhost
-ENV ALLOWED_HOSTS http://localhost
-ENV WEBSITE_URL localhost:8080
+ENV ALLOWED_HOSTS localhost
 
 # load data
 COPY . /app/
@@ -29,7 +28,7 @@ COPY . /app/
 WORKDIR /app
 
 # install requirements
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # make entrypoint executable
 RUN chmod +x entrypoint.sh

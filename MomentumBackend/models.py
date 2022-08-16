@@ -35,8 +35,20 @@ class TrainingSchedule(models.Model):
 
 
 class Exercise(models.Model):
-    description = models.TextField(default="{ }")
-    video = models.FilePathField(null=True)
+    _description = models.TextField(default='{}')
+    def get_description(self):
+        dict_value = getattr(self, '_description_dict', None)
+        if not dict_value:
+            import json
+            dict_value = json.loads(self._description)
+            setattr(self, '_description_dict', dict_value)
+        return dict_value
+    def set_description(self, new_desc):
+        import json
+        self._description = json.dumps(new_desc)
+        self._description_dict = dict(new_desc)
+    description = property(get_description, set_description)
+    video = models.TextField(null=True)
     title = models.CharField(max_length=255)
     activated = models.BooleanField(default=True)
 
@@ -61,7 +73,7 @@ class User(models.Model):
     plan = models.ForeignKey(TrainingSchedule, on_delete=models.SET_NULL, null=True)
     token_date = models.BigIntegerField(default=0)
     last_login = models.CharField(max_length=10, null=True)
-    first_login = models.CharField(max_length=10, default="01-01-1970", editable=False)
+    first_login = models.CharField(max_length=10, default="1970-01-01", editable=False)
     streak = models.IntegerField(default=0)
     xp = models.BigIntegerField(default=0)
     avatarHairStyle = models.IntegerField(default=0)
@@ -103,8 +115,32 @@ class Friends(models.Model):
 
 class Achievement(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    title = models.TextField(default="{ }")
-    description = models.TextField(default="{ }")
+    _title = models.TextField(default='{}')
+    def get_title(self):
+        dict_value = getattr(self, '_title_dict', None)
+        if not dict_value:
+            import json
+            dict_value = json.loads(self._title)
+            setattr(self, '_title_dict', dict_value)
+        return dict_value
+    def set_title(self, new_title):
+        import json
+        self._title = json.dumps(new_title)
+        self._title_dict = dict(new_title)
+    title = property(get_title, set_title)
+    _description = models.TextField(default='{}')
+    def get_description(self):
+        dict_value = getattr(self, '_description_dict', None)
+        if not dict_value:
+            import json
+            dict_value = json.loads(self._description)
+            setattr(self, '_description_dict', dict_value)
+        return dict_value
+    def set_description(self, new_desc):
+        import json
+        self._description = json.dumps(new_desc)
+        self._description_dict = dict(new_desc)
+    description = property(get_description, set_description)
     hidden = models.BooleanField(default=False)
     icon = models.TextField(default="{ }")
 

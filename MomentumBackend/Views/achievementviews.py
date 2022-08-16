@@ -67,8 +67,8 @@ class GetAchievementsView(APIView):
             )
             Achievement.objects.create(
                 name="doneExercises",
-                title='{"en":"Done Exercises","de":"Abgeschlossene Übungen"}',
-                description='{"en":"Do exercises to get/level this achievement","de":"Mache Übungen um diese Errungenschaft zu bekommen beziehungsweise hoch zu leveln"}',
+                title={"en":"Done Exercises","de":"Abgeschlossene Übungen"},
+                description={"en":"Do exercises to get/level this achievement","de":"Mache Übungen um diese Errungenschaft zu bekommen beziehungsweise hoch zu leveln"},
                 icon=icon_dict,
             )
         if not Achievement.objects.filter(name="havingFriends").exists():
@@ -81,8 +81,8 @@ class GetAchievementsView(APIView):
             )
             Achievement.objects.create(
                 name="havingFriends",
-                title='{"en":"A Friend!","de":"Freundschaft!"}',
-                description='{"en":"Become friends with another user.","de":"Schließe eine Freundschaft mit einem/r anderen Spieler*in"}',
+                title={"en":"A Friend!","de":"Freundschaft!"},
+                description={"en":"Become friends with another user.","de":"Schließe eine Freundschaft mit einem/r anderen Spieler*in"},
                 icon=icon_dict,
             )
         if not Achievement.objects.filter(name="streak").exists():
@@ -101,8 +101,8 @@ class GetAchievementsView(APIView):
             )
             Achievement.objects.create(
                 name="streak",
-                title='{"en":"Streak","de":"Streak"}',
-                description='{"en":"Reach a streak","de":"Erreiche eine Streak"}',
+                title={"en":"Streak","de":"Streak"},
+                description={"en":"Reach a streak","de":"Erreiche eine Streak"},
                 icon=icon_dict,
             )
         if not Achievement.objects.filter(name="perfectExercise").exists():
@@ -115,8 +115,8 @@ class GetAchievementsView(APIView):
             )
             Achievement.objects.create(
                 name="perfectExercise",
-                title='{"en":"Perfect Exercise","de":"Perfekte Übung"}',
-                description='{"en":"Complete an exercise with 100 percent","de":"Erreiche 100 Prozent bei einer Übung"}',
+                title={"en":"Perfect Exercise","de":"Perfekte Übung"},
+                description={"en":"Complete an exercise with 100 percent","de":"Erreiche 100 Prozent bei einer Übung"},
                 icon=icon_dict,
             )
         if not Achievement.objects.filter(name="nightOwl").exists():
@@ -129,8 +129,8 @@ class GetAchievementsView(APIView):
             )
             Achievement.objects.create(
                 name="nightOwl",
-                title='{"en":"Night Owl","de":"Nachteule"}',
-                description='{"en":"Do an exercise between 10 PM and 6 AM","de":"Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"}',
+                title={"en":"Night Owl","de":"Nachteule"},
+                description={"en":"Do an exercise between 10 PM and 6 AM","de":"Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"},
                 hidden=True,
                 icon=icon_dict,
             )
@@ -144,8 +144,8 @@ class GetAchievementsView(APIView):
             )
             Achievement.objects.create(
                 name="earlyBird",
-                title='{"en":"Early Bird","de":"Der frühe Vogel.."}',
-                description='{"en":"Do an exercise early in the morning (between 6 AM and 8 AM)","de":"Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"}',
+                title={"en":"Early Bird","de":"Der frühe Vogel.."},
+                description={"en":"Do an exercise early in the morning (between 6 AM and 8 AM)","de":"Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"},
                 hidden=True,
                 icon=icon_dict,
             )
@@ -630,8 +630,8 @@ class ReloadFriendAchievementView(APIView):
             )
             Achievement.objects.create(
                 name="havingFriends",
-                title='{"en":"A Friend!","de":"Freundschaft!"}',
-                description='{"en": "Become friends with another user.", "de": "Sei mit einem Spieler befreundet"}',
+                title={"en":"A Friend!","de":"Freundschaft!"},
+                description={"en": "Become friends with another user.", "de": "Sei mit einem Spieler befreundet"},
                 icon=icon_dict,
             )
 
@@ -727,8 +727,8 @@ class ReloadAfterExerciseView(APIView):
             )
             Achievement.objects.create(
                 name="doneExercises",
-                title='{"en":"Done Exercises","de":"Abgeschlossene Übungen"}',
-                description='{"en": "Do exercises to get/level this achievement", "de": "Mache Übungen um diese Errungenschaft zu bekommen beziehungsweise hoch zu leveln"}',
+                title={"en":"Done Exercises","de":"Abgeschlossene Übungen"},
+                description={"en": "Do exercises to get/level this achievement", "de": "Mache Übungen um diese Errungenschaft zu bekommen beziehungsweise hoch zu leveln"},
             )
         achievement: Achievement = Achievement.objects.get(name="doneExercises")
         # get number of done exercises
@@ -824,8 +824,8 @@ class ReloadAfterExerciseView(APIView):
             )
             Achievement.objects.create(
                 name="perfectExercise",
-                title='{"en":"Perfect Exercise","de":"Perfekte Übung"}',
-                description='{"en": "Complete an exercise with 100 percent", "de": "Erreiche 100 Prozent bei einer Übung"}',
+                title={"en":"Perfect Exercise","de":"Perfekte Übung"},
+                description={"en": "Complete an exercise with 100 percent", "de": "Erreiche 100 Prozent bei einer Übung"},
             )
         achievement = Achievement.objects.get(name="perfectExercise")
         # check if achievement already achieved
@@ -877,8 +877,8 @@ class ReloadAfterExerciseView(APIView):
             )
             Achievement.objects.create(
                 name="nightOwl",
-                title='{"en":"Night Owl","de":"Nachteule"}',
-                description='{"en": "Do an exercise between 10 PM and 6 AM", "de": "Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"}',
+                title={"en":"Night Owl","de":"Nachteule"},
+                description={"en": "Do an exercise between 10 PM and 6 AM", "de": "Mache eine Übung zwischen 10 Uhr abends und 6 Uhr morgens"},
                 hidden=True,
             )
         achievement = Achievement.objects.get(name="nightOwl")
@@ -931,8 +931,8 @@ class ReloadAfterExerciseView(APIView):
             )
             Achievement.objects.create(
                 name="earlyBird",
-                title='{"en":"Early Bird","de":"Der frühe Vogel.."}',
-                description='{"en": "Do an exercise early in the morning (between 6 AM and 8 AM)", "de": "Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"}',
+                title={"en":"Early Bird","de":"Der frühe Vogel.."},
+                description={"en": "Do an exercise early in the morning (between 6 AM and 8 AM)", "de": "Mache eine Übung frühmorgens (zwischen 6 und 8 Uhr)"},
                 hidden=True,
                 icon=icon_dict,
             )
@@ -992,8 +992,8 @@ class ReloadAfterExerciseView(APIView):
             )
             Achievement.objects.create(
                 name="streak",
-                title='{"en":"Streak","de":"Streak"}',
-                description='{"en": "Reach a streak", "de": "Erreiche eine Streak"}',
+                title={"en":"Streak","de":"Streak"},
+                description={"en": "Reach a streak", "de": "Erreiche eine Streak"},
                 icon=icon_dict,
             )
         achievement = Achievement.objects.get(name="streak")
