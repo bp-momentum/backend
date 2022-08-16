@@ -2,7 +2,9 @@
 .github
 .githooks
 .gitignore
+.env
 LICENSE
 Makefile
 README.md
 db.sqlite3
+docker-compose.yml

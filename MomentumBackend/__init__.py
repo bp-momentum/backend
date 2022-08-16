@@ -6,8 +6,11 @@ django.setup()
 
 
 import hashlib
-from .models import Admin, User, Trainer, Exercise, Leaderboard
+from .models import Admin, ExerciseInPlan, User, Trainer, Exercise, Leaderboard
 from .settings import CONFIGURATION
+import json
+import jsonschema
+from jsonschema import validate
 
 # check if at least one admin account exists
 try:
@@ -65,15 +68,43 @@ try:
 except:
     pass
 
+
+exerciseSchema = json.loads(open("MomentumBackend/schemas/exercises.json", "r").read())
+
+def validateJson(jsonData):
+    try:
+        validate(instance=jsonData, schema=exerciseSchema)
+    except jsonschema.exceptions.ValidationError as err:
+        return False
+    return True
+
 try:
-    if not Exercise.objects.filter().exists():
-        newExercise = Exercise(
-            title="Example Exercise",
-            description={
-                "en": "This is an Example Exercise",
-                "de": "Dies ist eine Beispiel Übung",
-            },
-        )
-        newExercise.save()
-except:
-    pass
+    exercises = json.loads(open("exercises.json", "r").read())
+    if not validateJson(exercises):
+        raise Exception("[WARNING] Invalid exercises.json\nThe schema can be found here: https://github.com/bp-momentum/blob/main/MomentumBackend/schemas/exercises.json\nThe database will not be updated.")
+    needsRebuilding = False
+    # if amount of exercises in database is not equal to amount of exercises in json file, rebuild database
+    if len(Exercise.objects.all()) != len(exercises):
+        needsRebuilding = True
+    # if any exercise in database is not equal to any exercise in json file, rebuild database
+    for exercise in Exercise.objects.all():
+        if (ex := exercises.get(exercise.title)) is None:
+            needsRebuilding = True
+            break
+        if exercise.description["en"] != ex["description"]["en"] or exercise.description["de"] != ex["description"]["de"]:
+            needsRebuilding = True
+            break
+        if exercise.video != ex.get("video"):
+            needsRebuilding = True
+            break
+
+    if needsRebuilding:
+        Exercise.objects.all().delete()
+        for exercise in exercises:
+            Exercise.objects.create(
+                title=exercise,
+                description=exercises[exercise]["description"],
+                video=exercises[exercise].get("video"),
+            )
+except Exception as e:
+    print(e)

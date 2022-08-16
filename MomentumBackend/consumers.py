@@ -191,7 +191,12 @@ class SetConsumer(WebsocketConsumer):
         self.initiated = True
 
         # load exercise info from database
-        self.exinplan: ExerciseInPlan = ExerciseInPlan.objects.get(id=self.exercise)
+        try:
+            self.exinplan: ExerciseInPlan = ExerciseInPlan.objects.get(id=self.exercise)
+        except:
+            self.initiated = False
+            self.close()
+            return
         self.sets = self.exinplan.sets
         self.executions_per_set = self.exinplan.repeats_per_set
 
