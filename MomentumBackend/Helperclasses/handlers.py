@@ -156,7 +156,7 @@ class UserHandler:
                     for ex in exs:
                         if ex.get("done"):
                             nr_of_done += 1
-                    all = len(exs)
+                    all = max(len(exs), 1)
                     perc_done = math.ceil((nr_of_done / all) * 10000) / 10000
                 else:
                     perc_done = None
