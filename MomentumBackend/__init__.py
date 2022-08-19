@@ -72,39 +72,40 @@ except:
 exerciseSchema = json.loads(open("MomentumBackend/schemas/exercises.json", "r").read())
 
 def validateJson(jsonData):
+    # validate json against schema
     try:
         validate(instance=jsonData, schema=exerciseSchema)
     except jsonschema.exceptions.ValidationError as err:
+        return False
+    # validate json for id uniqueness
+    if len(set(map(lambda ex: ex["id"], exercises))) != len(exercises):
         return False
     return True
 
 try:
     exercises = json.loads(open("exercises.json", "r").read())
     if not validateJson(exercises):
-        raise Exception("[WARNING] Invalid exercises.json\nThe schema can be found here: https://github.com/bp-momentum/blob/main/MomentumBackend/schemas/exercises.json\nThe database will not be updated.")
-    needsRebuilding = False
-    # if amount of exercises in database is not equal to amount of exercises in json file, rebuild database
-    if len(Exercise.objects.all()) != len(exercises):
-        needsRebuilding = True
-    # if any exercise in database is not equal to any exercise in json file, rebuild database
-    for exercise in Exercise.objects.all():
-        if (ex := exercises.get(exercise.title)) is None:
-            needsRebuilding = True
-            break
-        if exercise.description["en"] != ex["description"]["en"] or exercise.description["de"] != ex["description"]["de"]:
-            needsRebuilding = True
-            break
-        if exercise.video != ex.get("video"):
-            needsRebuilding = True
-            break
-
-    if needsRebuilding:
-        Exercise.objects.all().delete()
-        for exercise in exercises:
-            Exercise.objects.create(
-                title=exercise,
-                description=exercises[exercise]["description"],
-                video=exercises[exercise].get("video"),
+        raise Exception("[WARNING] Invalid exercises.json\nThe schema can be found here: https://github.com/bp-momentum/blob/main/MomentumBackend/schemas/exercises.json\nAlso make sure the Exercise IDs are unique.\nThe database will not be updated.")
+    
+    for exercise in exercises:
+        if not Exercise.objects.filter(id=exercise["id"]).exists():
+            ex = Exercise(
+                title=exercise["title"],
+                id=exercise["id"],
+                description=exercise["description"],
+                video=exercise.get("video"),
             )
+            ex.save()
+        else:
+            # can't use update here because it doesn't work with custom json type
+            ex = Exercise.objects.filter(id=exercise["id"]).first()
+            ex.title = exercise["title"]
+            ex.description = exercise["description"]
+            ex.video = exercise.get("video")
+            ex.save()
+    
+    # delete exercises that are not in the exercises.json anymore
+    Exercise.objects.exclude(id__in=[exercise["id"] for exercise in exercises]).delete()
+
 except Exception as e:
     print(e)

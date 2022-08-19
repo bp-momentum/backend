@@ -202,7 +202,7 @@ class DeleteUserTestCase(TestCase):
         self.user_id = user1.id
         self.user_id_2 = user2.id
         exercise: Exercise = Exercise.objects.create(
-            title="Squat", description={"en": "Just do it."}
+            id=3, title="Squat", description={"en": "Just do it."}
         )
         self.exercise_id = exercise.id
         plan: TrainingSchedule = TrainingSchedule.objects.create(
@@ -230,10 +230,10 @@ class DeleteUserTestCase(TestCase):
 class ExerciseTestCase(TestCase):
     def setUp(self):
         Exercise.objects.create(
-            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
+            id=1, title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         Exercise.objects.create(
-            title="Liegestütze", description={"de": "Mache Liegestütze"}, activated=False
+            id=2, title="Liegestütze", description={"de": "Mache Liegestütze"}, activated=False
         )
 
     def test_if_exists(self):
@@ -307,7 +307,7 @@ class PlanTestCase(TestCase):
         )
         self.user_id = user.id
         ex: Exercise = Exercise.objects.create(
-            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
+            id=1, title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         self.ex_id = ex.id
         ts: TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
@@ -337,7 +337,7 @@ class PlanTestCase(TestCase):
         )
         # recreate data
         Exercise.objects.create(
-            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
+            id=1, title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         ex: Exercise = Exercise.objects.get(title="Kniebeuge")
         self.ex_id = ex.id
@@ -1463,7 +1463,7 @@ class ProfileTestCase(TestCase):
 
     def test_done_exercises_of_month(self):
         # additional setup
-        ex: Exercise = Exercise.objects.create(title="Kniebeuge")
+        ex: Exercise = Exercise.objects.create(id=1, title="Kniebeuge")
         trainer: Trainer = Trainer.objects.get(id=self.trainer_id)
         plan: TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
         exip: ExerciseInPlan = ExerciseInPlan.objects.create(
@@ -1858,10 +1858,12 @@ class TestExerciseView(TestCase):
 
     def setUp(self):
         Exercise.objects.create(
+            id=1,
             title="Kniebeuge",
             description={"de": "Gehe in die Knie, achte...", "en": "Do squats..."},
         )
         Exercise.objects.create(
+            id=2,
             title="Liegestütze",
             description={"de": "Mache Liegestütze...", "en": "Do pushups..."},
             activated=False,
@@ -1990,7 +1992,7 @@ class TestPlanView(TestCase):
         )
         self.user_id = user.id
         ex: Exercise = Exercise.objects.create(
-            title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
+            id=1, title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         self.ex_id = ex.id
         ts: TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
@@ -2423,7 +2425,7 @@ class TestLeaderboardView(TestCase):
         ts: TrainingSchedule = TrainingSchedule.objects.create(
             name="plan_for_everyone", trainer=trainer
         )
-        ex: Exercise = Exercise.objects.create(title="Kniebeuge")
+        ex: Exercise = Exercise.objects.create(id=1, title="Kniebeuge")
         ExerciseInPlan.objects.create(exercise=ex, plan=ts, sets=1, repeats_per_set=1)
         User.objects.create(
             first_name="vorname",
@@ -2569,6 +2571,7 @@ class TestDoneExercise(TestCase):
             password="Password1234",
         )
         self.ex: Exercise = Exercise.objects.create(
+            id=1,
             title="Kniebeuge",
             description={"de": "Gehe in die Knie, achte...", "en": "Do squats..."},
         )
@@ -3267,8 +3270,8 @@ class TestMedals(TestCase):
         self.token1 = JwToken.create_session_token(trainer.username, "trainer")
         self.token2 = JwToken.create_session_token(user1.username, "user")
         self.token3 = JwToken.create_session_token(user2.username, "user")
-        ex1 = Exercise.objects.create(title="Kniebeuge")
-        ex2 = Exercise.objects.create(title="Liegestütze")
+        ex1 = Exercise.objects.create(id=1, title="Kniebeuge")
+        ex2 = Exercise.objects.create(id=2, title="Liegestütze")
         UserMedalInExercise.objects.create(user=user1, gold=2, silver=5, exercise=ex1)
         UserMedalInExercise.objects.create(user=user1, gold=4, bronze=3, exercise=ex2)
         UserMedalInExercise.objects.create(user=user2, gold=6, silver=1, exercise=ex1)

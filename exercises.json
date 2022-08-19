@@ -1,15 +1,19 @@
-{
-  "Example Exercise": {
+[
+  {
+    "title": "1",
+    "id": 1,
     "description": {
       "en": "This is an Example Exercise",
       "de": "Dies ist eine Beispiel Übung"
     }
   },
-  "Example Exercise 2": {
+  {
+    "title": "2",
+    "id": 2,
     "description": {
       "en": "This is another Example Exercise",
       "de": "Dies ist eine weiter Beispiel Übung"
     },
     "video": "https://ia801602.us.archive.org/11/items/Rick_Astley_Never_Gonna_Give_You_Up/Rick_Astley_Never_Gonna_Give_You_Up.mp4"
   }
-}
+]

@@ -35,6 +35,7 @@ class TrainingSchedule(models.Model):
 
 
 class Exercise(models.Model):
+    id = models.IntegerField(primary_key=True)
     _description = models.TextField(default='{}')
     def get_description(self):
         dict_value = getattr(self, '_description_dict', None)
@@ -84,7 +85,7 @@ class User(models.Model):
 
 
 class DoneExercises(models.Model):
-    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.SET_NULL, null=True)
+    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.BigIntegerField(default=0)
