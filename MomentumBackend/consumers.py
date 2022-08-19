@@ -4,9 +4,7 @@ from .Helperclasses.handlers import ExerciseHandler, LeaderboardHandler, UserHan
 from channels.generic.websocket import WebsocketConsumer
 import time
 import json
-import threading
-from .Helperclasses.ai import DummyAI, AIInterface
-import random
+from .Helperclasses.ai import AIInterface
 import os
 
 from .models import (
@@ -52,35 +50,29 @@ class SetConsumer(WebsocketConsumer):
 
         self.exinplan = None
 
+
     # in this method the incoming video stream will be saved
     def save_video(self, data_bytes):
-        if not os.path.exists(
-            os.path.join(CONFIGURATION["video_dir"], self.username)
-        ):
-            # check if the user folder was already created else mkdir
+        folderName = os.path.join(CONFIGURATION["video_dir"], self.username)
+        fileName = os.path.join(CONFIGURATION["video_dir"], self.username, self.filename)
+        
+        # check if the user folder was already created else mkdir
+        if not os.path.exists(folderName):
             try:
-                os.mkdir(os.path.join(CONFIGURATION["video_dir"], self.username))
+                os.mkdir(folderName)
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
 
         # add new video blob to the file
-        if not os.path.exists(
-            os.path.join(CONFIGURATION["video_dir"], self.username, self.filename)
-        ):
-            mode = "wb"
-        else:
-            mode = "ab"
+        mode = "ab" if os.path.exists(fileName) else "wb"
 
-        with open(
-            os.path.join(CONFIGURATION["video_dir"], self.username, self.filename),
-            mode,
-        ) as f:
+        with open(fileName, mode) as f:
             f.write(data_bytes)
             f.close()
 
-    def authenticate(self, session_token):
 
+    def authenticate(self, session_token):
         # check if token is valid
         token = JwToken.check_session_token(session_token["session_token"])
         if not token["valid"]:
@@ -114,8 +106,7 @@ class SetConsumer(WebsocketConsumer):
         self.authenticated = True
 
         # set connections user info
-        info = token["info"]
-        self.username = info["username"]
+        self.username = token["info"]["username"]
         self.user: User = User.objects.get(username=self.username)
 
         self.send(
@@ -128,6 +119,7 @@ class SetConsumer(WebsocketConsumer):
                 }
             )
         )
+
 
     def start_set(self, data):
 
@@ -159,6 +151,7 @@ class SetConsumer(WebsocketConsumer):
                 )
             )
 
+
     def end_set(self, data):
         # check if user is doing a set, if so and the set !!! is currently disabled and has to be changed when enabled!!
         if self.doing_set:
@@ -184,6 +177,7 @@ class SetConsumer(WebsocketConsumer):
                     }
                 )
             )
+
 
     def initiate(self, data):
         # save, which exercise is done
@@ -220,12 +214,10 @@ class SetConsumer(WebsocketConsumer):
         else:
             # if not started already  initialise
             self.done_exercise_entry = None
-
             self.exercise = 0
             self.executions_done = 0
             self.current_set = 0
             self.current_set_execution = 0
-
             self.speed = 0
             self.intensity = 0
             self.cleanliness = 0
@@ -255,18 +247,162 @@ class SetConsumer(WebsocketConsumer):
             )
         )
 
-    def send_stats(self, intensity, speed, cleanliness, coordinates):
-        # send stats emulates the ai when sending info after a single execution
-        # calculating points
+
+    def handleSetDone(self):
+        self.doing_set = False
+        self.current_set_execution = 0
+        self.current_set += 1
+        self.send(
+            text_data=json.dumps(
+                {
+                    "message_type": "end_set",
+                    "success": True,
+                    "description": "The set is now ended",
+                    "data": {
+                        "speed": 0
+                        if self.executions_done == 0
+                        else self.speed / self.executions_done,
+                        "cleanliness": 0
+                        if self.executions_done == 0
+                        else self.cleanliness / self.executions_done,
+                        "intensity": 0
+                        if self.executions_done == 0
+                        else self.intensity / self.executions_done,
+                    },
+                }
+            )
+        )
+
+
+    def updateLeaderboard(self):
+        leaderboard_entry: Leaderboard = Leaderboard.objects.get(user=self.user.id)
+        leaderboard_entry.speed += self.speed
+        leaderboard_entry.intensity += self.intensity
+        leaderboard_entry.cleanliness += self.cleanliness
+        leaderboard_entry.executions += self.executions_done
+
+        exs_to_do = 0
+        if self.user.plan is not None:
+            plan_data = ExerciseInPlan.objects.filter(plan=self.user.plan.id)
+            for ex in plan_data:
+                exs_to_do += ex.repeats_per_set * ex.sets
+
+        leaderboard_entry.score = (
+            leaderboard_entry.speed
+            + leaderboard_entry.intensity
+            + leaderboard_entry.cleanliness
+        ) / (3 * exs_to_do)
+
+        leaderboard_entry.save(force_update=True)
+
+
+    def updateMedal(self):
+        # add medal
+        if not UserMedalInExercise.objects.filter(
+            user=self.user, exercise=self.exinplan.exercise
+        ).exists():
+            UserMedalInExercise.objects.create(
+                user=self.user, exercise=self.exinplan.exercise
+            )
+        umix: UserMedalInExercise = UserMedalInExercise.objects.get(
+            user=self.user, exercise=self.exinplan.exercise
+        )
+        if self.points >= 90:  # gold
+            umix.gold += 1
+        elif self.points >= 75:  # silver
+            umix.silver += 1
+        elif self.points >= 50:  # bronze
+            umix.bronze += 1
+        umix.save(force_update=True)
+
+
+    def updateXP(self):
+        UserHandler.add_xp(
+            self.user,
+            (
+                (self.speed + self.intensity + self.cleanliness)
+                / (3 * self.executions_done)
+            )
+            * (min(self.user.streak, 10) + 1),
+        )
+
+
+    def updateStreak(self):
+        # add streak when this was the last exercise today
+        if ExerciseHandler.check_if_last_exercise(self.user):
+            self.user.streak += 1
+            self.user.save(force_update=True)
+
+
+    def calculatePoints(self):
+        # calculate points
+        self.points = (
+            0
+            if (self.executions_per_set == 0 | self.sets == 0)
+            else int(
+                (self.speed + self.intensity + self.cleanliness)
+                / (self.sets * self.executions_per_set * 3)
+            )
+        )
+
+
+    def handleExerciseDone(self):
+        # reset current set wrongly incremented
+        self.current_set -= 1
+        self.completed = True
+
+        self.calculatePoints()
+
+        self.updateMedal()
+        self.updateStreak()
+        self.updateLeaderboard()
+        self.updateXP()
+
+        gained_medal = ""
+        if self.points >= 90:  # gold
+            gained_medal = "gold"
+        elif self.points >= 75:  # silver
+            gained_medal = "silver"
+        elif self.points >= 50:  # bronze
+            gained_medal = "bronze"
+
+        self.send(
+            text_data=json.dumps(
+                {
+                    "message_type": "exercise_complete",
+                    "success": True,
+                    "description": "The exercise is now ended",
+                    "data": {
+                        "speed": 0
+                        if self.executions_done == 0
+                        else self.speed / self.executions_done,
+                        "cleanliness": 0
+                        if self.executions_done == 0
+                        else self.cleanliness / self.executions_done,
+                        "intensity": 0
+                        if self.executions_done == 0
+                        else self.intensity / self.executions_done,
+                        "medal": gained_medal,
+                    },
+                }
+            )
+        )
+
+
+    # handle incomint stats
+    # should be called once per finished repetition
+    def handleIncomingStats(self, intensity, speed, cleanliness, coordinates):
+        # sanity check
         if not self.doing_set:
             return
 
+        self.executions_done += 1
+        self.current_set_execution += 1
+
+        # calculating points
         self.intensity += intensity
         self.speed += speed
         self.cleanliness += cleanliness
-
-        self.executions_done += 1
-        self.current_set_execution += 1
 
         self.send(
             text_data=json.dumps(
@@ -284,141 +420,18 @@ class SetConsumer(WebsocketConsumer):
             )
         )
 
-        type = 0
-
         # end set when set is done
         if self.current_set_execution == self.executions_per_set:
-            self.doing_set = False
-            self.current_set_execution = 0
-            self.current_set += 1
-
-            type += 1
+            self.handleSetDone()
 
         # end exercise when exercise is done
         if self.current_set == self.sets:
-            self.doing_set = False
-            type += 1
-            self.current_set -= 1
+            self.handleExerciseDone()
+            
 
-            # save in Leaderboard
-            self.points = (
-                0
-                if self.executions_per_set == 0
-                else int(
-                    (self.speed + self.intensity + self.cleanliness)
-                    / (self.sets * self.executions_per_set * 3)
-                )
-            )
 
-            # add medal
-            if not UserMedalInExercise.objects.filter(
-                user=self.user, exercise=self.exinplan.exercise
-            ).exists():
-                UserMedalInExercise.objects.create(
-                    user=self.user, exercise=self.exinplan.exercise
-                )
-            umix: UserMedalInExercise = UserMedalInExercise.objects.get(
-                user=self.user, exercise=self.exinplan.exercise
-            )
-            gained_medal = ""
-            if self.points >= 90:  # gold
-                umix.gold += 1
-                gained_medal = "gold"
-            elif self.points >= 75:  # silver
-                umix.silver += 1
-                gained_medal = "silver"
-            elif self.points >= 50:  # bronze
-                umix.bronze += 1
-                gained_medal = "bronze"
-            umix.save(force_update=True)
-
-            self.completed = True
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "exercise_complete",
-                        "success": True,
-                        "description": "The exercise is now ended",
-                        "data": {
-                            "speed": 0
-                            if self.executions_done == 0
-                            else self.speed / self.executions_done,
-                            "cleanliness": 0
-                            if self.executions_done == 0
-                            else self.cleanliness / self.executions_done,
-                            "intensity": 0
-                            if self.executions_done == 0
-                            else self.intensity / self.executions_done,
-                            "medal": gained_medal,
-                        },
-                    }
-                )
-            )
-
-            # add streak when this was the last exercise today
-            if ExerciseHandler.check_if_last_exercise(self.user):
-                self.user.streak += 1
-                self.user.save(force_update=True)
-
-            p = (
-                0
-                if self.executions_per_set == 0
-                else int((self.speed + self.intensity + self.cleanliness) / 3)
-            )
-            leaderboard_entry: Leaderboard = Leaderboard.objects.get(user=self.user.id)
-
-            leaderboard_entry.speed += self.speed
-            leaderboard_entry.intensity += self.intensity
-            leaderboard_entry.cleanliness += self.cleanliness
-            leaderboard_entry.executions += self.executions_done
-
-            exs_to_do = 0
-            if self.user.plan is not None:
-                plan_data = ExerciseInPlan.objects.filter(plan=self.user.plan.id)
-                for ex in plan_data:
-                    exs_to_do += ex.repeats_per_set * ex.sets
-
-            leaderboard_entry.score = (
-                leaderboard_entry.speed
-                + leaderboard_entry.intensity
-                + leaderboard_entry.cleanliness
-            ) / (3 * exs_to_do)
-
-            leaderboard_entry.save(force_update=True)
-            UserHandler.add_xp(
-                self.user,
-                (
-                    (self.speed + self.intensity + self.cleanliness)
-                    / (3 * self.executions_done)
-                )
-                * (min(self.user.streak, 10) + 1),
-            )
-
-        # send set information
-        if type == 1:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "end_set",
-                        "success": True,
-                        "description": "The set is now ended",
-                        "data": {
-                            "speed": 0
-                            if self.executions_done == 0
-                            else self.speed / self.executions_done,
-                            "cleanliness": 0
-                            if self.executions_done == 0
-                            else self.cleanliness / self.executions_done,
-                            "intensity": 0
-                            if self.executions_done == 0
-                            else self.intensity / self.executions_done,
-                        },
-                    }
-                )
-            )
-
-    def ai_evaluation(self, data):
-
+    def handleIncomingVideo(self, data):
+        # guard to prevent sending video if not doing exercise
         if not self.doing_set:
             self.send(
                 text_data=json.dumps(
@@ -429,6 +442,7 @@ class SetConsumer(WebsocketConsumer):
                     }
                 )
             )
+            return
 
         # self.save_video(data)
         # check stats or info
@@ -441,7 +455,7 @@ class SetConsumer(WebsocketConsumer):
             cleanliness = feedback["stats"]["cleanliness"]
             coordinates = feedback["coordinates"]
 
-            self.send_stats(intensity, speed, cleanliness, coordinates)
+            self.handleIncomingStats(intensity, speed, cleanliness, coordinates)
 
         elif feedback["feedback"] == "information":
             self.send(
@@ -457,17 +471,6 @@ class SetConsumer(WebsocketConsumer):
                 )
             )
 
-    # start new thread
-    def start_ai_call(self, data):
-        t = threading.Thread(
-            target=SetConsumer.ai_evaluation,
-            args=(
-                self,
-                data,
-            ),
-        )
-        t.daemon = True
-        t.start()
 
     # On Connect
     def connect(self):
@@ -476,12 +479,12 @@ class SetConsumer(WebsocketConsumer):
         self.doing_set = False
         self.accept()
 
+
     # On Disconnect
-    def disconnect(self, close_code):
+    def disconnect(self, _):
         self.doing_set = False
 
         # save current state in database
-
         if self.initiated:
             if self.done_exercise_entry is None:
                 DoneExercises.objects.create(
@@ -498,7 +501,6 @@ class SetConsumer(WebsocketConsumer):
                     completed=self.completed,
                 )
             else:
-
                 self.done_exercise_entry.executions_done = self.executions_done
                 self.done_exercise_entry.current_set = self.current_set
                 self.done_exercise_entry.current_set_execution = (
@@ -512,68 +514,79 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.completed = self.completed
                 self.done_exercise_entry.save(force_update=True)
 
+
     # On Receive
     def receive(self, text_data=None, bytes_data=None):
-
         # check if request has bytes_data
         if bytes_data is not None:
             # send bytes to ai
-            self.start_ai_call(bytes_data)
+            self.handleIncomingVideo(bytes_data)
 
-        # check if request hast text_data
-        if text_data is not None:
-            text_data_json = json.loads(text_data)
-            m_type = text_data_json["message_type"]
-            data = text_data_json["data"]
+        # guard that check if request hast text_data
+        if text_data is None:
+            return
 
-            # check if authenticing else if authenticated
-            if m_type == "authenticate":
-                self.authenticate(data)
-            elif not self.authenticated:
-                self.send(
-                    text_data=json.dumps(
-                        {
-                            "message_type": "authenticate",
-                            "success": False,
-                            "description": "You have to be authenticated",
-                            "data": {},
-                        }
-                    )
+        text_data_json = json.loads(text_data)
+        m_type = text_data_json["message_type"]
+        data = text_data_json["data"]
+
+        # check if authenticing else if authenticated
+        if m_type == "authenticate":
+            self.authenticate(data)
+            return
+
+        if not self.authenticated:
+            self.send(
+                text_data=json.dumps(
+                    {
+                        "message_type": "authenticate",
+                        "success": False,
+                        "description": "You have to be authenticated",
+                        "data": {},
+                    }
                 )
-            # check if initialising else check if initialised
-            elif m_type == "init":
-                self.initiate(data)
-            elif not self.initiated:
-                self.send(
-                    text_data=json.dumps(
-                        {
-                            "message_type": "init",
-                            "success": False,
-                            "description": "You have to first initialise",
-                            "data": {},
-                        }
-                    )
+            )
+            return
+
+        # check if initialising
+        if m_type == "init":
+            self.initiate(data)
+            return
+
+        # guard that check if request has been initiated
+        if not self.initiated:
+            self.send(
+                text_data=json.dumps(
+                    {
+                        "message_type": "init",
+                        "success": False,
+                        "description": "You have to first initialise",
+                        "data": {},
+                    }
                 )
+            )
+            return
 
-            # check if already completed
-            elif self.completed:
-                self.send(
-                    text_data=json.dumps(
-                        {
-                            "message_type": "exercise_complete",
-                            "success": False,
-                            "description": "You already completed this Exercise",
-                            "data": {},
-                        }
-                    )
+        # guard check if already completed
+        if self.completed:
+            self.send(
+                text_data=json.dumps(
+                    {
+                        "message_type": "exercise_complete",
+                        "success": False,
+                        "description": "You already completed this Exercise",
+                        "data": {},
+                    }
                 )
+            )
+            return
 
-            # start the set
-            elif m_type == "start_set":
-                self.start_set(data)
+        # start the set
+        if m_type == "start_set":
+            self.start_set(data)
+            return
 
-            # end the set
-
-            elif m_type == "end_set":
-                pass
-                # self.end_set(data)
+        # end the set
+        if m_type == "end_set":
+            pass
+            # self.end_set(data)
