@@ -6,3 +6,4 @@ psycopg2-binary
 django-ordered-model
 channels
 jsonschema
+python-socketio[client]

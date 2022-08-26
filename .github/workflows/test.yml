@@ -16,7 +16,8 @@ env:
   ALLOWED_ORIGINS: http://localhost
   ALLOWED_HOSTS: http://localhost
   WEBSITE_URL: localhost:8080
-  
+  AI_URL: http://localhost
+
 jobs:
   test:
     runs-on: ubuntu-latest

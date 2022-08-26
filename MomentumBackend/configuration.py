@@ -111,6 +111,11 @@ class Configuration:
       "required": False,
       "help": "Whether the server is in debug mode.",
       "default": "False",
+    },
+    "AI_URL": {
+      "type": str,
+      "required": True,
+      "help": "The URL of the AI server.",
     }
   }
 
@@ -186,5 +191,6 @@ class Configuration:
       "allowed_hosts": data["ALLOWED_HOSTS"],
       "debug": data["DEBUG"],
       "use_postgres": data["DATABASE_USE_POSTGRESQL"],
+      "ai_url": data["AI_URL"]
     }
     return conf
