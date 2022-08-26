@@ -4,7 +4,6 @@ from .Helperclasses.handlers import ExerciseHandler, LeaderboardHandler, UserHan
 from channels.generic.websocket import WebsocketConsumer
 import time
 import json
-from .Helperclasses.ai import AIInterface
 import os
 
 from .models import (
@@ -216,9 +215,6 @@ class SetConsumer(WebsocketConsumer):
         self.exercise = data["exercise"]
         self.initiated = True
 
-        self.sio.connect(CONFIGURATION["ai_url"])
-        self.sio.emit("set_exercise_id", {"exercise": self.exercise})
-
         # load exercise info from database
         try:
             self.exinplan: ExerciseInPlan = ExerciseInPlan.objects.get(id=self.exercise)
@@ -228,6 +224,10 @@ class SetConsumer(WebsocketConsumer):
             return
         self.sets = self.exinplan.sets
         self.executions_per_set = self.exinplan.repeats_per_set
+
+        
+        self.sio.connect(CONFIGURATION["ai_url"])
+        self.sio.emit("set_exercise_id", {"exercise": self.exinplan.exercise.id})
 
         # load already done exercises in this week
         query = DoneExercises.objects.filter(
