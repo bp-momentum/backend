@@ -48,6 +48,7 @@ The following environment variables are available:
 |ALLOWED_ORIGINS|Required|The allowed origins of the server as a comma separated list.|
 |ALLOWED_HOSTS|Required|The allowed hosts of the server as a comma separated list.|
 |DEBUG|`False`|Whether the server is running in debug mode.|
+|AI_URL|Required|The URL of the AI server.|
 
 `VIDEO_PATH` is the relative path to the video folder, where video recordings are stored.
 

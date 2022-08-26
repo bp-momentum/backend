@@ -16,6 +16,7 @@ from .models import (
 )
 from .settings import CONFIGURATION
 from .Helperclasses.jwttoken import JwToken
+import socketio
 
 
 class SetConsumer(WebsocketConsumer):
@@ -49,6 +50,37 @@ class SetConsumer(WebsocketConsumer):
         self.completed = False
 
         self.exinplan = None
+
+        self.sio = socketio.Client()
+        self.aiCreateEventListener()
+
+
+    def handleAiInformation(self, information):
+        self.send(
+            text_data=json.dumps(
+                {
+                    "message_type": "information",
+                    "success": True,
+                    "description": "This is a information",
+                    "data": {
+                        "information": information[self.user.language],
+                    },
+                }
+            )
+        )
+
+
+    def handleAiStatistics(self, stats):
+        intensity = stats["stats"]["intensity"]
+        speed = stats["stats"]["speed"]
+        cleanliness = stats["stats"]["cleanliness"]
+        coordinates = stats["coordinates"]
+        self.handleIncomingStats(intensity, speed, cleanliness, coordinates)
+
+
+    def aiCreateEventListener(self):
+        self.sio.on("information", self.handleAiInformation)
+        self.sio.on("statistics", self.handleAiStatistics)
 
 
     # in this method the incoming video stream will be saved
@@ -183,6 +215,9 @@ class SetConsumer(WebsocketConsumer):
         # save, which exercise is done
         self.exercise = data["exercise"]
         self.initiated = True
+
+        self.sio.connect(CONFIGURATION["ai_url"])
+        self.sio.emit("set_exercise_id", {"exercise": self.exercise})
 
         # load exercise info from database
         try:
@@ -445,31 +480,9 @@ class SetConsumer(WebsocketConsumer):
             return
 
         # self.save_video(data)
-        # check stats or info
-        feedback = AIInterface.call_ai(self.exercise, data)
 
-        if feedback["feedback"] == "statistics":
-            # load ai data
-            intensity = feedback["stats"]["intensity"]
-            speed = feedback["stats"]["speed"]
-            cleanliness = feedback["stats"]["cleanliness"]
-            coordinates = feedback["coordinates"]
-
-            self.handleIncomingStats(intensity, speed, cleanliness, coordinates)
-
-        elif feedback["feedback"] == "information":
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "information",
-                        "success": True,
-                        "description": "This is a information",
-                        "data": {
-                            "information": feedback["info"][self.user.language],
-                        },
-                    }
-                )
-            )
+        # send video to ai
+        self.sio.emit("send_video", data)
 
 
     # On Connect
@@ -482,6 +495,7 @@ class SetConsumer(WebsocketConsumer):
 
     # On Disconnect
     def disconnect(self, _):
+        self.sio.disconnect()
         self.doing_set = False
 
         # save current state in database
