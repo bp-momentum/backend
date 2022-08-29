@@ -85,7 +85,7 @@ def validateJson(jsonData):
 try:
     exercises = json.loads(open("exercises.json", "r").read())
     if not validateJson(exercises):
-        raise Exception("[WARNING] Invalid exercises.json\nThe schema can be found here: https://github.com/bp-momentum/blob/main/MomentumBackend/schemas/exercises.json\nAlso make sure the Exercise IDs are unique.\nThe database will not be updated.")
+        raise Exception("[WARNING] Invalid exercises.json\nThe schema can be found here: https://github.com/bp-momentum/backend/blob/main/MomentumBackend/schemas/exercises.json\nAlso make sure the Exercise IDs are unique.\nThe database will not be updated.")
     
     for exercise in exercises:
         if not Exercise.objects.filter(id=exercise["id"]).exists():
