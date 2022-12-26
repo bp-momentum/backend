@@ -28,6 +28,30 @@
       "video": {
         "description": "An optional url to a video of the exercise",
         "type": "string"
+      },
+      "expectation": {
+        "description": "A list of NormalizedLandmarkList objects that represent the expected position of the body. There should be one for each frame of the video, assuming the video has 10 frames per second. See https://github.com/bp-momentum/pose_extractor for more information on how to obtain these objects.",
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              },
+              "visibility": {
+                "type": "number"
+              }
+            }
+          }
+        }
       }
     },
     "required": ["id", "title", "description"]

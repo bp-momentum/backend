@@ -94,6 +94,7 @@ try:
                 id=exercise["id"],
                 description=exercise["description"],
                 video=exercise.get("video"),
+                expectation=exercise["expectation"],
             )
             ex.save()
         else:
@@ -102,6 +103,7 @@ try:
             ex.title = exercise["title"]
             ex.description = exercise["description"]
             ex.video = exercise.get("video")
+            ex.expectation = exercise["expectation"]
             ex.save()
     
     # delete exercises that are not in the exercises.json anymore

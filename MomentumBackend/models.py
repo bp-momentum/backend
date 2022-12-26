@@ -37,6 +37,7 @@ class TrainingSchedule(models.Model):
 class Exercise(models.Model):
     id = models.IntegerField(primary_key=True)
     _description = models.TextField(default='{}')
+    _expectation = models.TextField(default='[]')
     def get_description(self):
         dict_value = getattr(self, '_description_dict', None)
         if not dict_value:
@@ -48,10 +49,21 @@ class Exercise(models.Model):
         import json
         self._description = json.dumps(new_desc)
         self._description_dict = dict(new_desc)
+    def get_expectation(self):
+        dict_value = getattr(self, '_expectation_dict', None)
+        if not dict_value:
+            import json
+            dict_value = json.loads(self._expectation)
+            setattr(self, '_expectation_dict', dict_value)
+        return dict_value
+    def set_expectation(self, new_desc):
+        import json
+        self._expectation = json.dumps(new_desc)
+        self._expectation_dict = list(new_desc)
     description = property(get_description, set_description)
     video = models.TextField(null=True)
     title = models.CharField(max_length=255)
-    activated = models.BooleanField(default=True)
+    expectation = property(get_expectation, set_expectation)
 
 
 class ExerciseInPlan(models.Model):
@@ -89,9 +101,7 @@ class DoneExercises(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     date = models.BigIntegerField(default=0)
-    executions_done = models.IntegerField(default=0)
     current_set = models.IntegerField(default=0)
-    current_set_execution = models.IntegerField(default=0)
     speed = models.IntegerField(default=0)
     intensity = models.IntegerField(default=0)
     cleanliness = models.IntegerField(default=0)

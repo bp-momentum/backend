@@ -59,23 +59,6 @@ class GetExerciseView(APIView):
         # get exercise
         ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
 
-        # checks wether exercise is activated
-        if not ex.activated:
-            data = {
-                "success": True,
-                "description": "Be careful, exercise is deactivated! Returned data",
-                "data": {
-                    "title": ex.title,
-                    "description": LanguageHandler.get_in_correct_language(
-                        info["username"], ex.description
-                    ),
-                    "video": ex.video,
-                    "activated": False,
-                },
-            }
-
-            return Response(data)
-
         data = {
             "success": True,
             "description": "Returned data",
@@ -85,7 +68,7 @@ class GetExerciseView(APIView):
                     info["username"], ex.description
                 ),
                 "video": ex.video,
-                "activated": True,
+                "expectation": ex.expectation,
             },
         }
 

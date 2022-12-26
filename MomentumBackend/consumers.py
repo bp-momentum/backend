@@ -1,21 +1,17 @@
 import errno
-from .Helperclasses.handlers import ExerciseHandler, LeaderboardHandler, UserHandler
-
-from channels.generic.websocket import WebsocketConsumer
-import time
 import json
 import os
+import time
 
-from .models import (
-    DoneExercises,
-    User,
-    ExerciseInPlan,
-    Leaderboard,
-    UserMedalInExercise,
-)
-from .settings import CONFIGURATION
-from .Helperclasses.jwttoken import JwToken
 import socketio
+from channels.generic.websocket import WebsocketConsumer
+
+from .Helperclasses.handlers import (ExerciseHandler, LeaderboardHandler,
+                                     UserHandler)
+from .Helperclasses.jwttoken import JwToken
+from .models import (DoneExercises, ExerciseInPlan, Leaderboard, User,
+                     UserMedalInExercise)
+from .settings import CONFIGURATION
 
 
 class SetConsumer(WebsocketConsumer):
@@ -37,9 +33,8 @@ class SetConsumer(WebsocketConsumer):
         self.sets = 0
 
         self.exercise = 0
-        self.executions_done = 0
+        self.stats_received = 0
         self.current_set = 0
-        self.current_set_execution = 0
 
         self.speed = 0
         self.intensity = 0
@@ -84,6 +79,8 @@ class SetConsumer(WebsocketConsumer):
 
     # in this method the incoming video stream will be saved
     def save_video(self, data_bytes):
+        # TODO(WARNING): After this function was initially created the data_bytes was changed to an image and not a video anymore
+        # when this should be used again this function has to be changed to create a video from the images and not just save them
         folderName = os.path.join(CONFIGURATION["video_dir"], self.username)
         fileName = os.path.join(CONFIGURATION["video_dir"], self.username, self.filename)
         
@@ -152,7 +149,7 @@ class SetConsumer(WebsocketConsumer):
         )
 
 
-    def start_set(self, data):
+    def start_set(self):
 
         # check if user is already doing a set
         # when not start new thread
@@ -177,33 +174,6 @@ class SetConsumer(WebsocketConsumer):
                         "message_type": "start_set",
                         "success": False,
                         "description": "The set is already started",
-                        "data": {},
-                    }
-                )
-            )
-
-
-    def end_set(self, data):
-        # check if user is doing a set, if so and the set !!! is currently disabled and has to be changed when enabled!!
-        if self.doing_set:
-            self.doing_set = False
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "end_set",
-                        "success": True,
-                        "description": "The set is now ended",
-                        "data": {},
-                    }
-                )
-            )
-        else:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "end_set",
-                        "success": False,
-                        "description": "Currently no set is started",
                         "data": {},
                     }
                 )
@@ -237,9 +207,7 @@ class SetConsumer(WebsocketConsumer):
         # when exercise was already started, load info
         if query.exists():
             self.done_exercise_entry: DoneExercises = query[0]
-            self.executions_done = self.done_exercise_entry.executions_done
             self.current_set = self.done_exercise_entry.current_set
-            self.current_set_execution = self.done_exercise_entry.current_set_execution
 
             self.speed = self.done_exercise_entry.speed
             self.intensity = self.done_exercise_entry.intensity
@@ -250,9 +218,7 @@ class SetConsumer(WebsocketConsumer):
             # if not started already  initialise
             self.done_exercise_entry = None
             self.exercise = 0
-            self.executions_done = 0
             self.current_set = 0
-            self.current_set_execution = 0
             self.speed = 0
             self.intensity = 0
             self.cleanliness = 0
@@ -266,16 +232,15 @@ class SetConsumer(WebsocketConsumer):
                     "description": "This is the current state",
                     "data": {
                         "current_set": self.current_set,
-                        "current_execution": self.current_set_execution,
                         "speed": 0
-                        if self.executions_done == 0
-                        else self.speed / self.executions_done,
+                        if self.stats_received == 0
+                        else self.speed / self.stats_received,
                         "cleanliness": 0
-                        if self.executions_done == 0
-                        else self.cleanliness / self.executions_done,
+                        if self.stats_received == 0
+                        else self.cleanliness / self.stats_received,
                         "intensity": 0
-                        if self.executions_done == 0
-                        else self.intensity / self.executions_done,
+                        if self.stats_received == 0
+                        else self.intensity / self.stats_received,
                         "completed": self.completed,
                     },
                 }
@@ -283,9 +248,21 @@ class SetConsumer(WebsocketConsumer):
         )
 
 
-    def handleSetDone(self):
+    def end_set(self):
+        if not self.doing_set:
+            self.send(
+                text_data=json.dumps(
+                    {
+                        "message_type": "end_set",
+                        "success": False,
+                        "description": "Currently no set is started",
+                        "data": {},
+                    }
+                )
+            )
+            return
+        
         self.doing_set = False
-        self.current_set_execution = 0
         self.current_set += 1
         self.send(
             text_data=json.dumps(
@@ -295,18 +272,22 @@ class SetConsumer(WebsocketConsumer):
                     "description": "The set is now ended",
                     "data": {
                         "speed": 0
-                        if self.executions_done == 0
-                        else self.speed / self.executions_done,
+                        if self.stats_received == 0
+                        else self.speed / self.stats_received,
                         "cleanliness": 0
-                        if self.executions_done == 0
-                        else self.cleanliness / self.executions_done,
+                        if self.stats_received == 0
+                        else self.cleanliness / self.stats_received,
                         "intensity": 0
-                        if self.executions_done == 0
-                        else self.intensity / self.executions_done,
+                        if self.stats_received == 0
+                        else self.intensity / self.stats_received,
                     },
                 }
             )
         )
+        
+        # end exercise when exercise is done
+        if self.current_set == self.sets:
+            self.handleExerciseDone()
 
 
     def updateLeaderboard(self):
@@ -314,7 +295,6 @@ class SetConsumer(WebsocketConsumer):
         leaderboard_entry.speed += self.speed
         leaderboard_entry.intensity += self.intensity
         leaderboard_entry.cleanliness += self.cleanliness
-        leaderboard_entry.executions += self.executions_done
 
         exs_to_do = 0
         if self.user.plan is not None:
@@ -356,7 +336,7 @@ class SetConsumer(WebsocketConsumer):
             self.user,
             (
                 (self.speed + self.intensity + self.cleanliness)
-                / (3 * self.executions_done)
+                / (3 * self.stats_received)
             )
             * (min(self.user.streak, 10) + 1),
         )
@@ -409,14 +389,14 @@ class SetConsumer(WebsocketConsumer):
                     "description": "The exercise is now ended",
                     "data": {
                         "speed": 0
-                        if self.executions_done == 0
-                        else self.speed / self.executions_done,
+                        if self.stats_received == 0
+                        else self.speed / self.stats_received,
                         "cleanliness": 0
-                        if self.executions_done == 0
-                        else self.cleanliness / self.executions_done,
+                        if self.stats_received == 0
+                        else self.cleanliness / self.stats_received,
                         "intensity": 0
-                        if self.executions_done == 0
-                        else self.intensity / self.executions_done,
+                        if self.stats_received == 0
+                        else self.intensity / self.stats_received,
                         "medal": gained_medal,
                     },
                 }
@@ -431,8 +411,7 @@ class SetConsumer(WebsocketConsumer):
         if not self.doing_set:
             return
 
-        self.executions_done += 1
-        self.current_set_execution += 1
+        self.stats_received += 1
 
         # calculating points
         self.intensity += intensity
@@ -454,15 +433,6 @@ class SetConsumer(WebsocketConsumer):
                 }
             )
         )
-
-        # end set when set is done
-        if self.current_set_execution == self.executions_per_set:
-            self.handleSetDone()
-
-        # end exercise when exercise is done
-        if self.current_set == self.sets:
-            self.handleExerciseDone()
-            
 
 
     def handleIncomingVideo(self, data):
@@ -506,21 +476,14 @@ class SetConsumer(WebsocketConsumer):
                     user=self.user,
                     points=self.points,
                     date=time.time(),
-                    executions_done=self.executions_done,
                     current_set=self.current_set,
-                    current_set_execution=self.current_set_execution,
                     speed=self.speed,
                     intensity=self.intensity,
                     cleanliness=self.cleanliness,
                     completed=self.completed,
                 )
             else:
-                self.done_exercise_entry.executions_done = self.executions_done
                 self.done_exercise_entry.current_set = self.current_set
-                self.done_exercise_entry.current_set_execution = (
-                    self.current_set_execution
-                )
-
                 self.done_exercise_entry.speed = self.speed
                 self.done_exercise_entry.intensity = self.intensity
                 self.done_exercise_entry.cleanliness = self.cleanliness
@@ -529,26 +492,28 @@ class SetConsumer(WebsocketConsumer):
                 self.done_exercise_entry.save(force_update=True)
 
 
-    # On Receive
+    # Momentum Frotend -> Backend
     def receive(self, text_data=None, bytes_data=None):
-        # check if request has bytes_data
+        # bytes_data is a single frame of the video stream
+        # if an image is sent, redirect it to the ai
         if bytes_data is not None:
-            # send bytes to ai
             self.handleIncomingVideo(bytes_data)
 
         # guard that check if request hast text_data
         if text_data is None:
             return
 
+        # parse text_data
         text_data_json = json.loads(text_data)
         m_type = text_data_json["message_type"]
         data = text_data_json["data"]
 
-        # check if authenticing else if authenticated
+        # check if authenticating 
         if m_type == "authenticate":
             self.authenticate(data)
             return
 
+        # guard that check if request has been authenticated
         if not self.authenticated:
             self.send(
                 text_data=json.dumps(
@@ -562,7 +527,7 @@ class SetConsumer(WebsocketConsumer):
             )
             return
 
-        # check if initialising
+        # check if initializing
         if m_type == "init":
             self.initiate(data)
             return
@@ -597,10 +562,10 @@ class SetConsumer(WebsocketConsumer):
 
         # start the set
         if m_type == "start_set":
-            self.start_set(data)
+            self.start_set()
             return
 
         # end the set
         if m_type == "end_set":
             pass
-            # self.end_set(data)
+            self.end_set()
