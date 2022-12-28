@@ -186,19 +186,14 @@ class SetExerciseInstructionsVisibilityView(APIView):
             user=User.objects.get(username=info["username"]), exercise=ex
         ).exists()
 
-        print(wants_no_instructions)
-        print(req_data["visible"])
-
         if wants_no_instructions and req_data["visible"]:
             NoInstructionExercises.objects.filter(
                 user=User.objects.get(username=info["username"]), exercise=ex
             ).delete()
-            print("deleted")
         elif not wants_no_instructions and not req_data["visible"]:
             NoInstructionExercises.objects.create(
                 user=User.objects.get(username=info["username"]), exercise=ex
             )
-            print("created")
 
         data = {
             "success": True,
