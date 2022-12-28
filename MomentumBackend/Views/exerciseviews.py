@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ..models import Exercise, User
+from ..models import Exercise, NoInstructionExercises, User
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import (
     DateHandler,
@@ -74,6 +74,138 @@ class GetExerciseView(APIView):
 
         return Response(data)
 
+class GetExerciseInstructionsVisibilityView(APIView):
+    def post(self, request, *args, **kwargs):
+        # checking if it contains all arguments
+        check = ErrorHandler.check_arguments(
+            ["Session-Token"], request.headers, ["id"], request.data
+        )
+        if not check.get("valid"):
+            data = {
+                "success": False,
+                "description": "Missing arguments",
+                "data": check.get("missing"),
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers["Session-Token"])
+        info = token["info"]
+        # check if token is valid
+        if not token["valid"]:
+            data = {"success": False, "description": "Token is not valid", "data": {}}
+            return Response(data)
+
+        # check if requested exercise exists
+        if not Exercise.objects.filter(id=int(req_data["id"])).exists():
+            data = {
+                "success": False,
+                "description": "No exercise with this id exists",
+                "data": {},
+            }
+
+            return Response(data)
+
+        # check if user is allowed to request
+        if not (
+            token["info"]["account_type"] == "trainer"
+            or token["info"]["account_type"] == "user"
+        ):
+            data = {
+                "success": False,
+                "description": "Not allowed to perform this action",
+                "data": {},
+            }
+            return Response(data)
+
+        # get exercise
+        ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
+
+        # check if user wants to get instructions
+        wants_no_instructions = NoInstructionExercises.objects.filter(
+            user=User.objects.get(username=info["username"]), exercise=ex
+        ).exists()
+
+        data = {
+            "success": True,
+            "description": "Returned data",
+            "data": {
+                "visible": not wants_no_instructions
+            },
+        }
+
+        return Response(data)
+
+class SetExerciseInstructionsVisibilityView(APIView):
+    def post(self, request, *args, **kwargs):
+        # checking if it contains all arguments
+        check = ErrorHandler.check_arguments(
+            ["Session-Token"], request.headers, ["id", "visible"], request.data
+        )
+        if not check.get("valid"):
+            data = {
+                "success": False,
+                "description": "Missing arguments",
+                "data": check.get("missing"),
+            }
+            return Response(data)
+        req_data = dict(request.data)
+        token = JwToken.check_session_token(request.headers["Session-Token"])
+        info = token["info"]
+        # check if token is valid
+        if not token["valid"]:
+            data = {"success": False, "description": "Token is not valid", "data": {}}
+            return Response(data)
+
+        # check if requested exercise exists
+        if not Exercise.objects.filter(id=int(req_data["id"])).exists():
+            data = {
+                "success": False,
+                "description": "No exercise with this id exists",
+                "data": {},
+            }
+
+            return Response(data)
+
+        # check if user is allowed to request
+        if not (
+            token["info"]["account_type"] == "trainer"
+            or token["info"]["account_type"] == "user"
+        ):
+            data = {
+                "success": False,
+                "description": "Not allowed to perform this action",
+                "data": {},
+            }
+            return Response(data)
+
+        # get exercise
+        ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
+
+        # check if user wants to get instructions
+        wants_no_instructions = NoInstructionExercises.objects.filter(
+            user=User.objects.get(username=info["username"]), exercise=ex
+        ).exists()
+
+        print(wants_no_instructions)
+        print(req_data["visible"])
+
+        if wants_no_instructions and req_data["visible"]:
+            NoInstructionExercises.objects.filter(
+                user=User.objects.get(username=info["username"]), exercise=ex
+            ).delete()
+            print("deleted")
+        elif not wants_no_instructions and not req_data["visible"]:
+            NoInstructionExercises.objects.create(
+                user=User.objects.get(username=info["username"]), exercise=ex
+            )
+            print("created")
+
+        data = {
+            "success": True,
+            "description": "Changed visibility of instructions",
+        }
+
+        return Response(data)
 
 class GetExerciseListView(APIView):
     def get(self, request, *args, **kwargs):

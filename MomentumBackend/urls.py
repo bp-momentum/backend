@@ -19,8 +19,10 @@ from django.urls import path
 from .Views.exerciseviews import (
     GetDoneExercisesOfMonthView,
     GetDoneExercisesView,
+    GetExerciseInstructionsVisibilityView,
     GetExerciseListView,
     GetExerciseView,
+    SetExerciseInstructionsVisibilityView,
 )
 from .Views.leaderboardviews import ListLeaderboardView
 from .Views.userviews import (
@@ -141,6 +143,8 @@ urlpatterns = [
     path("api/getstreak", GetStreakView.as_view(), name="getStreak"),
     # exercises
     path("api/getexercise", GetExerciseView.as_view(), name="getExercise"),
+    path("api/setexerciseinstructionvisibility", SetExerciseInstructionsVisibilityView.as_view(), name="setExerciseInstructionsVisibility"),
+    path("api/getexerciseinstructionvisibility", GetExerciseInstructionsVisibilityView.as_view(), name="getExerciseInstructionsVisibility"),
     path("api/getexerciselist", GetExerciseListView.as_view(), name="getExerciseList"),
     path(
         "api/getdoneexercises", GetDoneExercisesView.as_view(), name="getdoneExercise"

@@ -108,6 +108,10 @@ class DoneExercises(models.Model):
     completed = models.BooleanField(default=False)
 
 
+class NoInstructionExercises(models.Model):
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
 class Admin(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
