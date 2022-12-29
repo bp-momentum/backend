@@ -233,7 +233,7 @@ class ExerciseTestCase(TestCase):
             id=1, title="Kniebeuge", description={"de": "Gehe in die Knie, achte..."}
         )
         Exercise.objects.create(
-            id=2, title="Liegestütze", description={"de": "Mache Liegestütze"}, activated=False
+            id=2, title="Liegestütze", description={"de": "Mache Liegestütze"}
         )
 
     def test_if_exists(self):
@@ -242,14 +242,12 @@ class ExerciseTestCase(TestCase):
             Exercise.objects.filter(
                 title="Kniebeuge",
                 video=None,
-                activated=True,
             ).exists()
         )
         self.assertTrue(
             Exercise.objects.filter(
                 title="Liegestütze",
                 video=None,
-                activated=False,
             ).exists()
         )
 
@@ -258,25 +256,21 @@ class ExerciseTestCase(TestCase):
         Exercise.objects.filter(
             title="Kniebeuge",
             video=None,
-            activated=True,
         ).delete()
         Exercise.objects.filter(
             title="Liegestütze",
             video=None,
-            activated=False,
         ).delete()
         self.assertFalse(
             Exercise.objects.filter(
                 title="Kniebeuge",
                 video=None,
-                activated=True,
             ).exists()
         )
         self.assertFalse(
             Exercise.objects.filter(
                 title="Liegestütze",
                 video=None,
-                activated=False,
             ).exists()
         )
 
@@ -1866,7 +1860,6 @@ class TestExerciseView(TestCase):
             id=2,
             title="Liegestütze",
             description={"de": "Mache Liegestütze...", "en": "Do pushups..."},
-            activated=False,
         )
         self.ex_id = Exercise.objects.get(title="Kniebeuge").id
 
@@ -1907,7 +1900,6 @@ class TestExerciseView(TestCase):
         self.assertEquals(data.get("title"), "Kniebeuge")
         self.assertEquals(data.get("description"), "Gehe in die Knie, achte...")
         self.assertEquals(data.get("video"), None)
-        self.assertEquals(data.get("activated"), True)
         # invalid
         # invalid exercise
         request = ViewSupport.setup_request(
