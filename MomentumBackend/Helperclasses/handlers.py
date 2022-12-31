@@ -45,10 +45,17 @@ class ErrorHandler:
                 missing_header.append(h)
                 missing = True
 
-        for d in expected_data:
-            if data.get(d) == None:
-                missing_data.append(d)
-                missing = True
+        if type(expected_data) == list:
+            for d in expected_data:
+                if data.get(d) == None:
+                    missing_data.append(d)
+                    missing = True
+        elif type(expected_data) == dict:
+            # dict: {<name>: {name: <name>, required: <bool>}}
+            for d in expected_data:
+                if expected_data[d]["required"] and data.get(d) == None:
+                    missing_data.append(d)
+                    missing = True
 
         return {
             "valid": not missing,

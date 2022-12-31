@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ..models import Exercise, NoInstructionExercises, User
+from ..models import Exercise, PersonalExercisePreferences, User
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import (
     DateHandler,
@@ -74,7 +74,7 @@ class GetExerciseView(APIView):
 
         return Response(data)
 
-class GetExerciseInstructionsVisibilityView(APIView):
+class GetExercisePreferencesView(APIView):
     def post(self, request, *args, **kwargs):
         # checking if it contains all arguments
         check = ErrorHandler.check_arguments(
@@ -121,25 +121,47 @@ class GetExerciseInstructionsVisibilityView(APIView):
         ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
 
         # check if user wants to get instructions
-        wants_no_instructions = NoInstructionExercises.objects.filter(
+        personal_prefs = PersonalExercisePreferences.objects.filter(
             user=User.objects.get(username=info["username"]), exercise=ex
-        ).exists()
+        )
+        
+        # default values
+        visible = True
+        speed = 10
+        if personal_prefs.count() != 0:
+            visible = personal_prefs.first().open_instruction_default
+            speed = personal_prefs.first().speed
 
         data = {
             "success": True,
             "description": "Returned data",
             "data": {
-                "visible": not wants_no_instructions
+                "visible": visible,
+                "speed": speed,
             },
         }
 
         return Response(data)
 
-class SetExerciseInstructionsVisibilityView(APIView):
+class SetExercisePreferencesView(APIView):
     def post(self, request, *args, **kwargs):
         # checking if it contains all arguments
         check = ErrorHandler.check_arguments(
-            ["Session-Token"], request.headers, ["id", "visible"], request.data
+            ["Session-Token"],
+            request.headers, 
+            {
+                "id": {
+                    "name": "id",
+                    "required": True
+                }, "visible": {
+                    "name": "visible",
+                    "required": False
+                }, "speed": {
+                    "name": "speed",
+                    "required": False
+                },
+            },
+            request.data
         )
         if not check.get("valid"):
             data = {
@@ -180,24 +202,32 @@ class SetExerciseInstructionsVisibilityView(APIView):
 
         # get exercise
         ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
-
-        # check if user wants to get instructions
-        wants_no_instructions = NoInstructionExercises.objects.filter(
-            user=User.objects.get(username=info["username"]), exercise=ex
-        ).exists()
-
-        if wants_no_instructions and req_data["visible"]:
-            NoInstructionExercises.objects.filter(
-                user=User.objects.get(username=info["username"]), exercise=ex
-            ).delete()
-        elif not wants_no_instructions and not req_data["visible"]:
-            NoInstructionExercises.objects.create(
+        
+        if "visible" in req_data:
+            obj, _ = PersonalExercisePreferences.objects.get_or_create(
                 user=User.objects.get(username=info["username"]), exercise=ex
             )
+            obj.open_instruction_default = req_data["visible"]
+            obj.save()
+
+        if "speed" in req_data:
+            obj, _ = PersonalExercisePreferences.objects.get_or_create(
+                user=User.objects.get(username=info["username"]), exercise=ex
+            )
+            obj.speed = req_data["speed"]
+            obj.save()
+
+        obj = PersonalExercisePreferences.objects.get(
+            user=User.objects.get(username=info["username"]), exercise=ex
+        )
 
         data = {
             "success": True,
-            "description": "Changed visibility of instructions",
+            "description": "Changed preferences of instructions",
+            "data": {
+                "visible": obj.open_instruction_default,
+                "speed": obj.speed,
+            },
         }
 
         return Response(data)

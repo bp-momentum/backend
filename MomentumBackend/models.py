@@ -108,9 +108,11 @@ class DoneExercises(models.Model):
     completed = models.BooleanField(default=False)
 
 
-class NoInstructionExercises(models.Model):
+class PersonalExercisePreferences(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    open_instruction_default = models.BooleanField(default=False)
+    speed = models.IntegerField(default=10) # FPS
 
 class Admin(models.Model):
     first_name = models.CharField(max_length=50)
