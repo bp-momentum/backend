@@ -6,7 +6,7 @@ from threading import Timer
 import uuid
 
 import socketio
-from django.utils import timezone
+from django.utils.timezone import make_aware
 from channels.generic.websocket import WebsocketConsumer
 
 from .Helperclasses.jwttoken import JwToken
@@ -147,7 +147,7 @@ class SetConsumer(WebsocketConsumer):
 
         # load already done exercises in this week
         query = ExerciseExecution.objects.filter(
-            date__gt=timezone.now().date() - datetime.timedelta(days=7),
+            date__gt=make_aware(datetime.datetime.now() - datetime.timedelta(days=7)),
             exercise=self.exercise.exercise.id,
             user=user,
         )

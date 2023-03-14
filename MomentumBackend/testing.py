@@ -3,7 +3,6 @@ from django.test import TestCase
 from .models import (
     Achievement,
     Admin,
-    DoneExercises,
     Exercise,
     ExerciseInPlan,
     Friends,
@@ -211,8 +210,6 @@ class DeleteUserTestCase(TestCase):
         exercise_plan: ExerciseInPlan = ExerciseInPlan.objects.create(
             exercise=exercise, plan=plan
         )
-        DoneExercises.objects.create(exercise=exercise_plan, user=user1, points=98)
-        self.done_ex_id = DoneExercises.objects.get(points=98).id
         Friends.objects.create(friend1=user1, friend2=user2)
         self.friends_id = Friends.objects.get(friend1=self.user_id).id
 
@@ -223,7 +220,6 @@ class DeleteUserTestCase(TestCase):
         self.assertTrue(Trainer.objects.filter(id=self.trainer_id).exists())
         self.assertTrue(Exercise.objects.filter(id=self.exercise_id).exists())
         self.assertFalse(User.objects.filter(id=self.user_id).exists())
-        self.assertFalse(DoneExercises.objects.filter(id=self.done_ex_id).exists())
         self.assertFalse(Friends.objects.filter(id=self.friends_id).exists())
 
 
@@ -873,7 +869,6 @@ class AchievementTestCase(TestCase):
         response = GetStreakView.get(GetStreakView, request)
         self.assertTrue(response.data.get("success"))
         self.assertEquals(response.data.get("data").get("days"), 3)
-        self.assertTrue(response.data.get("data").get("flame_glow"))
         self.assertEquals(response.data.get("data").get("flame_height"), 0.3)
         # invalid
         # as Trainer not possible
@@ -1455,87 +1450,6 @@ class ProfileTestCase(TestCase):
         self.assertEquals(response.data.get("data").get("header"), ["Session-Token"])
         self.assertEquals(response.data.get("data").get("data"), [])
 
-    def test_done_exercises_of_month(self):
-        # additional setup
-        ex: Exercise = Exercise.objects.create(id=1, title="Kniebeuge")
-        trainer: Trainer = Trainer.objects.get(id=self.trainer_id)
-        plan: TrainingSchedule = TrainingSchedule.objects.create(trainer=trainer)
-        exip: ExerciseInPlan = ExerciseInPlan.objects.create(
-            sets=1, repeats_per_set=10, exercise=ex, plan=plan, date="saturday"
-        )
-        user: User = User.objects.get(id=self.user1_id)
-        user.plan = plan
-        user.save(force_update=True)
-        dex: DoneExercises = DoneExercises.objects.create(
-            exercise=exip,
-            user=user,
-            points=100,
-            completed=True,
-            date=int(datetime.datetime(2022, 2, 12, 23, 52).timestamp()),
-        )
-        # valid
-        result = [
-            {
-                "exercise_plan_id": dex.exercise.id,
-                "id": dex.exercise.exercise.id,
-                "date": dex.date,
-                "points": dex.points,
-                "done": True,
-            },
-            {
-                "exercise_plan_id": exip.id,
-                "id": exip.exercise.id,
-                "date": int(
-                    datetime.datetime(year=2022, month=2, day=19, hour=12).timestamp()
-                ),
-                "points": None,
-                "done": False,
-            },
-            {
-                "exercise_plan_id": exip.id,
-                "id": exip.exercise.id,
-                "date": int(
-                    datetime.datetime(year=2022, month=2, day=26, hour=12).timestamp()
-                ),
-                "points": None,
-                "done": False,
-            },
-        ]
-        request = ViewSupport.setup_request(
-            {"Session-Token": self.token2}, {"year": 2022, "month": 2}
-        )
-        response = GetDoneExercisesOfMonthView.post(
-            GetDoneExercisesOfMonthView, request
-        )
-        self.assertTrue(response.data.get("success"))
-        self.assertEquals(response.data.get("data").get("done"), result)
-        # invalid
-        # trainer not able to
-        request = ViewSupport.setup_request(
-            {"Session-Token": self.token1}, {"year": 2022, "month": 3}
-        )
-        response = GetDoneExercisesOfMonthView.post(
-            GetDoneExercisesOfMonthView, request
-        )
-        self.assertFalse(response.data.get("success"))
-        # invalid token
-        request = ViewSupport.setup_request(
-            {"Session-Token": "invalid"}, {"year": 2022, "month": 3}
-        )
-        response = GetDoneExercisesOfMonthView.post(
-            GetDoneExercisesOfMonthView, request
-        )
-        self.assertFalse(response.data.get("success"))
-        # missing arguments
-        request = ViewSupport.setup_request({}, {})
-        response = GetDoneExercisesOfMonthView.post(
-            GetDoneExercisesOfMonthView, request
-        )
-        self.assertFalse(response.data.get("success"))
-        self.assertEquals(response.data.get("data").get("header"), ["Session-Token"])
-        self.assertEquals(response.data.get("data").get("data"), ["month", "year"])
-
-
 class TestUserViews(TestCase):
 
     trainer_id = 1
@@ -1907,23 +1821,23 @@ class TestExerciseView(TestCase):
         )
         response = GetExerciseView.post(GetExerciseView, request)
         self.assertFalse(response.data.get("success"))
-        # admin not allowed
+        # everyone allowed
         request = ViewSupport.setup_request(
             {"Session-Token": self.admin_token}, {"id": self.ex_id}
         )
         response = GetExerciseView.post(GetExerciseView, request)
-        self.assertFalse(response.data.get("success"))
-        # invalid token
+        self.assertTrue(response.data.get("success"))
+        # no token
         request = ViewSupport.setup_request(
-            {"Session-Token": "invalid"}, {"id": self.ex_id}
+            {}, {"id": self.ex_id}
         )
         response = GetExerciseView.post(GetExerciseView, request)
-        self.assertFalse(response.data.get("success"))
+        self.assertTrue(response.data.get("success"))
         # missing arguments
         request = ViewSupport.setup_request({}, {})
         response = GetExerciseView.post(GetExerciseView, request)
         self.assertFalse(response.data.get("success"))
-        self.assertEquals(response.data.get("data").get("header"), ["Session-Token"])
+        self.assertEquals(response.data.get("data").get("header"), [])
         self.assertEquals(response.data.get("data").get("data"), ["id"])
 
     def test_get_list(self):

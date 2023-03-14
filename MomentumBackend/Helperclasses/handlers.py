@@ -7,7 +7,7 @@ import random
 import string
 import time
 from rest_framework.response import Response
-from django.utils import timezone
+from django.utils.timezone import make_aware
 
 from ..settings import INTERN_SETTINGS, SETTINGS_JSON
 from ..serializers import CreateExerciseInPlan, CreatePlan
@@ -512,7 +512,7 @@ class ExerciseHandler:
         # list of all done in this week
         maybedone = ExerciseExecution.objects.filter(
             user=user,
-            date__gt=timezone.now().date() - datetime.timedelta(days=7)
+            date__gt=make_aware(datetime.datetime.now() - datetime.timedelta(days=7))
         )
 
         done = []
