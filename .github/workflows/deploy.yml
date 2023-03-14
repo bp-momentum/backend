@@ -15,6 +15,7 @@ env:
   ALLOWED_ORIGINS: http://localhost
   ALLOWED_HOSTS: http://localhost
   AI_URL: http://localhost
+  AI_PSK: test
 
 jobs:
   test:
