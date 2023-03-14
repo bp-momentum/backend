@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 class Configuration:
-  __DEFENITION = {
+  __DEFINITION = {
     "EMAIL_ADDRESS": {
       "type": str,
       "required": True,
@@ -93,8 +93,9 @@ class Configuration:
     },
     "VIDEO_PATH": {
       "type": Path,
-      "required": True,
-      "help": "The relative path to store video files.",
+      "required": False,
+      "help": "The relative path to store video files. If not set, no video files will be stored.",
+      "default": None,
     },
     "ALLOWED_ORIGINS": {
       "type": list,
@@ -116,6 +117,11 @@ class Configuration:
       "type": str,
       "required": True,
       "help": "The URL of the AI server.",
+    },
+    "AI_PSK": {
+      "type": str,
+      "required": True,
+      "help": "The PSK the AI server uses to authenticate itself.",
     }
   }
 
@@ -124,7 +130,7 @@ class Configuration:
     # 1. evaluate all variables
     correctness = True
     data = {}
-    for key, definition in Configuration.__DEFENITION.items():
+    for key, definition in Configuration.__DEFINITION.items():
       # set default value
       value = definition["default"] if "default" in definition else None
       # load real data if available
@@ -151,7 +157,7 @@ class Configuration:
       data[key] = value
 
     # 2. check if all required variables are set
-    for key, definition in Configuration.__DEFENITION.items():
+    for key, definition in Configuration.__DEFINITION.items():
       if (value is None and definition["required"] and
             (type(definition["required"]) == bool or 
             (type(definition["required"]) == str and
@@ -191,6 +197,7 @@ class Configuration:
       "allowed_hosts": data["ALLOWED_HOSTS"],
       "debug": data["DEBUG"],
       "use_postgres": data["DATABASE_USE_POSTGRESQL"],
-      "ai_url": data["AI_URL"]
+      "ai_url": data["AI_URL"],
+      "ai_psk": data["AI_PSK"],
     }
     return conf

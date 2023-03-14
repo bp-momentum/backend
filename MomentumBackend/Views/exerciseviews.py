@@ -17,7 +17,7 @@ class GetExerciseView(APIView):
     def post(self, request, *args, **kwargs):
         # checking if it contains all arguments
         check = ErrorHandler.check_arguments(
-            ["Session-Token"], request.headers, ["id"], request.data
+            [], None, ["id"], request.data
         )
         if not check.get("valid"):
             data = {
@@ -27,12 +27,11 @@ class GetExerciseView(APIView):
             }
             return Response(data)
         req_data = dict(request.data)
-        token = JwToken.check_session_token(request.headers["Session-Token"])
-        info = token["info"]
-        # check if token is valid
-        if not token["valid"]:
-            data = {"success": False, "description": "Token is not valid", "data": {}}
-            return Response(data)
+        
+        # only applicable for users
+        if request.headers.get("Session-Token"):
+            token = JwToken.check_session_token(request.headers["Session-Token"])
+            info = token["info"]
 
         # check if requested exercise exists
         if not Exercise.objects.filter(id=int(req_data["id"])).exists():
@@ -44,29 +43,22 @@ class GetExerciseView(APIView):
 
             return Response(data)
 
-        # check if user is allowed to request
-        if not (
-            token["info"]["account_type"] == "trainer"
-            or token["info"]["account_type"] == "user"
-        ):
-            data = {
-                "success": False,
-                "description": "Not allowed to request list of exercises",
-                "data": {},
-            }
-            return Response(data)
-
         # get exercise
         ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
+
+        if request.headers.get("Session-Token"):
+            description = LanguageHandler.get_in_correct_language(
+                    info["username"], ex.description
+                )
+        else:
+            description = ex.description.get("en")
 
         data = {
             "success": True,
             "description": "Returned data",
             "data": {
                 "title": ex.title,
-                "description": LanguageHandler.get_in_correct_language(
-                    info["username"], ex.description
-                ),
+                "description": description,
                 "video": ex.video,
                 "expectation": ex.expectation,
             },

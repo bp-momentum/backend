@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.forms import BooleanField
 
 
 class Location(models.Model):
@@ -96,16 +95,20 @@ class User(models.Model):
     motivation = models.TextField(max_length=1000, default="")
 
 
-class DoneExercises(models.Model):
-    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.CASCADE, null=True)
+class ExerciseExecution(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    points = models.IntegerField()
-    date = models.BigIntegerField(default=0)
-    current_set = models.IntegerField(default=0)
+    exercise = models.ForeignKey(ExerciseInPlan, on_delete=models.CASCADE, null=True)
+    date = models.DateTimeField(auto_now_add=True)
+
+
+class SetStats(models.Model):
+    exercise = models.ForeignKey(ExerciseExecution, on_delete=models.CASCADE)
+    set_uuid = models.CharField(max_length=50)
+    set_nr = models.IntegerField()
+    # actual values
     speed = models.IntegerField(default=0)
-    intensity = models.IntegerField(default=0)
+    accuracy = models.IntegerField(default=0)
     cleanliness = models.IntegerField(default=0)
-    completed = models.BooleanField(default=False)
 
 
 class PersonalExercisePreferences(models.Model):
@@ -113,6 +116,7 @@ class PersonalExercisePreferences(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     open_instruction_default = models.BooleanField(default=False)
     speed = models.IntegerField(default=10) # FPS
+
 
 class Admin(models.Model):
     first_name = models.CharField(max_length=50)

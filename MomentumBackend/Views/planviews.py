@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ..models import (
-    DoneExercises,
     Exercise,
+    ExerciseExecution,
     ExerciseInPlan,
     Trainer,
     TrainingSchedule,
@@ -150,7 +150,7 @@ class CreatePlanView(APIView):
             # check if a doneExercise relates to this plan
             needed = False
             for exip in ExerciseInPlan.objects.filter(plan=old_plan):
-                if DoneExercises.objects.filter(exercise=exip).exists():
+                if ExerciseExecution.objects.filter(exercise=exip).exists():
                     needed = True
                     break
             # if yes keep old plan and relate it to new one

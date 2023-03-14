@@ -80,6 +80,7 @@ from .Views.achievementviews import (
     ReloadAfterExerciseView,
     ReloadFriendAchievementView,
 )
+from .Views.ratingview import SendFeedbackView
 
 urlpatterns = [
     # user
@@ -203,4 +204,5 @@ urlpatterns = [
         GetProfileOfFriendView.as_view(),
         name="getProfileOfFriend",
     ),
+    path("api/internal/rate", SendFeedbackView.as_view(), name="sendFeedback"),
 ]

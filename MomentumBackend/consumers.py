@@ -1,89 +1,91 @@
+import datetime
 import errno
 import json
 import os
-import time
+from threading import Timer
+import uuid
 
 import socketio
+from django.utils import timezone
 from channels.generic.websocket import WebsocketConsumer
 
-from .Helperclasses.handlers import (ExerciseHandler, LeaderboardHandler,
-                                     UserHandler)
 from .Helperclasses.jwttoken import JwToken
-from .models import (DoneExercises, ExerciseInPlan, Leaderboard, User,
-                     UserMedalInExercise)
+from .models import (ExerciseExecution, ExerciseInPlan, SetStats, User)
 from .settings import CONFIGURATION
 
+
+
+# What even is all this?
+# 
+# A diagram detailing the communication between the frontend, the backend, and the AI can be found here: https://github.com/bp-momentum/documentation/blob/main/API/component_communication.svg
+# 
+# One socket per set (expected) -> Closing the socket before the set is done will result in the progress of that set being lost / overwritten.
+# One socket per set, a procID is send after the last repetition to identify the results. The AI will stop processing if no procID is sent before the socket is closed.
 
 class SetConsumer(WebsocketConsumer):
     def __init__(self):
         super().__init__()
+        self.username = None # username of the user is authenticated
+        self.exercise = None # exercise that is currently done if initiated
 
-        self.points = 0
-        # initialising the new connection
-        self.filename = None
-        self.doing_set = False
-        self.username = ""
-        self.user = None
+        # internal variables
+        self.execution = None
+        self.current_set = -1
+        self.current_repetition = -1
+        self.ai = None
 
-        self.authenticated = False
-        self.initiated = False
+    # ==================== HELPER FUNCTIONS ====================
 
-        # initialising new exercise will be overwritten after init when exercise could be loaded
-        self.executions_per_set = 0
-        self.sets = 0
-
-        self.exercise = 0
-        self.stats_received = 0
-        self.current_set = 0
-
-        self.speed = 0
-        self.intensity = 0
-        self.cleanliness = 0
-
-        self.done_exercise_entry = None
-        self.completed = False
-
-        self.exinplan = None
-
-        self.sio = socketio.Client()
-        self.aiCreateEventListener()
-
-
-    def handleAiInformation(self, information):
+    def error_response(self, message_type, description):
         self.send(
             text_data=json.dumps(
                 {
-                    "message_type": "information",
-                    "success": True,
-                    "description": "This is a information",
-                    "data": {
-                        "information": information[self.user.language],
-                    },
+                    "message_type": message_type,
+                    "success": False,
+                    "description": description,
+                    "data": {},
                 }
             )
         )
 
 
-    def handleAiStatistics(self, stats):
-        intensity = stats["stats"]["intensity"]
-        speed = stats["stats"]["speed"]
-        cleanliness = stats["stats"]["cleanliness"]
-        coordinates = stats["coordinates"]
-        self.handleIncomingStats(intensity, speed, cleanliness, coordinates)
+    def success_response(self, message_type, description, data={}):
+        self.send(
+            text_data=json.dumps(
+                {
+                    "message_type": message_type,
+                    "success": True,
+                    "description": description,
+                    "data": data,
+                }
+            )
+        )
 
 
-    def aiCreateEventListener(self):
-        self.sio.on("information", self.handleAiInformation)
-        self.sio.on("statistics", self.handleAiStatistics)
-
+    def live_feedback(self, data):
+        # send live feedback to frontend
+        self.send(
+            text_data=json.dumps(
+                {
+                    "message_type": "live_feedback",
+                    "success": True,
+                    "description": "Live feedback",
+                    "data": data,
+                }
+            )
+        )
 
     # in this method the incoming video stream will be saved
     def save_video(self, data_bytes):
-        # TODO(WARNING): After this function was initially created the data_bytes was changed to an image and not a video anymore
-        # when this should be used again this function has to be changed to create a video from the images and not just save them
-        folderName = os.path.join(CONFIGURATION["video_dir"], self.username)
-        fileName = os.path.join(CONFIGURATION["video_dir"], self.username, self.filename)
+        # TODO(WARNING): Currently saves images as jpg, not as video
+
+        # check if videos should be saved
+        if CONFIGURATION["video_dir"] == None:
+            return
         
+        folderName = os.path.join(CONFIGURATION["video_dir"], self.username, self.set_uuid)
+        fileName = os.path.join(folderName, self.last_image + ".jpg")
+
         # check if the user folder was already created else mkdir
         if not os.path.exists(folderName):
             try:
@@ -92,439 +94,190 @@ class SetConsumer(WebsocketConsumer):
                 if exc.errno != errno.EEXIST:
                     raise
 
-        # add new video blob to the file
-        mode = "ab" if os.path.exists(fileName) else "wb"
-
-        with open(fileName, mode) as f:
+        with open(fileName, "wb") as f:
             f.write(data_bytes)
             f.close()
 
+
+    def create_ai_instance(self):
+        ai = socketio.Client()
+        ai.on("live_feedback", self.live_feedback)
+        ai.connect(CONFIGURATION["ai_url"])
+        ai.emit("set_exercise_id", {
+                      "exercise": self.exercise.exercise.id})
+        return ai
+
+
+    # ==================== FRONTEND MESSAGE HANDLERS ====================
 
     def authenticate(self, session_token):
         # check if token is valid
         token = JwToken.check_session_token(session_token["session_token"])
         if not token["valid"]:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "authenticate",
-                        "success": False,
-                        "description": "Token is not valid",
-                        "data": {},
-                    }
-                )
-            )
+            self.error_response("authenticate", "Token is not valid")
             return
 
         # check if account_type is user
         if not token["info"]["account_type"] == "user":
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "authenticate",
-                        "success": False,
-                        "description": "Only a user can do an exercise",
-                        "data": {},
-                    }
-                )
-            )
+            self.error_response("authenticate", "Only users can exercise")
             return
 
-        # set connection as authenticated
-        self.authenticated = True
-
-        # set connections user info
+        # set connection as authenticated and connections user info
         self.username = token["info"]["username"]
-        self.user: User = User.objects.get(username=self.username)
 
-        self.send(
-            text_data=json.dumps(
-                {
-                    "message_type": "authenticate",
-                    "success": True,
-                    "description": "User is now authenticated",
-                    "data": {},
-                }
-            )
-        )
-
-
-    def start_set(self):
-
-        # check if user is already doing a set
-        # when not start new thread
-        if not self.doing_set:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "start_set",
-                        "success": True,
-                        "description": "The set is now started",
-                        "data": {},
-                    }
-                )
-            )
-            self.filename = str(time.time()) + ".webm"
-            self.doing_set = True
-
-        else:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "start_set",
-                        "success": False,
-                        "description": "The set is already started",
-                        "data": {},
-                    }
-                )
-            )
+        self.success_response("authenticate", "User is now authenticated")
 
 
     def initiate(self, data):
         # save, which exercise is done
-        self.exercise = data["exercise"]
-        self.initiated = True
+        exercise = data["exercise"]
+
+        user = User.objects.get(username=self.username)
 
         # load exercise info from database
         try:
-            self.exinplan: ExerciseInPlan = ExerciseInPlan.objects.get(id=self.exercise)
+            self.exercise: ExerciseInPlan = ExerciseInPlan.objects.get(
+                id=exercise)
         except:
             self.initiated = False
             self.close()
             return
-        self.sets = self.exinplan.sets
-        self.executions_per_set = self.exinplan.repeats_per_set
-
-        
-        self.sio.connect(CONFIGURATION["ai_url"])
-        self.sio.emit("set_exercise_id", {"exercise": self.exinplan.exercise.id})
+        self.sets = self.exercise.sets
+        self.repetitions = self.exercise.repeats_per_set
 
         # load already done exercises in this week
-        query = DoneExercises.objects.filter(
-            date__gt=time.time() - 518400, exercise=self.exercise, user=self.user.id
+        query = ExerciseExecution.objects.filter(
+            date__gt=timezone.now().date() - datetime.timedelta(days=7),
+            exercise=self.exercise.exercise.id,
+            user=user,
         )
 
         # when exercise was already started, load info
         if query.exists():
-            self.done_exercise_entry: DoneExercises = query[0]
-            self.current_set = self.done_exercise_entry.current_set
-
-            self.speed = self.done_exercise_entry.speed
-            self.intensity = self.done_exercise_entry.intensity
-            self.cleanliness = self.done_exercise_entry.cleanliness
-            self.completed = self.done_exercise_entry.completed
-
+            self.execution: ExerciseExecution = query[0]
         else:
-            # if not started already  initialise
-            self.done_exercise_entry = None
-            self.exercise = 0
+            self.execution = ExerciseExecution(user=user, exercise=self.exercise)
+            self.execution.save()
+
+        # get current set and repetition
+        query = SetStats.objects.filter(exercise=self.execution)
+        if query.exists():
+            self.current_set = query.latest("set").set
+        else:
             self.current_set = 0
-            self.speed = 0
-            self.intensity = 0
-            self.cleanliness = 0
+
+        self.current_repetition = 0
 
         # current state of the exercise will be returned
-        self.send(
-            text_data=json.dumps(
-                {
-                    "message_type": "init",
-                    "success": True,
-                    "description": "This is the current state",
-                    "data": {
-                        "current_set": self.current_set,
-                        "speed": 0
-                        if self.stats_received == 0
-                        else self.speed / self.stats_received,
-                        "cleanliness": 0
-                        if self.stats_received == 0
-                        else self.cleanliness / self.stats_received,
-                        "intensity": 0
-                        if self.stats_received == 0
-                        else self.intensity / self.stats_received,
-                        "completed": self.completed,
-                    },
-                }
+        self.success_response(
+            "init",
+            "This is the current state",
+            {
+                "current_set": self.current_set,
+            })
+
+
+    def start_set(self):
+        # create a (new) repetition handler
+        self.ai = self.create_ai_instance()
+        self.set_uuid = uuid.uuid4()
+        self.last_image = 0
+        self.success_response("start_set", "The set is now started")
+
+
+    def end_repetition(self):
+        if self.ai is None:
+            self.error_response("end_repetition", "Nothing to end")
+            return
+
+        # relay end_repetition to ai
+        self.ai.emit("end_repetition")
+
+        self.success_response(
+            "end_repetition",
+            "The repetition ended",
             )
-        )
 
 
     def end_set(self):
-        if not self.doing_set:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "end_set",
-                        "success": False,
-                        "description": "Currently no set is started",
-                        "data": {},
-                    }
-                )
-            )
-            return
-        
-        self.doing_set = False
-        self.current_set += 1
-        self.send(
-            text_data=json.dumps(
-                {
-                    "message_type": "end_set",
-                    "success": True,
-                    "description": "The set is now ended",
-                    "data": {
-                        "speed": 0
-                        if self.stats_received == 0
-                        else self.speed / self.stats_received,
-                        "cleanliness": 0
-                        if self.stats_received == 0
-                        else self.cleanliness / self.stats_received,
-                        "intensity": 0
-                        if self.stats_received == 0
-                        else self.intensity / self.stats_received,
-                    },
-                }
-            )
-        )
-        
-        # end exercise when exercise is done
-        if self.current_set == self.sets:
-            self.handleExerciseDone()
-
-
-    def updateLeaderboard(self):
-        leaderboard_entry: Leaderboard = Leaderboard.objects.get(user=self.user.id)
-        leaderboard_entry.speed += self.speed
-        leaderboard_entry.intensity += self.intensity
-        leaderboard_entry.cleanliness += self.cleanliness
-
-        exs_to_do = 0
-        if self.user.plan is not None:
-            plan_data = ExerciseInPlan.objects.filter(plan=self.user.plan.id)
-            for ex in plan_data:
-                exs_to_do += ex.repeats_per_set * ex.sets
-
-        leaderboard_entry.score = (
-            leaderboard_entry.speed
-            + leaderboard_entry.intensity
-            + leaderboard_entry.cleanliness
-        ) / (3 * exs_to_do)
-
-        leaderboard_entry.save(force_update=True)
-
-
-    def updateMedal(self):
-        # add medal
-        if not UserMedalInExercise.objects.filter(
-            user=self.user, exercise=self.exinplan.exercise
-        ).exists():
-            UserMedalInExercise.objects.create(
-                user=self.user, exercise=self.exinplan.exercise
-            )
-        umix: UserMedalInExercise = UserMedalInExercise.objects.get(
-            user=self.user, exercise=self.exinplan.exercise
-        )
-        if self.points >= 90:  # gold
-            umix.gold += 1
-        elif self.points >= 75:  # silver
-            umix.silver += 1
-        elif self.points >= 50:  # bronze
-            umix.bronze += 1
-        umix.save(force_update=True)
-
-
-    def updateXP(self):
-        UserHandler.add_xp(
-            self.user,
-            (
-                (self.speed + self.intensity + self.cleanliness)
-                / (3 * self.stats_received)
-            )
-            * (min(self.user.streak, 10) + 1),
-        )
-
-
-    def updateStreak(self):
-        # add streak when this was the last exercise today
-        if ExerciseHandler.check_if_last_exercise(self.user):
-            self.user.streak += 1
-            self.user.save(force_update=True)
-
-
-    def calculatePoints(self):
-        # calculate points
-        self.points = (
-            0
-            if (self.executions_per_set == 0 | self.sets == 0)
-            else int(
-                (self.speed + self.intensity + self.cleanliness)
-                / (self.sets * self.executions_per_set * 3)
-            )
-        )
-
-
-    def handleExerciseDone(self):
-        # reset current set wrongly incremented
-        self.current_set -= 1
-        self.completed = True
-
-        self.calculatePoints()
-
-        self.updateMedal()
-        self.updateStreak()
-        self.updateLeaderboard()
-        self.updateXP()
-
-        gained_medal = ""
-        if self.points >= 90:  # gold
-            gained_medal = "gold"
-        elif self.points >= 75:  # silver
-            gained_medal = "silver"
-        elif self.points >= 50:  # bronze
-            gained_medal = "bronze"
-
-        self.send(
-            text_data=json.dumps(
-                {
-                    "message_type": "exercise_complete",
-                    "success": True,
-                    "description": "The exercise is now ended",
-                    "data": {
-                        "speed": 0
-                        if self.stats_received == 0
-                        else self.speed / self.stats_received,
-                        "cleanliness": 0
-                        if self.stats_received == 0
-                        else self.cleanliness / self.stats_received,
-                        "intensity": 0
-                        if self.stats_received == 0
-                        else self.intensity / self.stats_received,
-                        "medal": gained_medal,
-                    },
-                }
-            )
-        )
-
-
-    # handle incomint stats
-    # should be called once per finished repetition
-    def handleIncomingStats(self, intensity, speed, cleanliness, coordinates):
-        # sanity check
-        if not self.doing_set:
+        if self.ai is None:
+            print("WARNING: AI went missing.")
+            self.error_response("end_repetition", "Nothing to end")
             return
 
-        self.stats_received += 1
-
-        # calculating points
-        self.intensity += intensity
-        self.speed += speed
-        self.cleanliness += cleanliness
-
-        self.send(
-            text_data=json.dumps(
-                {
-                    "message_type": "statistics",
-                    "success": True,
-                    "description": "This is the accuracy",
-                    "data": {
-                        "intensity": intensity,
-                        "speed": speed,
-                        "cleanliness": cleanliness,
-                        "coordinates": coordinates,
-                    },
-                }
+        # 1. create set stats object
+        set_stats = SetStats(
+            exercise = self.execution,
+            set_uuid = self.set_uuid,
+            set_nr = self.current_set,
             )
-        )
+        set_stats.save()
+
+        # 2. send set stats uuid to ai
+        self.ai.emit("end_set", {
+            "set_uuid": str(self.set_uuid),
+            })
+        
+        # 3. schedule closing of ai connection after 5 seconds
+        self.ai.close_timer = Timer(5, self.ai.disconnect)
+        self.ai.close_timer.start()
+
+        self.success_response(
+            "end_set",
+            "The set ended",
+            )
 
 
     def handleIncomingVideo(self, data):
         # guard to prevent sending video if not doing exercise
-        if not self.doing_set:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "success": False,
-                        "description": "The set must be started to send the video Stream",
-                        "data": {},
-                    }
-                )
-            )
+        if not self.exercise or not hasattr(self, "uuid"):
+            self.error_response("", "The set must be started to send the video Stream")
             return
 
-        # self.save_video(data)
+        self.save_video(data)
 
         # send video to ai
-        self.sio.emit("send_video", data)
+        if self.ai != None and self.ai.connected:
+            self.ai.emit("send_video", data)
 
 
     # On Connect
     def connect(self):
-        LeaderboardHandler.reset_leaderboard()
-        self.filename = None
-        self.doing_set = False
         self.accept()
 
 
     # On Disconnect
     def disconnect(self, _):
-        self.sio.disconnect()
-        self.doing_set = False
-
-        # save current state in database
-        if self.initiated:
-            if self.done_exercise_entry is None:
-                DoneExercises.objects.create(
-                    exercise=self.exinplan,
-                    user=self.user,
-                    points=self.points,
-                    date=time.time(),
-                    current_set=self.current_set,
-                    speed=self.speed,
-                    intensity=self.intensity,
-                    cleanliness=self.cleanliness,
-                    completed=self.completed,
-                )
-            else:
-                self.done_exercise_entry.current_set = self.current_set
-                self.done_exercise_entry.speed = self.speed
-                self.done_exercise_entry.intensity = self.intensity
-                self.done_exercise_entry.cleanliness = self.cleanliness
-                self.done_exercise_entry.points = self.points
-                self.done_exercise_entry.completed = self.completed
-                self.done_exercise_entry.save(force_update=True)
+        if self.ai:
+            self.ai.disconnect()
 
 
-    # Momentum Frotend -> Backend
+    # Momentum Frontend -> Backend
     def receive(self, text_data=None, bytes_data=None):
+        print("." if bytes_data != None else "#", end="")
+        
         # bytes_data is a single frame of the video stream
         # if an image is sent, redirect it to the ai
         if bytes_data is not None:
             self.handleIncomingVideo(bytes_data)
 
-        # guard that check if request hast text_data
+        # guard that check if request has text_data
         if text_data is None:
             return
 
         # parse text_data
         text_data_json = json.loads(text_data)
         m_type = text_data_json["message_type"]
-        data = text_data_json["data"]
+        data = text_data_json.get("data")
 
-        # check if authenticating 
+        # check if authenticating
         if m_type == "authenticate":
             self.authenticate(data)
             return
 
         # guard that check if request has been authenticated
-        if not self.authenticated:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "authenticate",
-                        "success": False,
-                        "description": "You have to be authenticated",
-                        "data": {},
-                    }
-                )
-            )
+        if not self.username:
+            self.error_response("authenticate", "You have to be authenticated")
             return
 
         # check if initializing
@@ -533,36 +286,19 @@ class SetConsumer(WebsocketConsumer):
             return
 
         # guard that check if request has been initiated
-        if not self.initiated:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "init",
-                        "success": False,
-                        "description": "You have to first initialise",
-                        "data": {},
-                    }
-                )
-            )
-            return
-
-        # guard check if already completed
-        if self.completed:
-            self.send(
-                text_data=json.dumps(
-                    {
-                        "message_type": "exercise_complete",
-                        "success": False,
-                        "description": "You already completed this Exercise",
-                        "data": {},
-                    }
-                )
-            )
+        if not self.exercise:
+            self.error_response("init", "You have to first initialise")
             return
 
         # start the set
         if m_type == "start_set":
             self.start_set()
+            return
+
+        # end one repetition
+        if m_type == "end_repetition":
+            print("ENDING REPETITION")
+            self.end_repetition()
             return
 
         # end the set

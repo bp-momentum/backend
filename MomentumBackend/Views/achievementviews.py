@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from ..Helperclasses.jwttoken import JwToken
 from ..Helperclasses.handlers import AchievementHandler, ErrorHandler, LanguageHandler
 from ..models import (
+    ExerciseExecution,
     Achievement,
-    DoneExercises,
     Friends,
     User,
     UserAchievedAchievement,
@@ -19,6 +19,7 @@ NIGHT_START = 22 * 84600
 NIGHT_END = 6 * 84600
 EARLY_END = 8 * 84600
 
+# TODO: wtf is this?!
 ROOT_PATH = "https://cdn.geoscribble.de/achievements/"
 
 
@@ -154,7 +155,7 @@ class GetAchievementsView(APIView):
             # do excersises
             if achievement.name == "doneExercises":
                 # get number of done exercises
-                nr_of_exs = len(DoneExercises.objects.filter(user=user.id))
+                nr_of_exs = len(ExerciseExecution.objects.filter(user=user.id))
                 # check which level is reached
                 if nr_of_exs >= 100:
                     res = AchievementHandler.upgrade_level(user, achievement, 3)
@@ -420,12 +421,13 @@ class GetAchievementsView(APIView):
             elif achievement.name == "perfectExercise":
                 found = False
                 # get all exercise
-                all = DoneExercises.objects.filter(user=user)
-                # search for exercise with MAX_POINTS
-                for a in all:
-                    if a.points == MAX_POINTS:
-                        found = True
-                        break
+                # TODO
+                # all = DoneExercises.objects.filter(user=user)
+                # # search for exercise with MAX_POINTS
+                # for a in all:
+                #     if a.points == MAX_POINTS:
+                #         found = True
+                #         break
                 # set achievement
                 if found:
                     res = AchievementHandler.achieve_achievement(user, achievement)
@@ -473,14 +475,15 @@ class GetAchievementsView(APIView):
             elif achievement.name == "nightOwl":
                 found = False
                 # get all done exercises
-                all = DoneExercises.objects.filter(user=user)
-                # check which exercises where done in the night
-                for a in all:
-                    if ((a.date % 86400) > NIGHT_START) and (
-                        (a.date % 84600) < NIGHT_END
-                    ):
-                        found = True
-                        break
+                # TODO
+                # all = DoneExercises.objects.filter(user=user)
+                # # check which exercises where done in the night
+                # for a in all:
+                #     if ((a.date % 86400) > NIGHT_START) and (
+                #         (a.date % 84600) < NIGHT_END
+                #     ):
+                #         found = True
+                #         break
                 # set achievement
                 if found:
                     res = AchievementHandler.achieve_achievement(user, achievement)
@@ -528,14 +531,15 @@ class GetAchievementsView(APIView):
             elif achievement.name == "earlyBird":
                 found = False
                 # get all exercises
-                all = DoneExercises.objects.filter(user=user)
-                # check which ones where done erly in the morning
-                for a in all:
-                    if ((a.date % 86400) > NIGHT_END) and (
-                        (a.date % 84600) < EARLY_END
-                    ):
-                        found = True
-                        break
+                # TODO
+                # all = DoneExercises.objects.filter(user=user)
+                # # check which ones where done early in the morning
+                # for a in all:
+                #     if ((a.date % 86400) > NIGHT_END) and (
+                #         (a.date % 84600) < EARLY_END
+                #     ):
+                #         found = True
+                #         break
                 # set achievement
                 if found:
                     res = AchievementHandler.achieve_achievement(user, achievement)
@@ -732,7 +736,7 @@ class ReloadAfterExerciseView(APIView):
             )
         achievement: Achievement = Achievement.objects.get(name="doneExercises")
         # get number of done exercises
-        nr_of_exs = len(DoneExercises.objects.filter(user=user.id))
+        nr_of_exs = len(ExerciseExecution.objects.filter(user=user.id))
         # already achieved
         if not UserAchievedAchievement.objects.filter(
             achievement=achievement, user=user, level=3
@@ -833,13 +837,14 @@ class ReloadAfterExerciseView(APIView):
             achievement=achievement, user=user
         ).exists():
             found = False
+            # TODO
             # get all exercise
-            all = DoneExercises.objects.filter(user=user)
-            # search for exercise with MAX_POINTS
-            for a in all:
-                if a.points == MAX_POINTS:
-                    found = True
-                    break
+            # all = DoneExercises.objects.filter(user=user)
+            # # search for exercise with MAX_POINTS
+            # for a in all:
+            #     if a.points == MAX_POINTS:
+            #         found = True
+            #         break
             # set achievement
             if found:
                 res = AchievementHandler.achieve_achievement(user, achievement)
@@ -887,13 +892,14 @@ class ReloadAfterExerciseView(APIView):
             achievement=achievement, user=user
         ).exists():
             found = False
-            # get all done exercises
-            all = DoneExercises.objects.filter(user=user)
-            # check which exercises where done in the night
-            for a in all:
-                if ((a.date % 86400) > NIGHT_START) and ((a.date % 84600) < NIGHT_END):
-                    found = True
-                    break
+            # TODO
+            # # get all done exercises
+            # all = DoneExercises.objects.filter(user=user)
+            # # check which exercises where done in the night
+            # for a in all:
+            #     if ((a.date % 86400) > NIGHT_START) and ((a.date % 84600) < NIGHT_END):
+            #         found = True
+            #         break
             # set achievement
             if found:
                 res = AchievementHandler.achieve_achievement(user, achievement)
@@ -942,13 +948,14 @@ class ReloadAfterExerciseView(APIView):
             achievement=achievement, user=user
         ).exists():
             found = False
-            # get all exercises
-            all = DoneExercises.objects.filter(user=user)
-            # check which ones where done erly in the morning
-            for a in all:
-                if ((a.date % 86400) > NIGHT_END) and ((a.date % 84600) < EARLY_END):
-                    found = True
-                    break
+            # TODO
+            # # get all exercises
+            # all = DoneExercises.objects.filter(user=user)
+            # # check which ones where done erly in the morning
+            # for a in all:
+            #     if ((a.date % 86400) > NIGHT_END) and ((a.date % 84600) < EARLY_END):
+            #         found = True
+            #         break
             # set achievement
             if found:
                 res = AchievementHandler.achieve_achievement(user, achievement)

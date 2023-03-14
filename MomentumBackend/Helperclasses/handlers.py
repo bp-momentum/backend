@@ -7,18 +7,20 @@ import random
 import string
 import time
 from rest_framework.response import Response
+from django.utils import timezone
 
 from ..settings import INTERN_SETTINGS, SETTINGS_JSON
 from ..serializers import CreateExerciseInPlan, CreatePlan
 from ..models import (
     Achievement,
     Admin,
-    DoneExercises,
     Exercise,
+    ExerciseExecution,
     ExerciseInPlan,
     Friends,
     Leaderboard,
     Location,
+    SetStats,
     Trainer,
     TrainingSchedule,
     User,
@@ -203,48 +205,49 @@ class UserHandler:
     @staticmethod
     # check streak, not updated if today everything is done
     def check_keep_streak(user: User) -> None:
-        locale.setlocale(locale.LC_ALL, "en_US.utf8")
-        today = datetime.datetime.today()
-        # if user never logged in, streak=0
-        if user.last_login is None:
-            user.streak = 0
-            user.save(force_update=True)
-            return
-        # if user already logged in today return
-        if user.last_login == DateHandler.get_string_of_date(
-            today.day, today.month, today.year
-        ):
-            return
-        count = 0
-        # until the last login check for every day if every exercise has been done
-        while True:
-            count += 1
-            day_before = today - datetime.timedelta(days=count)
-            weekday = day_before.strftime("%A").lower()
-            exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
-            # if there had not to be done any exercises, check if that's last login
-            if exips.exists():
-                for exip in exips:
-                    # calculate period in which exercise had to be done
-                    if not DoneExercises.objects.filter(
-                        exercise=exip,
-                        user=user,
-                        date__gt=time.time() - (count * 86400) - time.time() % 86400,
-                        date__lt=time.time()
-                        - ((count - 1) * 86400)
-                        - time.time() % 86400,
-                    ).exists():
-                        # if in this period no exercise has been done
-                        user.streak = 0
-                        user.save(force_update=True)
-                        return
-                    # if all exercises had been done return, because after every exercise increasing streak is checked
-                    return
-            # check if that's last login, else check next day
-            if user.last_login == DateHandler.get_string_of_date(
-                day_before.day, day_before.month, day_before.year
-            ):
-                return
+        pass
+        # locale.setlocale(locale.LC_ALL, "en_US.utf8")
+        # today = datetime.datetime.today()
+        # # if user never logged in, streak=0
+        # if user.last_login is None:
+        #     user.streak = 0
+        #     user.save(force_update=True)
+        #     return
+        # # if user already logged in today return
+        # if user.last_login == DateHandler.get_string_of_date(
+        #     today.day, today.month, today.year
+        # ):
+        #     return
+        # count = 0
+        # # until the last login check for every day if every exercise has been done
+        # while True:
+        #     count += 1
+        #     day_before = today - datetime.timedelta(days=count)
+        #     weekday = day_before.strftime("%A").lower()
+        #     exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+        #     # if there had not to be done any exercises, check if that's last login
+        #     if exips.exists():
+        #         for exip in exips:
+        #             # calculate period in which exercise had to be done
+        #             if not DoneExercises.objects.filter(
+        #                 exercise=exip,
+        #                 user=user,
+        #                 date__gt=time.time() - (count * 86400) - time.time() % 86400,
+        #                 date__lt=time.time()
+        #                 - ((count - 1) * 86400)
+        #                 - time.time() % 86400,
+        #             ).exists():
+        #                 # if in this period no exercise has been done
+        #                 user.streak = 0
+        #                 user.save(force_update=True)
+        #                 return
+        #             # if all exercises had been done return, because after every exercise increasing streak is checked
+        #             return
+        #     # check if that's last login, else check next day
+        #     if user.last_login == DateHandler.get_string_of_date(
+        #         day_before.day, day_before.month, day_before.year
+        #     ):
+        #         return
 
     @staticmethod
     # just this method has to be changed to get more information for profile
@@ -271,22 +274,23 @@ class UserHandler:
 
     @staticmethod
     def check_flame_glow(user: User) -> bool:
-        today = datetime.datetime.now()
-        weekday = today.strftime("%A").lower()
-        exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
-        # if there had not to be done any exercises, check if that's last login
-        if exips.exists():
-            for exip in exips:
-                # calculate period in which exercise had to be done
-                if not DoneExercises.objects.filter(
-                    exercise=exip, user=user, date__gt=time.time() - time.time() % 86400
-                ).exists():
-                    # if in this period no exercise has been done
-                    return False
-            # if all exercises had been done return, because after every exercise increasing streak is checked
-            return True
-        # no exercise
-        return True
+        pass
+        # today = datetime.datetime.now()
+        # weekday = today.strftime("%A").lower()
+        # exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+        # # if there had not to be done any exercises, check if that's last login
+        # if exips.exists():
+        #     for exip in exips:
+        #         # calculate period in which exercise had to be done
+        #         if not DoneExercises.objects.filter(
+        #             exercise=exip, user=user, date__gt=time.time() - time.time() % 86400
+        #         ).exists():
+        #             # if in this period no exercise has been done
+        #             return False
+        #     # if all exercises had been done return, because after every exercise increasing streak is checked
+        #     return True
+        # # no exercise
+        # return True
 
 
 class TrainerHandler:
@@ -448,69 +452,75 @@ class LanguageHandler:
 class ExerciseHandler:
     @staticmethod
     def get_done_exercises_of_month(month: int, year: int, user: User) -> list:
-        locale.setlocale(locale.LC_ALL, "en_US.utf8")
-        now = datetime.datetime.now()
-        if (now.month < month and now.year == year) or now.year < year:
-            return []
-        init: datetime.datetime = datetime.datetime(
-            year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0
-        )
-        offset_gt = int(init.timestamp())
-        out = []
-        plan: TrainingSchedule = None
-        nr_days = DateHandler.get_lastday_of_month(month, year)
-        for i in range(1, nr_days + 1):
-            weekday = init.strftime("%A").lower()
-            init += datetime.timedelta(days=1)
-            offset_lt = int(init.timestamp())
-            done_day = DoneExercises.objects.filter(
-                user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True
-            )
-            for d in done_day:
-                plan = d.exercise.plan
-                out.append(
-                    {
-                        "exercise_plan_id": d.exercise.id,
-                        "id": d.exercise.exercise.id,
-                        "date": d.date,
-                        "points": d.points,
-                        "done": True,
-                    }
-                )
-            if not plan is None:
-                exips = ExerciseInPlan.objects.filter(plan=plan, date=weekday)
-                for exip in exips:
-                    if not done_day.filter(exercise=exip).exists():
-                        out.append(
-                            {
-                                "exercise_plan_id": exip.id,
-                                "id": exip.exercise.id,
-                                "date": int(
-                                    datetime.datetime(
-                                        year=year, month=month, day=i, hour=12
-                                    ).timestamp()
-                                ),
-                                "points": None,
-                                "done": False,
-                            }
-                        )
-            offset_gt = offset_lt
-            # only check until today
-            if now.month == month and now.day == i and now.year == year:
-                break
-        return out
+        pass
+        # locale.setlocale(locale.LC_ALL, "en_US.utf8")
+        # now = datetime.datetime.now()
+        # if (now.month < month and now.year == year) or now.year < year:
+        #     return []
+        # init: datetime.datetime = datetime.datetime(
+        #     year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0
+        # )
+        # offset_gt = int(init.timestamp())
+        # out = []
+        # plan: TrainingSchedule = None
+        # nr_days = DateHandler.get_lastday_of_month(month, year)
+        # for i in range(1, nr_days + 1):
+        #     weekday = init.strftime("%A").lower()
+        #     init += datetime.timedelta(days=1)
+        #     offset_lt = int(init.timestamp())
+        #     done_day = DoneExercises.objects.filter(
+        #         user=user, date__gt=offset_gt, date__lt=offset_lt, completed=True
+        #     )
+        #     for d in done_day:
+        #         plan = d.exercise.plan
+        #         out.append(
+        #             {
+        #                 "exercise_plan_id": d.exercise.id,
+        #                 "id": d.exercise.exercise.id,
+        #                 "date": d.date,
+        #                 "points": d.points,
+        #                 "done": True,
+        #             }
+        #         )
+        #     if not plan is None:
+        #         exips = ExerciseInPlan.objects.filter(plan=plan, date=weekday)
+        #         for exip in exips:
+        #             if not done_day.filter(exercise=exip).exists():
+        #                 out.append(
+        #                     {
+        #                         "exercise_plan_id": exip.id,
+        #                         "id": exip.exercise.id,
+        #                         "date": int(
+        #                             datetime.datetime(
+        #                                 year=year, month=month, day=i, hour=12
+        #                             ).timestamp()
+        #                         ),
+        #                         "points": None,
+        #                         "done": False,
+        #                     }
+        #                 )
+        #     offset_gt = offset_lt
+        #     # only check until today
+        #     if now.month == month and now.day == i and now.year == year:
+        #         break
+        # return out
 
     @staticmethod
     def get_done(user: User):
+        pass
         locale.setlocale(locale.LC_ALL, "en_US.utf8")
-        weekday = datetime.datetime.now().weekday()
         # list of all done in this week
-        # calculation of timespan and filter
-        done = DoneExercises.objects.filter(
+        maybedone = ExerciseExecution.objects.filter(
             user=user,
-            date__gt=time.time() - weekday * 86400 - time.time() % 86400,
-            completed=True,
+            date__gt=timezone.now().date() - datetime.timedelta(days=7)
         )
+
+        done = []
+        for d in maybedone:
+            stats = SetStats.objects.filter(exercise=d)
+            if stats.count() == d.exercise.sets:
+                done.append(d)
+
         # list of all exercises to done
         all = ExerciseInPlan.objects.filter(plan=user.plan)
         out = []
@@ -557,25 +567,26 @@ class ExerciseHandler:
 
     @staticmethod
     def check_if_last_exercise(user: User) -> bool:
-        locale.setlocale(locale.LC_ALL, "en_US.utf8")
-        today = datetime.datetime.now()
-        weekday = today.strftime("%A").lower()
-        exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
+        pass
+        # locale.setlocale(locale.LC_ALL, "en_US.utf8")
+        # today = datetime.datetime.now()
+        # weekday = today.strftime("%A").lower()
+        # exips = ExerciseInPlan.objects.filter(plan=user.plan, date=weekday)
 
-        not_done = 0
-        # if there had not to be done any exercises, check if that's last login
-        if exips.exists():
-            for exip in exips:
-                # calculate period in which exercise had to be done
-                if not DoneExercises.objects.filter(
-                    exercise=exip, user=user, date__gt=time.time() - time.time() % 86400
-                ).exists():
-                    # if in this period no exercise has been done
-                    not_done += 1
-            # if all exercises had been done return, because after every exercise increasing streak is checked
-            return not_done <= 1
-        # should not happen, if no exercises -> not last
-        return False
+        # not_done = 0
+        # # if there had not to be done any exercises, check if that's last login
+        # if exips.exists():
+        #     for exip in exips:
+        #         # calculate period in which exercise had to be done
+        #         if not DoneExercises.objects.filter(
+        #             exercise=exip, user=user, date__gt=time.time() - time.time() % 86400
+        #         ).exists():
+        #             # if in this period no exercise has been done
+        #             not_done += 1
+        #     # if all exercises had been done return, because after every exercise increasing streak is checked
+        #     return not_done <= 1
+        # # should not happen, if no exercises -> not last
+        # return False
 
 
 class FriendHandler:
