@@ -1,9 +1,12 @@
+import base64
 import datetime
-import errno
 import json
 import os
+from pathlib import Path
 from threading import Timer
 import uuid
+import threading
+import subprocess
 
 import socketio
 from django.utils.timezone import make_aware
@@ -22,6 +25,40 @@ from .settings import CONFIGURATION
 # One socket per set (expected) -> Closing the socket before the set is done will result in the progress of that set being lost / overwritten.
 # One socket per set, a procID is send after the last repetition to identify the results. The AI will stop processing if no procID is sent before the socket is closed.
 
+class Recorder(threading.Thread):
+    def __init__(self, output_name: str):
+        self.p = None
+        self.output_name = output_name
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self.p = subprocess.Popen(self.generate_recorder_command(),
+                             shell=False,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+
+    def generate_recorder_command(self):
+        return ('ffmpeg', # (WARN) ffmpeg must be in path 
+        '-f', 'image2pipe', # tell ffmpeg to expect a "pipe format"
+        '-vcodec', 'mjpeg', # that contains mjpeg encoded images
+        '-r', '10',  # TODO: adjust FPS
+        '-i', '-',  # The input comes from a pipe
+        '-vcodec', 'libx264', # use the h.264 codec (open source implementation)
+        '-crf', '25',  # quality, 0-51, where 0 is best
+        '-pix_fmt', 'yuv420p', # pixel format (needed here for compatibility)
+        self.output_name)
+    
+    # in this method the incoming video stream will be saved
+    def save_video(self, data_bytes):
+        data_bytes = data_bytes.decode("utf8").split(",")[1]
+        data_bytes = base64.b64decode(data_bytes)
+        self.p.stdin.write(data_bytes)
+
+    def stop(self):
+        self.p.stdin.close()
+        self.join()
+
 class SetConsumer(WebsocketConsumer):
     def __init__(self):
         super().__init__()
@@ -33,6 +70,7 @@ class SetConsumer(WebsocketConsumer):
         self.current_set = -1
         self.current_repetition = -1
         self.ai = None
+        self.recorder = None
 
     # ==================== HELPER FUNCTIONS ====================
 
@@ -75,28 +113,7 @@ class SetConsumer(WebsocketConsumer):
             )
         )
 
-    # in this method the incoming video stream will be saved
-    def save_video(self, data_bytes):
-        # TODO(WARNING): Currently saves images as jpg, not as video
 
-        # check if videos should be saved
-        if CONFIGURATION["video_dir"] == None:
-            return
-        
-        folderName = os.path.join(CONFIGURATION["video_dir"], self.username, self.set_uuid)
-        fileName = os.path.join(folderName, self.last_image + ".jpg")
-
-        # check if the user folder was already created else mkdir
-        if not os.path.exists(folderName):
-            try:
-                os.mkdir(folderName)
-            except OSError as exc:  # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise
-
-        with open(fileName, "wb") as f:
-            f.write(data_bytes)
-            f.close()
 
 
     def create_ai_instance(self):
@@ -181,7 +198,15 @@ class SetConsumer(WebsocketConsumer):
         # create a (new) repetition handler
         self.ai = self.create_ai_instance()
         self.set_uuid = uuid.uuid4()
-        self.last_image = 0
+        if CONFIGURATION["video_dir"] != None: 
+            # TODO: figure out if cwd is really the way to go
+            record_dir = os.path.join(os.getcwd(), CONFIGURATION["video_dir"], self.username)
+            record_name = os.path.join(record_dir, f"{str(self.set_uuid)}.mp4")
+            # create directory if it does not exist
+            if not os.path.exists(record_dir):
+                Path(record_dir).mkdir(parents=True, exist_ok=True)
+            self.recorder = Recorder(record_name)
+            self.recorder.start()
         self.success_response("start_set", "The set is now started")
 
 
@@ -204,6 +229,9 @@ class SetConsumer(WebsocketConsumer):
             print("WARNING: AI went missing.")
             self.error_response("end_repetition", "Nothing to end")
             return
+        
+        if self.recorder is not None:
+            self.recorder.stop()
 
         # 1. create set stats object
         set_stats = SetStats(
@@ -230,11 +258,12 @@ class SetConsumer(WebsocketConsumer):
 
     def handleIncomingVideo(self, data):
         # guard to prevent sending video if not doing exercise
-        if not self.exercise or not hasattr(self, "uuid"):
+        if not self.exercise or not hasattr(self, "set_uuid"):
             self.error_response("", "The set must be started to send the video Stream")
             return
 
-        self.save_video(data)
+        if self.recorder is not None:
+            self.recorder.save_video(data)
 
         # send video to ai
         if self.ai != None and self.ai.connected:
