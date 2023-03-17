@@ -254,7 +254,6 @@ class SetConsumer(WebsocketConsumer):
 
     # Momentum Frontend -> Backend
     def receive(self, text_data=None, bytes_data=None):
-        print("." if bytes_data != None else "#", end="")
         
         # bytes_data is a single frame of the video stream
         # if an image is sent, redirect it to the ai
@@ -297,7 +296,6 @@ class SetConsumer(WebsocketConsumer):
 
         # end one repetition
         if m_type == "end_repetition":
-            print("ENDING REPETITION")
             self.end_repetition()
             return
 
