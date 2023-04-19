@@ -4,6 +4,6 @@ djangorestframework
 django
 psycopg2-binary
 django-ordered-model
-channels
+channels[daphne]
 jsonschema
 python-socketio[client]

@@ -201,7 +201,7 @@ class SetConsumer(WebsocketConsumer):
         if CONFIGURATION["video_dir"] != None: 
             # TODO: figure out if cwd is really the way to go
             record_dir = os.path.join(os.getcwd(), CONFIGURATION["video_dir"], self.username)
-            record_name = os.path.join(record_dir, f"{str(self.set_uuid)}.mp4")
+            record_name = os.path.join(record_dir, f"{str(self.set_uuid)}.mkv")
             # create directory if it does not exist
             if not os.path.exists(record_dir):
                 Path(record_dir).mkdir(parents=True, exist_ok=True)
@@ -216,7 +216,7 @@ class SetConsumer(WebsocketConsumer):
             return
 
         # relay end_repetition to ai
-        self.ai.emit("end_repetition")
+        self.ai.emit("end_repetition", {})
 
         self.success_response(
             "end_repetition",
