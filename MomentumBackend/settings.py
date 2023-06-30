@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
 import json
-from jwcrypto import jwk
 import random
 import string
 from corsheaders.defaults import default_headers
@@ -39,7 +38,6 @@ except FileNotFoundError:
     INTERN_SETTINGS_TEMPLATE = {
         "secret_key": getRandomString(16),
         "last_leaderboard_reset": 0,
-        "token_key": jwk.JWK(generate="oct", size=256)
     }
     json.dump(INTERN_SETTINGS_TEMPLATE, open(SETTINGS_JSON, "w"), indent=4)
 
@@ -51,7 +49,6 @@ with open(SETTINGS_JSON) as json_file:
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = INTERN_SETTINGS["secret_key"]
-TOKEN_KEY = INTERN_SETTINGS["token_key"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = CONFIGURATION["debug"]
@@ -63,6 +60,8 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 ]
 
 CORS_ALLOWED_ORIGINS = CONFIGURATION["allowed_origins"]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -85,7 +84,6 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

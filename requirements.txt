@@ -1,8 +1,6 @@
-django-cors-headers
-jwcrypto
-djangorestframework
 django
 psycopg2-binary
+django-cors-headers
 django-ordered-model
 channels[daphne]
 jsonschema

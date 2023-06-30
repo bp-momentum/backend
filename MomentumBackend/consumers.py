@@ -12,16 +12,18 @@ import socketio
 from django.utils.timezone import make_aware
 from channels.generic.websocket import WebsocketConsumer
 
-from .Helperclasses.jwttoken import JwToken
+# from .Helperclasses.jwttoken import JwToken
 from .models import (ExerciseExecution, ExerciseInPlan, SetStats, User)
 from .settings import CONFIGURATION
 
+# from channels.db import database_sync_to_async
+# TODO: use this decorator to make the database calls async
 
 
 # What even is all this?
-# 
+#
 # A diagram detailing the communication between the frontend, the backend, and the AI can be found here: https://github.com/bp-momentum/documentation/blob/main/API/component_communication.svg
-# 
+#
 # One socket per set (expected) -> Closing the socket before the set is done will result in the progress of that set being lost / overwritten.
 # One socket per set, a procID is send after the last repetition to identify the results. The AI will stop processing if no procID is sent before the socket is closed.
 
@@ -33,22 +35,24 @@ class Recorder(threading.Thread):
 
     def run(self):
         self.p = subprocess.Popen(self.generate_recorder_command(),
-                             shell=False,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL)
+                                  shell=False,
+                                  stdin=subprocess.PIPE,
+                                  stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.DEVNULL)
 
     def generate_recorder_command(self):
-        return ('ffmpeg', # (WARN) ffmpeg must be in path 
-        '-f', 'image2pipe', # tell ffmpeg to expect a "pipe format"
-        '-vcodec', 'mjpeg', # that contains mjpeg encoded images
-        '-r', '10',  # TODO: adjust FPS
-        '-i', '-',  # The input comes from a pipe
-        '-vcodec', 'libx264', # use the h.264 codec (open source implementation)
-        '-crf', '25',  # quality, 0-51, where 0 is best
-        '-pix_fmt', 'yuv420p', # pixel format (needed here for compatibility)
-        self.output_name)
-    
+        return ('ffmpeg',  # (WARN) ffmpeg must be in path
+                '-f', 'image2pipe',  # tell ffmpeg to expect a "pipe format"
+                '-vcodec', 'mjpeg',  # that contains mjpeg encoded images
+                '-r', '10',  # TODO: adjust FPS
+                '-i', '-',  # The input comes from a pipe
+                # use the h.264 codec (open source implementation)
+                '-vcodec', 'libx264',
+                '-crf', '25',  # quality, 0-51, where 0 is best
+                # pixel format (needed here for compatibility)
+                '-pix_fmt', 'yuv420p',
+                self.output_name)
+
     # in this method the incoming video stream will be saved
     def save_video(self, data_bytes):
         data_bytes = data_bytes.decode("utf8").split(",")[1]
@@ -59,11 +63,11 @@ class Recorder(threading.Thread):
         self.p.stdin.close()
         self.join()
 
+
 class SetConsumer(WebsocketConsumer):
     def __init__(self):
         super().__init__()
-        self.username = None # username of the user is authenticated
-        self.exercise = None # exercise that is currently done if initiated
+        self.exercise = None  # exercise that is currently done if initiated
 
         # internal variables
         self.execution = None
@@ -86,7 +90,6 @@ class SetConsumer(WebsocketConsumer):
             )
         )
 
-
     def success_response(self, message_type, description, data={}):
         self.send(
             text_data=json.dumps(
@@ -98,7 +101,6 @@ class SetConsumer(WebsocketConsumer):
                 }
             )
         )
-
 
     def live_feedback(self, data):
         # send live feedback to frontend
@@ -113,43 +115,19 @@ class SetConsumer(WebsocketConsumer):
             )
         )
 
-
-
-
     def create_ai_instance(self):
         ai = socketio.Client()
         ai.on("live_feedback", self.live_feedback)
         ai.connect(CONFIGURATION["ai_url"])
         ai.emit("set_exercise_id", {
-                      "exercise": self.exercise.exercise.id})
+            "exercise": self.exercise.exercise.id})
         return ai
 
-
     # ==================== FRONTEND MESSAGE HANDLERS ====================
-
-    def authenticate(self, session_token):
-        # check if token is valid
-        token = JwToken.check_session_token(session_token["session_token"])
-        if not token["valid"]:
-            self.error_response("authenticate", "Token is not valid")
-            return
-
-        # check if account_type is user
-        if not token["info"]["account_type"] == "user":
-            self.error_response("authenticate", "Only users can exercise")
-            return
-
-        # set connection as authenticated and connections user info
-        self.username = token["info"]["username"]
-
-        self.success_response("authenticate", "User is now authenticated")
-
 
     def initiate(self, data):
         # save, which exercise is done
         exercise = data["exercise"]
-
-        user = User.objects.get(username=self.username)
 
         # load exercise info from database
         try:
@@ -164,22 +142,24 @@ class SetConsumer(WebsocketConsumer):
 
         # load already done exercises in this week
         query = ExerciseExecution.objects.filter(
-            date__gt=make_aware(datetime.datetime.now() - datetime.timedelta(days=7)),
+            date__gt=make_aware(datetime.datetime.now() -
+                                datetime.timedelta(days=7)),
             exercise=self.exercise.exercise.id,
-            user=user,
+            user=self.scope["user"],
         )
 
         # when exercise was already started, load info
         if query.exists():
             self.execution: ExerciseExecution = query[0]
         else:
-            self.execution = ExerciseExecution(user=user, exercise=self.exercise)
+            self.execution = ExerciseExecution(
+                user=self.scope["user"], exercise=self.exercise)
             self.execution.save()
 
         # get current set and repetition
         query = SetStats.objects.filter(exercise=self.execution)
         if query.exists():
-            self.current_set = query.latest("set").set
+            self.current_set = query.latest("set_nr").set_nr
         else:
             self.current_set = 0
 
@@ -193,14 +173,14 @@ class SetConsumer(WebsocketConsumer):
                 "current_set": self.current_set,
             })
 
-
     def start_set(self):
         # create a (new) repetition handler
         self.ai = self.create_ai_instance()
         self.set_uuid = uuid.uuid4()
-        if CONFIGURATION["video_dir"] != None: 
+        if CONFIGURATION["video_dir"] != None:
             # TODO: figure out if cwd is really the way to go
-            record_dir = os.path.join(os.getcwd(), CONFIGURATION["video_dir"], self.username)
+            record_dir = os.path.join(
+                os.getcwd(), CONFIGURATION["video_dir"], self.scope["user"].username)
             record_name = os.path.join(record_dir, f"{str(self.set_uuid)}.mkv")
             # create directory if it does not exist
             if not os.path.exists(record_dir):
@@ -208,7 +188,6 @@ class SetConsumer(WebsocketConsumer):
             self.recorder = Recorder(record_name)
             self.recorder.start()
         self.success_response("start_set", "The set is now started")
-
 
     def end_repetition(self):
         if self.ai is None:
@@ -221,31 +200,30 @@ class SetConsumer(WebsocketConsumer):
         self.success_response(
             "end_repetition",
             "The repetition ended",
-            )
-
+        )
 
     def end_set(self):
         if self.ai is None:
             print("WARNING: AI went missing.")
             self.error_response("end_repetition", "Nothing to end")
             return
-        
+
         if self.recorder is not None:
             self.recorder.stop()
 
         # 1. create set stats object
         set_stats = SetStats(
-            exercise = self.execution,
-            set_uuid = self.set_uuid,
-            set_nr = self.current_set,
-            )
+            exercise=self.execution,
+            set_uuid=self.set_uuid,
+            set_nr=self.current_set,
+        )
         set_stats.save()
 
         # 2. send set stats uuid to ai
         self.ai.emit("end_set", {
             "set_uuid": str(self.set_uuid),
-            })
-        
+        })
+
         # 3. schedule closing of ai connection after 5 seconds
         self.ai.close_timer = Timer(5, self.ai.disconnect)
         self.ai.close_timer.start()
@@ -253,13 +231,13 @@ class SetConsumer(WebsocketConsumer):
         self.success_response(
             "end_set",
             "The set ended",
-            )
-
+        )
 
     def handleIncomingVideo(self, data):
         # guard to prevent sending video if not doing exercise
         if not self.exercise or not hasattr(self, "set_uuid"):
-            self.error_response("", "The set must be started to send the video Stream")
+            self.error_response(
+                "", "The set must be started to send the video Stream")
             return
 
         if self.recorder is not None:
@@ -269,21 +247,25 @@ class SetConsumer(WebsocketConsumer):
         if self.ai != None and self.ai.connected:
             self.ai.emit("send_video", data)
 
-
     # On Connect
+
     def connect(self):
         self.accept()
 
-
     # On Disconnect
+
     def disconnect(self, _):
         if self.ai:
             self.ai.disconnect()
 
-
     # Momentum Frontend -> Backend
+
     def receive(self, text_data=None, bytes_data=None):
-        
+        self.user = self.scope["user"]
+        if not self.user.is_authenticated:
+            self.error_response("authenticate", "You have to be logged in.")
+            return
+
         # bytes_data is a single frame of the video stream
         # if an image is sent, redirect it to the ai
         if bytes_data is not None:
@@ -297,16 +279,6 @@ class SetConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         m_type = text_data_json["message_type"]
         data = text_data_json.get("data")
-
-        # check if authenticating
-        if m_type == "authenticate":
-            self.authenticate(data)
-            return
-
-        # guard that check if request has been authenticated
-        if not self.username:
-            self.error_response("authenticate", "You have to be authenticated")
-            return
 
         # check if initializing
         if m_type == "init":

@@ -1,381 +1,277 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-from ..models import Exercise, PersonalExercisePreferences, User
-from ..Helperclasses.jwttoken import JwToken
-from ..Helperclasses.handlers import (
-    DateHandler,
-    ErrorHandler,
-    ExerciseHandler,
-    LanguageHandler,
-)
-
-MAX_POINTS = 100
+import datetime
+from django.http import JsonResponse
+from django.utils.timezone import make_aware
+from MomentumBackend.helper.utils import get_request_data, login_required_401, restrict_roles_403
+from ..models import Account, Exercise, ExerciseExecution, ExerciseInPlan, PlayerExercisePreferences, SetStats
+from ..helper.handlers import ErrorHandler
 
 
-class GetExerciseView(APIView):
-    def post(self, request, *args, **kwargs):
-        # checking if it contains all arguments
-        check = ErrorHandler.check_arguments(
-            [], None, ["id"], request.data
+def get_exercise(request, exercise_id):
+    exercise = Exercise.objects.filter(id=exercise_id).first()
+    # check if requested exercise exists
+    if exercise is None:
+        return JsonResponse({
+            "success": False,
+            "description": "no exercise with this id exists",
+            "data": {},
+        })
+
+    if request.user.is_authenticated:
+        description = exercise.description.get(request.user.account.language)
+    else:
+        description = exercise.description.get("en")
+
+    return JsonResponse({
+        "success": True,
+        "description": "Returned data",
+        "data": {
+            "title": exercise.title,
+            "description": description,
+            "video": exercise.video,
+            "expectation": exercise.expectation,
+        },
+    })
+
+
+@login_required_401
+@restrict_roles_403([Account.PLAYER])
+def get_exercise_preferences(request, exercise_id):
+    exercise = Exercise.objects.filter(id=exercise_id).first()
+
+    # check if requested exercise exists
+    if exercise is None:
+        return JsonResponse({
+            "success": False,
+            "description": "No exercise with this id exists",
+            "data": {},
+        })
+
+    # check if user wants to get instructions
+    personal_prefs = PlayerExercisePreferences.objects.filter(
+        user=request.user, exercise=exercise
+    ).first()
+
+    # default values
+    visible = personal_prefs.open_instruction_default if personal_prefs else True
+    speed = personal_prefs.speed if personal_prefs else 10
+
+    return JsonResponse({
+        "success": True,
+        "description": "Returned data",
+        "data": {
+            "visible": visible,
+            "speed": speed,
+        },
+    })
+
+
+@login_required_401
+@restrict_roles_403([Account.PLAYER])
+def set_exercise_preferences(request, exercise_id):
+    data = get_request_data(request)
+
+    check = ErrorHandler.check_arguments(
+        {
+            "visible": {
+                "name": "visible",
+                "required": False
+            }, "speed": {
+                "name": "speed",
+                "required": False
+            },
+        },
+        data
+    )
+    if not check.get("valid"):
+        return check.get("response")
+
+    exercise = Exercise.objects.filter(id=exercise_id).first()
+
+    # check if requested exercise exists
+    if exercise is None:
+        return JsonResponse({
+            "success": False,
+            "description": "No exercise with this id exists",
+            "data": {},
+        })
+
+    if "visible" in data:
+        obj, _ = PlayerExercisePreferences.objects.get_or_create(
+            user=request.user, exercise=exercise
         )
-        if not check.get("valid"):
-            data = {
-                "success": False,
-                "description": "Missing arguments",
-                "data": check.get("missing"),
-            }
-            return Response(data)
-        req_data = dict(request.data)
-        
-        # only applicable for users
-        if request.headers.get("Session-Token"):
-            token = JwToken.check_session_token(request.headers["Session-Token"])
-            info = token["info"]
+        obj.open_instruction_default = data["visible"]
+        obj.save()
 
-        # check if requested exercise exists
-        if not Exercise.objects.filter(id=int(req_data["id"])).exists():
-            data = {
-                "success": False,
-                "description": "no exercise with this id exists",
-                "data": {},
-            }
+    if "speed" in data:
+        obj, _ = PlayerExercisePreferences.objects.get_or_create(
+            user=request.user, exercise=exercise
+        )
+        obj.speed = data["speed"]
+        obj.save()
 
-            return Response(data)
+    obj = PlayerExercisePreferences.objects.get(
+        user=request.user, exercise=exercise
+    )
 
-        # get exercise
-        ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
+    return JsonResponse({
+        "success": True,
+        "description": "Changed preferences of instructions",
+        "data": {
+            "visible": obj.open_instruction_default,
+            "speed": obj.speed,
+        },
+    })
 
-        if request.headers.get("Session-Token"):
-            description = LanguageHandler.get_in_correct_language(
-                    info["username"], ex.description
+
+@login_required_401
+@restrict_roles_403([Account.TRAINER])
+def get_all_exercises(request):
+    # get all exercises as list
+    exercises = Exercise.objects.all()
+    exs_res = []
+    # get all ids as list
+    for ex in exercises:
+        exs_res.append({"id": ex.id, "title": ex.title})
+
+    return JsonResponse({
+        "success": True,
+        "description": "returning all exercises",
+        "data": {"exercises": exs_res},
+    })
+
+
+@login_required_401
+@restrict_roles_403([Account.PLAYER])
+def get_done_exercises(request):
+    if request.user.account.plan is None:
+        return JsonResponse({
+            "success": False,
+            "description": "User has no plan assigned",
+            "data": {},
+        })
+
+    # list of all done in this week
+    maybedone = ExerciseExecution.objects.filter(
+        user=request.user,
+        date__gt=make_aware(datetime.datetime.now() -
+                            datetime.timedelta(days=7))
+    )
+
+    done = []
+    for d in maybedone:
+        stats = SetStats.objects.filter(exercise=d)
+        if stats.count() == d.exercise.sets:
+            done.append(d)
+
+    # list of all exercises to done
+    all = ExerciseInPlan.objects.filter(plan=request.user.account.plan)
+    out = []
+    for a in all:
+        done_found = False
+        for d in done:
+            if done_found:
+                continue
+            if a.id == d.exercise.id:
+                out.append(
+                    {
+                        "exercise_plan_id": a.id,
+                        "id": a.exercise.id,
+                        "date": a.date,
+                        "sets": a.sets,
+                        "repeats_per_set": a.repeats_per_set,
+                        "done": True,
+                    }
                 )
-        else:
-            description = ex.description.get("en")
+                done_found = True
+                break
+        if done_found:
+            continue
 
-        data = {
-            "success": True,
-            "description": "Returned data",
-            "data": {
-                "title": ex.title,
-                "description": description,
-                "video": ex.video,
-                "expectation": ex.expectation,
-            },
-        }
-
-        return Response(data)
-
-class GetExercisePreferencesView(APIView):
-    def post(self, request, *args, **kwargs):
-        # checking if it contains all arguments
-        check = ErrorHandler.check_arguments(
-            ["Session-Token"], request.headers, ["id"], request.data
-        )
-        if not check.get("valid"):
-            data = {
-                "success": False,
-                "description": "Missing arguments",
-                "data": check.get("missing"),
-            }
-            return Response(data)
-        req_data = dict(request.data)
-        token = JwToken.check_session_token(request.headers["Session-Token"])
-        info = token["info"]
-        # check if token is valid
-        if not token["valid"]:
-            data = {"success": False, "description": "Token is not valid", "data": {}}
-            return Response(data)
-
-        # check if requested exercise exists
-        if not Exercise.objects.filter(id=int(req_data["id"])).exists():
-            data = {
-                "success": False,
-                "description": "No exercise with this id exists",
-                "data": {},
-            }
-
-            return Response(data)
-
-        # check if user is allowed to request
-        if not (
-            token["info"]["account_type"] == "trainer"
-            or token["info"]["account_type"] == "user"
-        ):
-            data = {
-                "success": False,
-                "description": "Not allowed to perform this action",
-                "data": {},
-            }
-            return Response(data)
-
-        # get exercise
-        ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
-
-        # check if user wants to get instructions
-        personal_prefs = PersonalExercisePreferences.objects.filter(
-            user=User.objects.get(username=info["username"]), exercise=ex
-        )
-        
-        # default values
-        visible = True
-        speed = 10
-        if personal_prefs.count() != 0:
-            visible = personal_prefs.first().open_instruction_default
-            speed = personal_prefs.first().speed
-
-        data = {
-            "success": True,
-            "description": "Returned data",
-            "data": {
-                "visible": visible,
-                "speed": speed,
-            },
-        }
-
-        return Response(data)
-
-class SetExercisePreferencesView(APIView):
-    def post(self, request, *args, **kwargs):
-        # checking if it contains all arguments
-        check = ErrorHandler.check_arguments(
-            ["Session-Token"],
-            request.headers, 
+        out.append(
             {
-                "id": {
-                    "name": "id",
-                    "required": True
-                }, "visible": {
-                    "name": "visible",
-                    "required": False
-                }, "speed": {
-                    "name": "speed",
-                    "required": False
-                },
-            },
-            request.data
-        )
-        if not check.get("valid"):
-            data = {
-                "success": False,
-                "description": "Missing arguments",
-                "data": check.get("missing"),
+                "exercise_plan_id": a.id,
+                "id": a.exercise.id,
+                "date": a.date,
+                "sets": a.sets,
+                "repeats_per_set": a.repeats_per_set,
+                "done": False,
             }
-            return Response(data)
-        req_data = dict(request.data)
-        token = JwToken.check_session_token(request.headers["Session-Token"])
-        info = token["info"]
-        # check if token is valid
-        if not token["valid"]:
-            data = {"success": False, "description": "Token is not valid", "data": {}}
-            return Response(data)
-
-        # check if requested exercise exists
-        if not Exercise.objects.filter(id=int(req_data["id"])).exists():
-            data = {
-                "success": False,
-                "description": "No exercise with this id exists",
-                "data": {},
-            }
-
-            return Response(data)
-
-        # check if user is allowed to request
-        if not (
-            token["info"]["account_type"] == "trainer"
-            or token["info"]["account_type"] == "user"
-        ):
-            data = {
-                "success": False,
-                "description": "Not allowed to perform this action",
-                "data": {},
-            }
-            return Response(data)
-
-        # get exercise
-        ex: Exercise = Exercise.objects.get(id=int(req_data["id"]))
-        
-        if "visible" in req_data:
-            obj, _ = PersonalExercisePreferences.objects.get_or_create(
-                user=User.objects.get(username=info["username"]), exercise=ex
-            )
-            obj.open_instruction_default = req_data["visible"]
-            obj.save()
-
-        if "speed" in req_data:
-            obj, _ = PersonalExercisePreferences.objects.get_or_create(
-                user=User.objects.get(username=info["username"]), exercise=ex
-            )
-            obj.speed = req_data["speed"]
-            obj.save()
-
-        obj = PersonalExercisePreferences.objects.get(
-            user=User.objects.get(username=info["username"]), exercise=ex
         )
 
-        data = {
-            "success": True,
-            "description": "Changed preferences of instructions",
-            "data": {
-                "visible": obj.open_instruction_default,
-                "speed": obj.speed,
-            },
-        }
+    return JsonResponse({
+        "success": True,
+        "description": "Returned list of Exercises and if its done",
+        "data": {"name": request.user.account.plan.name, "exercises": out},
+    })
 
-        return Response(data)
 
-class GetExerciseListView(APIView):
-    def get(self, request, *args, **kwargs):
-        # checking if it contains all arguments
-        check = ErrorHandler.check_arguments(
-            ["Session-Token"], request.headers, [], request.data
+@login_required_401
+@restrict_roles_403([Account.PLAYER])
+def get_done_exercises_in_month(request):
+    data = get_request_data(request)
+
+    check = ErrorHandler.check_arguments(
+        ["month", "year"], data
+    )
+    if not check.get("valid"):
+        return check.get("response")
+
+    if (data["month"] < 1) or (data["month"] > 12):
+        return JsonResponse({"success": False, "description": "invalid month", "data": {}})
+
+    maybedone = ExerciseExecution.objects.filter(
+        user=request.user,
+        date__range=(
+            make_aware(datetime.datetime(
+                data["year"], data["month"], 1, 0, 0, 0)),
+            make_aware(datetime.datetime(
+                data["year"], data["month"], 31, 23, 59, 59))
         )
-        if not check.get("valid"):
-            data = {
-                "success": False,
-                "description": "Missing arguments",
-                "data": check.get("missing"),
+    )
+
+    done = []
+    for d in maybedone:
+        stats = SetStats.objects.filter(exercise=d)
+        if stats.count() == d.exercise.sets:
+            done.append(d)
+
+    # list of all exercises to done
+    all = ExerciseInPlan.objects.filter(plan=request.user.account.plan)
+    out = []
+    for a in all:
+        done_found = False
+        for d in done:
+            if done_found:
+                continue
+            if a.id == d.exercise.id:
+                out.append(
+                    {
+                        "exercise_plan_id": a.id,
+                        "id": a.exercise.id,
+                        "date": a.date,
+                        "sets": a.sets,
+                        "repeats_per_set": a.repeats_per_set,
+                        "done": True,
+                    }
+                )
+                done_found = True
+                break
+        if done_found:
+            continue
+
+        out.append(
+            {
+                "exercise_plan_id": a.id,
+                "id": a.exercise.id,
+                "date": a.date,
+                "sets": a.sets,
+                "repeats_per_set": a.repeats_per_set,
+                "done": False,
             }
-            return Response(data)
-        token = JwToken.check_session_token(request.headers["Session-Token"])
-        # check if token is valid
-        if not token["valid"]:
-            data = {"success": False, "description": "Token is not valid", "data": {}}
-            return Response(data)
-
-        info = token["info"]
-        # only trainers can request all exercises
-        if not info["account_type"] == "trainer":
-            data = {
-                "success": False,
-                "description": "you are not allow to request all exercises",
-                "data": {},
-            }
-            return Response(data)
-
-        # get all exercises as list
-        exercises = Exercise.objects.all()
-        exs_res = []
-        # get all ids as list
-        for ex in exercises:
-            exs_res.append({"id": ex.id, "title": ex.title})
-
-        data = {
-            "success": True,
-            "description": "returning all exercises",
-            "data": {"exercises": exs_res},
-        }
-
-        return Response(data)
-
-
-class GetDoneExercisesView(APIView):
-    def get(self, request, *args, **kwargs):
-        # checking if it contains all arguments
-        check = ErrorHandler.check_arguments(
-            ["Session-Token"], request.headers, [], request.data
         )
-        if not check.get("valid"):
-            data = {
-                "success": False,
-                "description": "Missing arguments",
-                "data": check.get("missing"),
-            }
-            return Response(data)
-        # check session token
-        token = JwToken.check_session_token(request.headers["Session-Token"])
-        if not token["valid"]:
-            data = {"success": False, "description": "Token is not valid", "data": {}}
-            return Response(data)
 
-        info = token["info"]
-        if not User.objects.filter(username=info["username"]).exists():
-            data = {"success": False, "description": "Non existing user", "data": {}}
-            return Response(data)
-        user: User = User.objects.get(username=info["username"])
-
-        if user.plan is None:
-            data = {
-                "success": False,
-                "description": "User has no plan assigned",
-                "data": {},
-            }
-            return Response(data)
-
-        # create data in form of get plan
-        data = ExerciseHandler.get_done(user=user)
-        return Response(data)
-
-    def post(self, request, *args, **kwargs):
-        # checking if it contains all arguments
-        check = ErrorHandler.check_arguments(
-            ["Session-Token"], request.headers, ["user"], request.data
-        )
-        if not check.get("valid"):
-            data = {
-                "success": False,
-                "description": "Missing arguments",
-                "data": check.get("missing"),
-            }
-            return Response(data)
-        req_data = dict(request.data)
-        # check session token
-        token = JwToken.check_session_token(request.headers["Session-Token"])
-        if not token["valid"]:
-            data = {"success": False, "description": "Token is not valid", "data": {}}
-            return Response(data)
-
-        # security: only trainer and admin can access other users data
-        if not (token["info"]["account_type"] in ["trainer"]):
-            data = {
-                "success": False,
-                "description": "type of account is not allowed to access other users data",
-                "data": {},
-            }
-            return Response(data)
-
-        if not User.objects.filter(username=req_data["user"]).exists():
-            data = {"success": False, "description": "Not a user", "data": {}}
-            return Response(data)
-        user: User = User.objects.get(username=req_data["user"])
-        data = ExerciseHandler.get_done(user=user)
-        return Response(data)
-
-
-class GetDoneExercisesOfMonthView(APIView):
-    def post(self, request, *args, **kwargs):
-        # checking if it contains all arguments
-        check = ErrorHandler.check_arguments(
-            ["Session-Token"], request.headers, ["month", "year"], request.data
-        )
-        if not check.get("valid"):
-            data = {
-                "success": False,
-                "description": "Missing arguments",
-                "data": check.get("missing"),
-            }
-            return Response(data)
-        req_data = dict(request.data)
-        # check session token
-        token = JwToken.check_session_token(request.headers["Session-Token"])
-        if not token["valid"]:
-            data = {"success": False, "description": "Token is not valid", "data": {}}
-            return Response(data)
-        info = token["info"]
-        if info["account_type"] == "user":
-            user: User = User.objects.get(username=info["username"])
-        else:
-            data = {"success": False, "description": "Not a user", "data": {}}
-            return Response(data)
-        if not DateHandler.valid_month(month=req_data["month"]):
-            data = {"success": False, "description": "invalid month", "data": {}}
-            return Response(data)
-        done = ExerciseHandler.get_done_exercises_of_month(
-            int(req_data["month"]), int(req_data["year"]), user
-        )
-        data = {
-            "success": True,
-            "description": "Returning exercises done in this month",
-            "data": {"done": done},
-        }
-        return Response(data)
+    return JsonResponse({
+        "success": True,
+        "description": "Returning exercises done in this month",
+        "data": {"done": out},
+    })

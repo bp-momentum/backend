@@ -16,193 +16,68 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from .Views.exerciseviews import (
-    GetDoneExercisesOfMonthView,
-    GetDoneExercisesView,
-    GetExercisePreferencesView,
-    SetExercisePreferencesView,
-    GetExerciseListView,
-    GetExerciseView,
-)
-from .Views.leaderboardviews import ListLeaderboardView
-from .Views.userviews import (
-    AuthView,
-    ChangeAvatarView,
-    ChangeLanguageView,
-    ChangeMotivationView,
-    ChangePasswordView,
-    ChangeTrainerAcademiaView,
-    ChangeTrainerTelephoneView,
-    ChangeUsernameView,
-    DeleteAccountView,
-    DeleteTrainerView,
-    DeleteUserView,
-    GetInvitedView,
-    GetLanguageView,
-    GetListOfUsers,
-    GetPasswordResetEmailView,
-    GetProfileView,
-    GetStreakView,
-    GetTrainerContactView,
-    GetTrainersView,
-    GetUserLevelView,
-    GetUsersOfTrainerView,
-    InvalidateInviteView,
-    LoginView,
-    LogoutAllDevicesView,
-    RegisterView,
-    CreateUserView,
-    SearchUserView,
-    SetPasswordResetEmailView,
-    SetTrainerLocationView,
-)
-from .Views.planviews import (
-    AddPlanToUserView,
-    CreatePlanView,
-    DeletePlanView,
-    GetAllPlansView,
-    GetPlanOfUser,
-    ShowPlanView,
-)
-from .Views.friendviews import (
-    AcceptRequestView,
-    AddFriendView,
-    DeclineRequestView,
-    DeleteFriendView,
-    GetMyFriendsView,
-    GetPendingRequestView,
-    GetProfileOfFriendView,
-    GetRequestView,
-)
-from .Views.achievementviews import (
-    GetAchievementsView,
-    GetMedals,
-    ReloadAfterExerciseView,
-    ReloadFriendAchievementView,
-)
-from .Views.ratingview import SendFeedbackView
+from .Views import userviews
+from .Views import exerciseviews
+from .Views import planviews
+from .Views import ratingview
 
 urlpatterns = [
     # user
     path("admin/", admin.site.urls),
-    path("api/createuser", CreateUserView.as_view(), name="createNewUser"),
-    path("api/register", RegisterView.as_view(), name="register"),
-    path("api/login", LoginView.as_view(), name="login"),
-    path("api/auth", AuthView.as_view(), name="authenticateWithToken"),
-    path("api/logoutdevices", LogoutAllDevicesView.as_view(), name="logoutAllDevices"),
-    path("api/changelanguage", ChangeLanguageView.as_view(), name="changeLanguage"),
-    path("api/getlanguage", GetLanguageView.as_view(), name="getLanguage"),
-    path("api/deleteaccount", DeleteAccountView.as_view(), name="deleteAccount"),
-    path(
-        "api/gettrainersuser", GetUsersOfTrainerView.as_view(), name="getUsersOfTrainer"
-    ),
-    path("api/gettrainers", GetTrainersView.as_view(), name="getTrainers"),
-    path("api/deletetrainer", DeleteTrainerView.as_view(), name="deleteTrainer"),
-    path("api/deleteuser", DeleteUserView.as_view(), name="deleteUser"),
-    path("api/getuserlevel", GetUserLevelView.as_view(), name="GetUserLevel"),
-    path("api/getinvited", GetInvitedView.as_view(), name="getInvited"),
-    path(
-        "api/invalidateinvite", InvalidateInviteView.as_view(), name="invalidateInvite"
-    ),
-    path("api/changeusername", ChangeUsernameView.as_view(), name="changeUsername"),
-    path("api/changepassword", ChangePasswordView.as_view(), name="changePassword"),
-    path(
-        "api/getresetpasswordemail",
-        GetPasswordResetEmailView.as_view(),
-        name="getResetEmail",
-    ),
-    path(
-        "api/resetpassword", SetPasswordResetEmailView.as_view(), name="resetPassword"
-    ),
-    path("api/changeavatar", ChangeAvatarView.as_view(), name="changeAvatar"),
-    path(
-        "api/changemotivation", ChangeMotivationView.as_view(), name="changeMotivation"
-    ),
-    path("api/getprofile", GetProfileView.as_view(), name="getProfile"),
-    path(
-        "api/gettrainercontact",
-        GetTrainerContactView.as_view(),
-        name="getTrainerContact",
-    ),
-    path(
-        "api/changelocation",
-        SetTrainerLocationView.as_view(),
-        name="setTrainerLocation",
-    ),
-    path(
-        "api/changetelephone",
-        ChangeTrainerTelephoneView.as_view(),
-        name="setTrainerTelephoneNumber",
-    ),
-    path(
-        "api/changeacademia",
-        ChangeTrainerAcademiaView.as_view(),
-        name="setTrainerAcademia",
-    ),
-    path("api/searchuser", SearchUserView.as_view(), name="searchUser"),
-    path("api/getlistofusers", GetListOfUsers.as_view(), name="getListOfUsers"),
-    path("api/getstreak", GetStreakView.as_view(), name="getStreak"),
+
+    # account
+    path("api/register", userviews.register, name="register"),
+    path("api/createuser", userviews.createUser, name="createNewUser"),
+    path("api/login", userviews.login, name="login"),
+    path("api/checklogin", userviews.checklogin, name="checkLogin"),
+    path("api/logout", userviews.logout, name="logout"),
+    path("api/deleteaccount", userviews.deleteAccount, name="deleteAccount"),
+    path("api/changelanguage", userviews.changeLanguage, name="changeLanguage"),
+    path("api/getlanguage", userviews.getLanguage, name="getLanguage"),
+    path("api/gettrainersuser", userviews.getTrainersUsers,
+         name="getUsersOfTrainer"),
+    path("api/gettrainers", userviews.getTrainers, name="getTrainers"),
+    path("api/deletetrainer", userviews.deleteTrainer, name="deleteTrainer"),
+    path("api/deleteuser", userviews.deleteUser, name="deleteUser"),
+    path("api/getinvited", userviews.getInvited, name="getInvited"),
+    path("api/cancelinvite", userviews.cancelInvite, name="cancelInvite"),
+    path("api/changeusername", userviews.changeUsername, name="changeUsername"),
+    path("api/changepassword", userviews.changePassword, name="changePassword"),
+    path("api/changeavatar", userviews.changeAvatar, name="changeAvatar"),
+    path("api/getprofile", userviews.getProfile, name="getProfile"),
+    path("api/changemotivation", userviews.changeMotivation,
+         name="changeMotivation"),
+    path("api/getresetpasswordemail", userviews.sendPasswordResetEmail,
+         name="sendPasswordResetEmail"),
+    path("api/resetpassword", userviews.resetPassword, name="resetPassword"),
+
     # exercises
-    path("api/getexercise", GetExerciseView.as_view(), name="getExercise"),
-    path("api/setexercisepreferences", SetExercisePreferencesView.as_view(), name="setExercisePreferences"),
-    path("api/getexercisepreferences", GetExercisePreferencesView.as_view(), name="getExercisePreferences"),
-    path("api/getexerciselist", GetExerciseListView.as_view(), name="getExerciseList"),
-    path(
-        "api/getdoneexercises", GetDoneExercisesView.as_view(), name="getdoneExercise"
-    ),
-    path(
-        "api/getdoneexercisesinmonth",
-        GetDoneExercisesOfMonthView.as_view(),
-        name="getDoneExercisesInMonth",
-    ),
+    path("api/getexercise/<int:exercise_id>/",
+         exerciseviews.get_exercise, name="getExercise"),
+    path("api/setexercisepreferences/<int:exercise_id>/",
+         exerciseviews.set_exercise_preferences,
+         name="setExercisePreferences"),
+    path("api/getexercisepreferences/<int:exercise_id>/",
+         exerciseviews.get_exercise_preferences, name="getExercisePreferences"),
+    path("api/getexerciselist", exerciseviews.get_all_exercises,
+         name="getExerciseList"),
+    path("api/getdoneexercises", exerciseviews.get_done_exercises,
+         name="getdoneExercise"),
+    path("api/getdoneexercisesinmonth", exerciseviews.get_done_exercises_in_month,
+         name="getDoneExercisesInMonth"),
+
     # plans
-    path("api/createplan", CreatePlanView.as_view(), name="createPlan"),
-    path(
-        "api/addplantouser", AddPlanToUserView.as_view(), name="addExistingPlanToUser"
-    ),
-    path("api/getlistofplans", GetAllPlansView.as_view(), name="getListOfPlans"),
-    path("api/getplan", ShowPlanView.as_view(), name="getPlan"),
-    path("api/requestplanofuser", GetPlanOfUser.as_view(), name="getPlanOfUser"),
-    path("api/deleteplan", DeletePlanView.as_view(), name="deletePlan"),
-    # leaderboard
-    path("api/listleaderboard", ListLeaderboardView.as_view(), name="listLeaderboard"),
-    # achievements
-    path("api/getachievements", GetAchievementsView.as_view(), name="getAchievements"),
-    path(
-        "api/loadfriendachievements",
-        ReloadFriendAchievementView.as_view(),
-        name="loadFriendAchievements",
-    ),
-    path(
-        "api/loadexerciseachievements",
-        ReloadAfterExerciseView.as_view(),
-        name="loadExerciseAchievements",
-    ),
-    path("api/getmedals", GetMedals.as_view(), name="getMedals"),
-    # friends
-    path("api/getfriends", GetMyFriendsView.as_view(), name="getMyFriends"),
-    path(
-        "api/getpendingfriendrequests",
-        GetPendingRequestView.as_view(),
-        name="getPendingFriendRequests",
-    ),
-    path("api/getfriendrequests", GetRequestView.as_view(), name="getFriendRequests"),
-    path("api/addfriend", AddFriendView.as_view(), name="addFriend"),
-    path(
-        "api/acceptfriendrequest",
-        AcceptRequestView.as_view(),
-        name="acceptFriendRequest",
-    ),
-    path(
-        "api/declinefriendrequest",
-        DeclineRequestView.as_view(),
-        name="declineFriendRequest",
-    ),
-    path("api/removefriend", DeleteFriendView.as_view(), name="removeFriend"),
-    path(
-        "api/getprofileoffriend",
-        GetProfileOfFriendView.as_view(),
-        name="getProfileOfFriend",
-    ),
-    path("api/internal/rate", SendFeedbackView.as_view(), name="sendFeedback"),
+    path("api/createplan", planviews.save_plan, name="createPlan"),
+    path("api/addplantouser", planviews.add_plan_to_user,
+         name="addExistingPlanToUser"),
+    path("api/getplan/<int:plan_id>/", planviews.get_plan, name="getPlan"),
+    path("api/getlistofplans", planviews.get_all_plans,
+         name="getListOfPlans"),
+    path("api/requestplanofuser", planviews.get_plan_of_user,
+         name="getPlanOfUser"),
+    path("api/deleteplan/<int:plan_id>",
+         planviews.delete_plan, name="deletePlan"),
+
+    # rating
+    path("api/internal/rate", ratingview.rate, name="sendFeedback"),
 ]
