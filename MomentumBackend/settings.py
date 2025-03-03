@@ -59,9 +59,9 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "Session-Token",
 ]
 
-CORS_ALLOWED_ORIGINS = CONFIGURATION["allowed_origins"]
+CORS_ALLOWED_ORIGINS = CONFIGURATION["allowed_origins"] # *
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True # False
 
 # Application definition
 
@@ -80,9 +80,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
