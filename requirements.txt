@@ -2,6 +2,7 @@ django
 psycopg2-binary
 django-cors-headers
 django-ordered-model
+djangorestframework
 channels[daphne]
 jsonschema
 python-socketio[client]

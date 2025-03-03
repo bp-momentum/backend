@@ -59,9 +59,9 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "Session-Token",
 ]
 
-CORS_ALLOWED_ORIGINS = CONFIGURATION["allowed_origins"]
+CORS_ALLOWED_ORIGINS = CONFIGURATION["allowed_origins"] # *
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True # False
 
 # Application definition
 
