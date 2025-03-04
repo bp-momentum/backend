@@ -30,7 +30,7 @@ def login_required_401(view_func):
         if request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         response = JsonResponse({"success": False, "data": {}})
-        response.status_code = 401
+        response.status_code = 402
         return response
     return _wrapper_view
 
