@@ -27,7 +27,7 @@ def restrict_roles_403(roles: list):
 
 def login_required_401(view_func):
     def _wrapper_view(request, *args, **kwargs):
-        if True: # request.user.is_authenticated:
+        if request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         response = JsonResponse({"success": False, "data": {}})
         response.status_code = 401
