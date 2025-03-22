@@ -1,7 +1,7 @@
 FROM python:latest
 
 RUN apt-get update && \
-    apt-get install -y locales ffmpeg && \
+    apt-get install -y locales ffmpeg sqlite3 && \
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales
 
