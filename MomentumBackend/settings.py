@@ -53,7 +53,7 @@ SECRET_KEY = INTERN_SETTINGS["secret_key"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = CONFIGURATION["debug"]
 
-ALLOWED_HOSTS = CONFIGURATION["allowed_hosts"]
+ALLOWED_HOSTS = ["*"] # CONFIGURATION["allowed_hosts"]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "Session-Token",
