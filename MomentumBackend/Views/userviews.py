@@ -17,18 +17,22 @@ from ..models import Account, Invite
 
 
 def login(request):
+    print("Raw Request Body:", request.body)  # Debugging line
+    print("Request Headers:", request.headers)  # Debugging line
     data = get_request_data(request)
 
     check = ErrorHandler.check_arguments(
         ["username", "password"], data
     )
     if not check.get("valid"):
+        print("Error: Missing username or password")  # Debugging line
         return check.get("response")
 
     # check credentials
     user = authenticate(
         username=data["username"], password=data["password"])
     if user is None:
+        print("Error: Invalid credentials")  # Debugging line
         return JsonResponse({
             "success": False,
             "description": "Data of user is invalid",
