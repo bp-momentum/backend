@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
-
+from django.views.decorators.csrf import csrf_exempt
 from uuid import uuid4
 
 from ..helper.handlers import ErrorHandler
@@ -15,7 +15,7 @@ from ..settings import EMAIL_HOST_USER
 
 from ..models import Account, Invite
 
-
+@csrf_exempt
 def login(request):
     print("Raw Request Body:", request.body)  # Debugging line
     print("Request Headers:", request.headers)  # Debugging line
