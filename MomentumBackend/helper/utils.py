@@ -34,11 +34,23 @@ def login_required_401(view_func):
         return response
     return _wrapper_view
 
-
+# OLD:
+# def get_request_data(request):
+#     if request.method == "GET":
+#         return request.GET
+#     elif request.POST:
+#         return request.POST
+#     else:
+#         return json.loads(request.body)
+# NEW:
 def get_request_data(request):
     if request.method == "GET":
         return request.GET
-    elif request.POST:
-        return request.POST
+    elif request.content_type == "application/json":
+        try:
+            return json.loads(request.body.decode("utf-8"))  # Decode & parse JSON safely
+        except json.JSONDecodeError:
+            print("Error: Invalid JSON format")  # Debugging log
+            return {}  # Return an empty dictionary to avoid breaking
     else:
-        return json.loads(request.body)
+        return request.POST  # Default to form-encoded data if not JSON
